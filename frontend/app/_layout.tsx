@@ -1,5 +1,5 @@
 import { ClerkProvider, useAuth } from "@clerk/clerk-expo";
-import { Slot, useRouter, useSegments } from "expo-router";
+import { Slot, Stack, useRouter, useSegments } from "expo-router";
 import { useEffect } from "react";
 import * as SecureStore from "expo-secure-store";
 
@@ -24,7 +24,12 @@ const InitialLayout = () => {
     }
   }, [isSignedIn]);
 
-  return <Slot />;
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="(profile)" />
+    </Stack>
+  );
 };
 
 const tokenCache = {
