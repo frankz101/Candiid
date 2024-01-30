@@ -1,16 +1,17 @@
-const express = require("express");
-const cors = require("cors");
-require("dotenv").config();
+import express from "express";
+import cors from "cors";
+// require("dotenv").config();
 
+// Express Server Conenction
 const app = express();
 const port = 3001;
 
 app.use(cors());
 app.use(express.json());
 
-// const UserRoutes = require("./routes/UserRoutes.js");
+import UserRoutes from "./routes/UserRoutes.js";
 
-// app.use("/user", UserRoutes);
+app.use("/", UserRoutes);
 
 app.listen(port, () => {
   console.log(`Listening at http://localhost:${port}`);
