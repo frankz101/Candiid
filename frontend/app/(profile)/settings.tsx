@@ -10,11 +10,25 @@ const Settings = () => {
 
   return (
     <SafeAreaView>
-      <BackButton />
-      <Text>Settings</Text>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <BackButton />
+        <Text style={{ fontSize: 24 }}>Settings</Text>
+        <View style={{ width: 32 }} />
+      </View>
       <Pressable
         onPress={() => {
           signOut();
+        }}
+        style={{
+          flexDirection: "row",
+          justifyContent: "center",
+          alignItems: "center",
         }}
       >
         <Text>Logout</Text>

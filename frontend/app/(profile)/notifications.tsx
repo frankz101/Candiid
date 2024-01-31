@@ -9,8 +9,17 @@ const Notifications = () => {
 
   return (
     <SafeAreaView>
-      <BackButton />
-      <Text>Notifications</Text>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <BackButton />
+        <Text style={{ fontSize: 24 }}>Notifications</Text>
+        <View style={{ width: 32 }} />
+      </View>
     </SafeAreaView>
   );
 };
