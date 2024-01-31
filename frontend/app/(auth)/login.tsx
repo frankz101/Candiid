@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import React from "react";
 import { useWarmUpBrowser } from "@/hooks/useWarmUpBrowser";
 import { useOAuth } from "@clerk/clerk-expo";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 enum Strategy {
   Google = "oauth_google",
@@ -32,11 +33,11 @@ const Login = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Pressable onPress={() => onSelectAuth(Strategy.Google)}>
         <Text>Login with Google</Text>
       </Pressable>
-    </View>
+    </SafeAreaView>
   );
 };
 

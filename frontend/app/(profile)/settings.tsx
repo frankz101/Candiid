@@ -1,14 +1,16 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView, Pressable, StyleSheet, Text, View } from "react-native";
 import React from "react";
 import { useClerk } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
+import BackButton from "@/components/utils/backButton";
 
 const Settings = () => {
   const { signOut } = useClerk();
   const router = useRouter();
 
   return (
-    <View>
+    <SafeAreaView>
+      <BackButton />
       <Text>Settings</Text>
       <Pressable
         onPress={() => {
@@ -17,7 +19,7 @@ const Settings = () => {
       >
         <Text>Logout</Text>
       </Pressable>
-    </View>
+    </SafeAreaView>
   );
 };
 
