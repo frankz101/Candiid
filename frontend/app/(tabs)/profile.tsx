@@ -22,15 +22,23 @@ const Profile = () => {
         </View>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Pressable
-            onPress={() => router.push("/(profile)/notifications")}
+            onPress={() => router.push("/(profile)/NotificationsScreen")}
             style={{ paddingRight: 10 }}
           >
             <Ionicons name="people" size={32} />
           </Pressable>
-          <Pressable onPress={() => router.push("/(profile)/settings")}>
+          <Pressable onPress={() => router.push("/(profile)/SettingsScreen")}>
             <Ionicons name="menu" size={32} />
           </Pressable>
         </View>
+      </View>
+
+      <View>
+        <Pressable
+          onPress={() => router.push("/(hangout)/CreateHangoutScreen")}
+        >
+          <Ionicons name="add-circle-outline" size={64} />
+        </Pressable>
       </View>
     </SafeAreaView>
   );
