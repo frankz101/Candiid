@@ -1,9 +1,9 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import React, { useEffect, useState } from "react";
 import { useWarmUpBrowser } from "@/hooks/useWarmUpBrowser";
-import { useOAuth } from "@clerk/clerk-expo";
+import { useOAuth, useUser } from "@clerk/clerk-expo";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useHandleAuth } from "@/hooks/useHandleAuth";
+import axios from "axios";
 
 enum Strategy {
   Google = "oauth_google",
@@ -12,9 +12,29 @@ enum Strategy {
 
 const Login = () => {
   useWarmUpBrowser();
+  const { isLoaded, user } = useUser();
+  const [userSignedIn, setUserSignedIn] = useState(false);
 
   const { startOAuthFlow: googleAuth } = useOAuth({ strategy: "oauth_google" });
   const { startOAuthFlow: appleAuth } = useOAuth({ strategy: "oauth_apple" });
+
+  useEffect(() => {
+    if (userSignedIn && isLoaded && user) {
+      const userData = {
+        userId: user.id,
+        email: user.primaryEmailAddress?.emailAddress,
+      };
+
+      axios
+        .post("http://localhost:3001/users", userData)
+        .then((response) => {
+          console.log(response.data.message);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    }
+  }, [userSignedIn, isLoaded, user]);
 
   const onSelectAuth = async (strategy: Strategy) => {
     const selectedAuth = {
@@ -27,6 +47,7 @@ const Login = () => {
         await selectedAuth();
       if (createdSessionId) {
         setActive?.({ session: createdSessionId });
+        setUserSignedIn(true);
       }
     } catch (err) {
       console.error("OAuth Error: ", err);

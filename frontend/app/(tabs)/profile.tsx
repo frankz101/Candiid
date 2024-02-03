@@ -2,12 +2,9 @@ import { SafeAreaView, Pressable, StyleSheet, Text, View } from "react-native";
 import React from "react";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useHandleAuth } from "@/hooks/useHandleAuth";
 
 const Profile = () => {
   const router = useRouter();
-
-  useHandleAuth();
 
   return (
     <SafeAreaView>
