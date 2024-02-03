@@ -1,8 +1,9 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useWarmUpBrowser } from "@/hooks/useWarmUpBrowser";
 import { useOAuth } from "@clerk/clerk-expo";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useHandleAuth } from "@/hooks/useHandleAuth";
 
 enum Strategy {
   Google = "oauth_google",
