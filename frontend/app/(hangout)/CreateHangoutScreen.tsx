@@ -96,29 +96,6 @@ const CreateHangoutScreen = () => {
           </Pressable>
         </View>
       </View>
-      {/* <View></View>
-      <View style={styles.centerRow}>
-        <TextInput
-          placeholder="what's your plan?"
-          onChangeText={(input) => setHangoutDetails(input)} //CONSIDER CHANGING THIS TO ONSUBMITEDITING
-          multiline={true}
-          maxLength={90}
-          value={hangoutDetails}
-          style={{}}
-        />
-      </View>
-      <View style={styles.centerRow}>
-        <Text>Invite your Friends</Text>
-      </View>
-      <SearchBar
-        clicked={clicked}
-        searchPhrase={searchPhrase}
-        setSearchPhrase={setSearchPhrase}
-        setClicked={setClicked}
-      />
-
-      <Text>Create your hangout</Text>
-      <Ionicons name="arrow-forward" size={32} onPress={handleHangoutSubmit} /> */}
     </SafeAreaView>
   );
 };
