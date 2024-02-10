@@ -18,11 +18,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import axios from "axios";
 import RNFetchBlob from "rn-fetch-blob";
 import { useUser } from "@clerk/clerk-expo";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 
 const CameraScreen = () => {
   const { hasPermission, requestPermission } = useCameraPermission();
   const { isLoaded, user } = useUser();
+  const { id } = useLocalSearchParams();
   const router = useRouter();
 
   useEffect(() => {
@@ -65,7 +66,7 @@ const CameraScreen = () => {
 
         RNFetchBlob.fetch(
           "POST",
-          `${process.env.EXPO_PUBLIC_API_URL}/hangout/ypcfaE1rUPnAhI7BxKc3/photo`, //replace the hangout ID
+          `${process.env.EXPO_PUBLIC_API_URL}/hangout/${id}/photo`, //replace the hangout ID
           {
             "Content-Type": "multipart/form-data",
           },

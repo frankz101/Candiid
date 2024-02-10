@@ -2,6 +2,8 @@ import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import {
   addPhotoToHangoutInDatabase,
   createHangoutInDatabase,
+  fetchHangoutFromDatabase,
+  fetchRecentHangoutsFromDatabase,
 } from "../db/HangoutDatabase.js";
 import { storage } from "../firebase.js";
 
@@ -40,4 +42,15 @@ const addPhotoToHangout = async (hangoutId, photoData) => {
   }
 };
 
-export { createHangout, addPhotoToHangout };
+const fetchRecentHangouts = async (userId) => {
+  const result = await fetchRecentHangoutsFromDatabase(userId);
+  return result;
+};
+
+const fetchHangout = async (hangoutId) => {
+  console.log(hangoutId);
+  const result = await fetchHangoutFromDatabase(hangoutId);
+  return result;
+};
+
+export { createHangout, addPhotoToHangout, fetchRecentHangouts, fetchHangout };

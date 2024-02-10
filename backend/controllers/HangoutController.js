@@ -1,6 +1,8 @@
 import {
   addPhotoToHangout,
   createHangout,
+  fetchHangout,
+  fetchRecentHangouts,
 } from "../services/HangoutService.js";
 
 const postHangout = async (req, res) => {
@@ -30,4 +32,28 @@ const postPhotoToHangout = async (req, res) => {
   }
 };
 
-export { postHangout, postPhotoToHangout };
+const getRecentHangouts = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    const result = await fetchRecentHangouts(userId);
+    res.status(201).json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send({ message: err.message });
+  }
+};
+
+const getHangout = async (req, res) => {
+  try {
+    const hangoutId = req.params.hangoutId;
+
+    const result = await fetchHangout(hangoutId);
+    res.status(201).json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export { postHangout, postPhotoToHangout, getRecentHangouts, getHangout };
