@@ -1,4 +1,5 @@
 import { ClerkProvider, useAuth } from "@clerk/clerk-expo";
+import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { Slot, Stack, useRouter, useSegments } from "expo-router";
 import { useEffect } from "react";
 import * as SecureStore from "expo-secure-store";
@@ -28,6 +29,7 @@ const InitialLayout = () => {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="(profile)" options={{ headerShown: false }} />
+      <Stack.Screen name="(hangout)" options={{ headerShown: false }} />
     </Stack>
   );
 };
@@ -50,12 +52,15 @@ const tokenCache = {
 };
 
 const RootLayout = () => {
+  const queryClient = new QueryClient();
   return (
     <ClerkProvider
       publishableKey={CLERK_PUBLISHABLE_KEY!}
       tokenCache={tokenCache}
     >
-      <InitialLayout />
+      <QueryClientProvider client={queryClient}>
+        <InitialLayout />
+      </QueryClientProvider>
     </ClerkProvider>
   );
 };

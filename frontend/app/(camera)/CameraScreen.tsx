@@ -65,7 +65,7 @@ const CameraScreen = () => {
 
         RNFetchBlob.fetch(
           "POST",
-          `${process.env.EXPO_PUBLIC_API_URL}/hangout/t2pFaQs0d8loD3pFs8oU/photo`, //replace the hangout ID
+          `${process.env.EXPO_PUBLIC_API_URL}/hangout/ypcfaE1rUPnAhI7BxKc3/photo`, //replace the hangout ID
           {
             "Content-Type": "multipart/form-data",
           },
