@@ -1,8 +1,6 @@
 import express from "express";
 import cors from "cors";
-// require("dotenv").config();
 
-// Express Server Conenction
 const app = express();
 const port = 3001;
 
@@ -15,6 +13,6 @@ import HangoutRoutes from "./routes/HangoutRoutes.js";
 app.use("/", UserRoutes);
 app.use("/", HangoutRoutes);
 
-app.listen(port, () => {
-  console.log(`Listening at http://localhost:${port}`);
+app.listen(port, "0.0.0.0", () => {
+  console.log(`Listening on port ${port}`);
 });

@@ -4,10 +4,11 @@
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
-    "test": "jest --watchAll"
+    "test": "jest --watchAll",
+    "build:ios": "react-native bundle --entry-file='./(tabs)/index.tsx' --bundle-output='./ios/main.jsbundle' --dev=false --platform='ios'"
   },
   "jest": {
     "preset": "jest-expo"
@@ -15,14 +16,15 @@
   "dependencies": {
     "@clerk/clerk-expo": "^0.20.1",
     "@expo/vector-icons": "^14.0.0",
+    "@react-native-community/hooks": "^3.0.0",
     "@react-navigation/native": "^6.0.2",
     "axios": "^1.6.7",
-    "expo": "~50.0.4",
+    "expo": "~50.0.6",
     "expo-application": "^5.8.3",
     "expo-auth-session": "^5.4.0",
     "expo-font": "~11.10.2",
     "expo-linking": "~6.2.2",
-    "expo-router": "~3.4.6",
+    "expo-router": "~3.4.7",
     "expo-secure-store": "~12.8.1",
     "expo-splash-screen": "~0.26.4",
     "expo-status-bar": "~1.11.1",
@@ -30,16 +32,19 @@
     "expo-web-browser": "~12.8.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "react-native": "0.73.2",
+    "react-native": "0.73.4",
     "react-native-safe-area-context": "4.8.2",
     "react-native-screens": "~3.29.0",
-    "react-native-web": "~0.19.6"
+    "react-native-vision-camera": "^3.8.2",
+    "react-native-web": "~0.19.6",
+    "rn-fetch-blob": "^0.12.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
+    "@react-native/metro-config": "^0.73.5",
     "@types/react": "~18.2.45",
     "jest": "^29.2.1",
-    "jest-expo": "~50.0.1",
+    "jest-expo": "~50.0.2",
     "react-test-renderer": "18.2.0",
     "typescript": "^5.1.3"
   },

@@ -30,9 +30,9 @@ const CreateHangoutScreen = () => {
     };
 
     axios
-      .post("http://localhost:3001/hangout", hangoutData)
+      .post(`${process.env.EXPO_PUBLIC_API_URL}/hangout`, hangoutData)
       .then((response: AxiosResponse<any>) => {
-        console.log("Hangout created with id: ", response.data.hangoutId);
+        console.log(response.data);
       })
       .catch((error) => {
         console.error(error);
@@ -60,7 +60,7 @@ const CreateHangoutScreen = () => {
           <TextInput
             placeholder="what's your plan?"
             onChangeText={(input) => setHangoutDetails(input)} //CONSIDER CHANGING THIS TO ONSUBMITEDITING
-            multiline={true}
+            multiline={false} //change back to true later
             maxLength={90}
             value={hangoutDetails}
           />

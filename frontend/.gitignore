@@ -8,6 +8,10 @@ node_modules/
 dist/
 web-build/
 
+# Mobile Builds
+/ios/
+/android/
+
 # DOTENV
 .env
 
