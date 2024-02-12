@@ -70,9 +70,6 @@ const Profile = () => {
         >
           <Ionicons name="add-circle-outline" size={64} />
         </Pressable>
-        <Pressable onPress={() => router.push("/(camera)/CameraScreen")}>
-          <Ionicons name="camera" size={64} />
-        </Pressable>
       </View>
     </SafeAreaView>
   );

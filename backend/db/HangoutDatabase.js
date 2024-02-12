@@ -30,7 +30,7 @@ const createHangoutInDatabase = async (hangout) => {
     //   recentHangouts: arrayUnion(docRef.id),
     // });
 
-    return "Hangout created with id: " + docRef.id;
+    return docRef.id;
   } catch (error) {
     console.error("Error adding hangout to database: ", error);
     throw new Error("Failed to add hangout");
@@ -44,7 +44,7 @@ const addPhotoToHangoutInDatabase = async (hangoutId, fileData) => {
     await updateDoc(hangoutDocRef, {
       sharedAlbum: arrayUnion(fileData),
     });
-    return "Photo added to: " + hangoutId;
+    return hangoutId;
   } catch (error) {
     console.error("Error updating document: ", error);
     throw new Error("Failed to add photo to hangout.");

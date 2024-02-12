@@ -7,6 +7,7 @@ const Layout = () => {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="CreateHangoutScreen" />
       <Stack.Screen name="[hangoutId]" />
+      <Stack.Screen name="PreviewPost" />
     </Stack>
   );
 };

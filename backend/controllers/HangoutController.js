@@ -19,8 +19,8 @@ const postPhotoToHangout = async (req, res) => {
     const hangoutId = req.params.id;
 
     const photoData = {
-      ...req.body, // Spread any additional data you have in req.body
-      photoFile: req.file.buffer, // Include the photo buffer under the expected property name
+      ...req.body,
+      photoFile: req.file.buffer,
       originalFileName: req.file.originalname,
     };
 
@@ -37,7 +37,7 @@ const getRecentHangouts = async (req, res) => {
     const userId = req.params.userId;
 
     const result = await fetchRecentHangouts(userId);
-    res.status(201).json(result);
+    res.status(200).json(result);
   } catch (err) {
     console.log(err);
     res.status(500).send({ message: err.message });
@@ -49,7 +49,7 @@ const getHangout = async (req, res) => {
     const hangoutId = req.params.hangoutId;
 
     const result = await fetchHangout(hangoutId);
-    res.status(201).json(result);
+    res.status(200).json(result);
   } catch (err) {
     console.log(err);
     res.status(500).send({ message: err.message });
