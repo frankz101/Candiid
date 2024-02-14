@@ -1,15 +1,17 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import React from "react";
 import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
+import { useUser } from "@clerk/clerk-expo";
 
 const PreviewPost = () => {
+  const { user } = useUser();
   const { hangoutId, photoIndexes } = useLocalSearchParams();
+  const router = useRouter();
 
-  console.log(photoIndexes);
   const fetchHangout = async () => {
     return axios
       .get(`${process.env.EXPO_PUBLIC_API_URL}/hangout/${hangoutId}`)
@@ -31,6 +33,25 @@ const PreviewPost = () => {
     (index: number) => hangoutData.sharedAlbum[index]
   );
 
+  const handlePost = async () => {
+    const postData = {
+      userId: user?.id,
+      hangoutId: hangoutId,
+      photoUrls: selectedPhotos,
+    };
+
+    axios
+      .post(`${process.env.EXPO_PUBLIC_API_URL}/posts`, postData)
+      .then((response: AxiosResponse<any>) => {
+        console.log(response.data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
+    router.push("/(tabs)/profile");
+  };
+
   return (
     <SafeAreaView>
       <Text>PreviewPost</Text>
@@ -51,6 +72,9 @@ const PreviewPost = () => {
             )
           );
         })}
+      <Pressable onPress={handlePost}>
+        <Text>Post Photo</Text>
+      </Pressable>
     </SafeAreaView>
   );
 };
