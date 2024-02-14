@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View, Image, Pressable } from "react-native";
+import { StyleSheet, Text, View, Pressable } from "react-native";
+import { Image } from "expo-image";
 import React, { useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -28,16 +29,18 @@ const Hangout = () => {
 
   const isAlbumEmpty = hangoutData?.sharedAlbum?.length === 0;
 
-  const handleImageSelect = async (photoUrl: any) => {
+  const handleImageSelect = async (index: number) => {
     setSelectedPhotos((currentSelected: any) => {
-      if (currentSelected.includes(photoUrl)) {
-        return currentSelected.filter((url: any) => url !== photoUrl);
+      if (currentSelected.includes(index)) {
+        return currentSelected.filter((num: number) => num !== index);
       } else if (currentSelected.length < 10) {
-        return [...currentSelected, photoUrl];
+        return [...currentSelected, index];
       }
       return currentSelected;
     });
   };
+
+  console.log(selectedPhotos);
 
   return (
     <SafeAreaView>
@@ -56,10 +59,7 @@ const Hangout = () => {
         <Text>Empty Album</Text>
       ) : (
         hangoutData?.sharedAlbum?.map((photo: any, index: number) => (
-          <Pressable
-            key={index}
-            onPress={() => handleImageSelect(photo.fileUrl)}
-          >
+          <Pressable key={index} onPress={() => handleImageSelect(index)}>
             <Image
               source={{ uri: photo.fileUrl }}
               style={{
@@ -75,7 +75,10 @@ const Hangout = () => {
         onPress={() => {
           router.push({
             pathname: "/(hangout)/PreviewPost",
-            params: { selectedPhotos },
+            params: {
+              hangoutId: hangoutId,
+              photoIndexes: selectedPhotos,
+            },
           });
         }}
       >
