@@ -1,5 +1,6 @@
 import {
   ActivityIndicator,
+  Dimensions,
   Pressable,
   StyleSheet,
   Text,
@@ -10,6 +11,7 @@ import {
   useCameraPermission,
   useCameraDevice,
   Camera,
+  useCameraFormat,
 } from "react-native-vision-camera";
 import { useIsFocused } from "@react-navigation/native";
 import { useAppState } from "@react-native-community/hooks";
@@ -19,6 +21,9 @@ import axios from "axios";
 import RNFetchBlob from "rn-fetch-blob";
 import { useUser } from "@clerk/clerk-expo";
 import { useLocalSearchParams, useRouter } from "expo-router";
+
+const screenWidth = Dimensions.get("window").width;
+const screenHeight = screenWidth * (5 / 4);
 
 const CameraScreen = () => {
   const { hasPermission, requestPermission } = useCameraPermission();
@@ -49,6 +54,11 @@ const CameraScreen = () => {
   const device = useCameraDevice("front");
 
   if (device == null) return <Text>No camera found</Text>;
+
+  // const format = useCameraFormat(device, [
+  //   { photoAspectRatio: 4 / 5 },
+  //   { photoResolution: "max" },
+  // ]);
 
   const isFocused = useIsFocused();
   const appState = useAppState();
@@ -101,9 +111,10 @@ const CameraScreen = () => {
         <Camera
           ref={camera}
           device={device}
+          // format={format}
           isActive={isActive}
           photo={true}
-          style={StyleSheet.absoluteFill}
+          style={styles.cameraPreview}
         />
       </View>
       <Pressable
@@ -118,4 +129,10 @@ const CameraScreen = () => {
 
 export default CameraScreen;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  cameraPreview: {
+    width: screenWidth,
+    height: screenHeight,
+    alignSelf: "center",
+  },
+});

@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import axios, { AxiosResponse } from "axios";
 import { useUser } from "@clerk/clerk-expo";
 import PhotoSquare from "@/components/photo/PhotoSquare";
+import PostCarousel from "@/components/photo/PostCarousel";
 
 const PreviewPost = () => {
   const { user } = useUser();
@@ -54,13 +55,22 @@ const PreviewPost = () => {
   };
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={styles.container}>
       <Text>PreviewPost</Text>
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <PostCarousel images={selectedPhotos} />
+      </View>
 
-      {selectedPhotos.length > 0 &&
+      {/* {selectedPhotos.length > 0 &&
         selectedPhotos.map((photo: any, index: number) => {
           return photo && <PhotoSquare key={index} imageUrl={photo.fileUrl} />;
-        })}
+        })} */}
       <Pressable onPress={handlePost}>
         <Text>Post Photo</Text>
       </Pressable>
@@ -70,4 +80,10 @@ const PreviewPost = () => {
 
 export default PreviewPost;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    // alignItems: "center",
+  },
+});

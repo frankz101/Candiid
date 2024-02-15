@@ -45,7 +45,6 @@ const Hangout = () => {
 
   interface Photo {
     fileUrl: string;
-    // Add other properties of the photo if needed
   }
 
   const renderPhoto = ({ item, index }: { item: Photo; index: number }) => (
