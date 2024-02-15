@@ -6,6 +6,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import axios, { AxiosResponse } from "axios";
 import { useUser } from "@clerk/clerk-expo";
+import PhotoSquare from "@/components/photo/PhotoSquare";
 
 const PreviewPost = () => {
   const { user } = useUser();
@@ -58,19 +59,7 @@ const PreviewPost = () => {
 
       {selectedPhotos.length > 0 &&
         selectedPhotos.map((photo: any, index: number) => {
-          return (
-            photo && (
-              <Image
-                key={index}
-                source={{ uri: photo.fileUrl }}
-                style={{
-                  width: "100%",
-                  height: 200,
-                  resizeMode: "contain",
-                }}
-              />
-            )
-          );
+          return photo && <PhotoSquare key={index} imageUrl={photo.fileUrl} />;
         })}
       <Pressable onPress={handlePost}>
         <Text>Post Photo</Text>

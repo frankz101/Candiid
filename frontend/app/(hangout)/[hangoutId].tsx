@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Pressable } from "react-native";
+import { StyleSheet, Text, View, Pressable, FlatList } from "react-native";
 import { Image } from "expo-image";
 import React, { useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -6,10 +6,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { Ionicons } from "@expo/vector-icons";
+import PhotoSquare from "@/components/photo/PhotoSquare";
 
 const Hangout = () => {
   const { hangoutId } = useLocalSearchParams();
-  const [selectedPhotos, setSelectedPhotos] = useState([]);
+  const [selectedPhotos, setSelectedPhotos] = useState<number[]>([]);
   const router = useRouter();
 
   const fetchHangout = async () => {
@@ -42,6 +43,19 @@ const Hangout = () => {
 
   console.log(selectedPhotos);
 
+  interface Photo {
+    fileUrl: string;
+    // Add other properties of the photo if needed
+  }
+
+  const renderPhoto = ({ item, index }: { item: Photo; index: number }) => (
+    <PhotoSquare
+      imageUrl={item.fileUrl}
+      onPhotoSelect={() => handleImageSelect(index)}
+      isSelected={selectedPhotos.includes(index)}
+    />
+  );
+
   return (
     <SafeAreaView>
       <Text>{hangoutId}</Text>
@@ -55,22 +69,24 @@ const Hangout = () => {
       >
         <Ionicons name="camera" size={64} />
       </Pressable>
-      {isAlbumEmpty ? (
-        <Text>Empty Album</Text>
-      ) : (
-        hangoutData?.sharedAlbum?.map((photo: any, index: number) => (
-          <Pressable key={index} onPress={() => handleImageSelect(index)}>
-            <Image
-              source={{ uri: photo.fileUrl }}
-              style={{
-                width: "100%",
-                height: 200,
-                resizeMode: "contain",
-              }}
-            />
-          </Pressable>
-        ))
-      )}
+      <View>
+        {isAlbumEmpty ? (
+          <Text>Empty Album</Text>
+        ) : (
+          <FlatList
+            data={hangoutData.sharedAlbum}
+            renderItem={renderPhoto}
+            keyExtractor={(item, index) => index.toString()}
+            numColumns={3}
+            // style={{ backgroundColor: "grey" }}
+            contentContainerStyle={{
+              justifyContent: "center",
+              flexGrow: 1,
+            }}
+          />
+        )}
+      </View>
+
       <Pressable
         onPress={() => {
           router.push({
@@ -90,4 +106,11 @@ const Hangout = () => {
 
 export default Hangout;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  gridContainer: {
+    // flexDirection: "row",
+    // flexWrap: "wrap",
+    // justifyContent: "space-between", // This will ensure even spacing between the images
+    // padding: 8, // Add padding around the whole grid
+  },
+});
