@@ -18,6 +18,7 @@
       "infoPlist": {
         "NSCameraUsageDescription": "$(PRODUCT_NAME) needs access to your Camera.",
         "NSMicrophoneUsageDescription": "$(PRODUCT_NAME) needs access to your Microphone.",
+        "NSPhotoLibraryUsageDescription": "$(PRODUCT_NAME) needs access to your Photos.",
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true
         }

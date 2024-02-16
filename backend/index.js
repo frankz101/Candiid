@@ -15,6 +15,10 @@ app.use("/", UserRoutes);
 app.use("/", HangoutRoutes);
 app.use("/", PostRoutes);
 
-app.listen(port, "0.0.0.0", () => {
+// app.listen(port, "0.0.0.0", () => {
+//   console.log(`Listening on port ${port}`);
+// });
+
+app.listen(port, () => {
   console.log(`Listening on port ${port}`);
 });

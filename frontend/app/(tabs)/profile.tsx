@@ -4,6 +4,7 @@ import React from "react";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
+import { SheetManager } from "react-native-actions-sheet";
 
 const Profile = () => {
   const router = useRouter();
@@ -26,6 +27,10 @@ const Profile = () => {
     return <Text>Is Loading...</Text>;
   }
 
+  const openChangePhotoSheet = () => {
+    SheetManager.show("change-photo");
+  };
+
   return (
     <SafeAreaView>
       <View
@@ -37,7 +42,10 @@ const Profile = () => {
         }}
       >
         <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Ionicons name="person-circle" size={64} />
+          <Pressable onPress={openChangePhotoSheet}>
+            <Ionicons name="person-circle" size={64} />
+          </Pressable>
+
           <Text>franklin_zhu</Text>
         </View>
         <View style={{ flexDirection: "row", alignItems: "center" }}>

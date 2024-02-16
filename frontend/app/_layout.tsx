@@ -1,4 +1,6 @@
 import { ClerkProvider, useAuth } from "@clerk/clerk-expo";
+import { SheetProvider } from "react-native-actions-sheet";
+import "@/components/utils/sheets";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { Slot, Stack, useRouter, useSegments } from "expo-router";
 import { useEffect } from "react";
@@ -59,7 +61,9 @@ const RootLayout = () => {
       tokenCache={tokenCache}
     >
       <QueryClientProvider client={queryClient}>
-        <InitialLayout />
+        <SheetProvider>
+          <InitialLayout />
+        </SheetProvider>
       </QueryClientProvider>
     </ClerkProvider>
   );
