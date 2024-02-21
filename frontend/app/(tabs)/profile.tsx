@@ -2,7 +2,7 @@ import { SafeAreaView, Pressable, StyleSheet, Text, View } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
 import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import axios from "axios";
 import { SheetManager } from "react-native-actions-sheet";
 
@@ -77,6 +77,11 @@ const Profile = () => {
           onPress={() => router.push("/(hangout)/CreateHangoutScreen")}
         >
           <Ionicons name="add-circle-outline" size={64} />
+        </Pressable>
+      </View>
+      <View>
+        <Pressable onPress={() => router.push("/(memories)/MemoriesScreen")}>
+          <MaterialIcons name="photo" size={64} />
         </Pressable>
       </View>
     </SafeAreaView>

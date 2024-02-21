@@ -5,6 +5,7 @@ import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { Slot, Stack, useRouter, useSegments } from "expo-router";
 import { useEffect } from "react";
 import * as SecureStore from "expo-secure-store";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -61,9 +62,11 @@ const RootLayout = () => {
       tokenCache={tokenCache}
     >
       <QueryClientProvider client={queryClient}>
-        <SheetProvider>
-          <InitialLayout />
-        </SheetProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <SheetProvider>
+            <InitialLayout />
+          </SheetProvider>
+        </GestureHandlerRootView>
       </QueryClientProvider>
     </ClerkProvider>
   );
