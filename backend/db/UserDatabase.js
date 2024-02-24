@@ -5,8 +5,14 @@ import {
   doc,
   getDoc,
   setDoc,
+  updateDoc,
+  where,
+  getDocs,
+  query,
 } from "firebase/firestore";
 import { db } from "../firebase.js";
+import { deleteObject, ref } from "firebase/storage";
+import { storage } from "../firebase.js";
 
 const createUserInDatabase = async (user) => {
   const userDocRef = doc(db, "users", user.userId);
@@ -23,4 +29,59 @@ const createUserInDatabase = async (user) => {
   return { userId: user.userId, message };
 };
 
-export { createUserInDatabase };
+const changeProfilePhotoInDatabase = async (userId, fileData) => {
+  const userDocRef = doc(db, "users", userId);
+
+  try {
+    const userDoc = await getDoc(userDocRef);
+    const currentProfilePhoto = userDoc.data().profilePhoto.fileUrl;
+
+    if (currentProfilePhoto) {
+      const url = new URL(currentProfilePhoto);
+      const fileNameEncoded = url.pathname.split("%2F").pop();
+      const fileName = decodeURIComponent(fileNameEncoded);
+
+      const path = `photos/profile-photos/${fileName}`;
+      const currentPhotoRef = ref(storage, path);
+      await deleteObject(currentPhotoRef)
+        .then(() => {
+          console.log("File deleted successfully");
+        })
+        .catch((error) => {
+          console.log("Error");
+        });
+    }
+
+    await updateDoc(userDocRef, {
+      profilePhoto: fileData,
+    });
+    return userId;
+  } catch (error) {
+    console.error("Error updating document: ", error);
+    throw new Error("Failed to change profile photo.");
+  }
+};
+
+const fetchUserPostsFromDatabase = async (userId) => {
+  const postsCollection = collection(db, "posts");
+
+  const postsQuery = query(postsCollection, where("userId", "==", userId));
+
+  try {
+    const querySnapshot = await getDocs(postsQuery);
+    const posts = [];
+    querySnapshot.forEach((doc) => {
+      posts.push({ id: doc.id, ...doc.data() });
+    });
+    return posts;
+  } catch (error) {
+    console.error("Error fetching user posts: ", error);
+    throw error;
+  }
+};
+
+export {
+  createUserInDatabase,
+  changeProfilePhotoInDatabase,
+  fetchUserPostsFromDatabase,
+};

@@ -1,7 +1,11 @@
 import { ClerkProvider, useAuth } from "@clerk/clerk-expo";
+import { SheetProvider } from "react-native-actions-sheet";
+import "@/components/utils/sheets";
+import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { Slot, Stack, useRouter, useSegments } from "expo-router";
 import { useEffect } from "react";
 import * as SecureStore from "expo-secure-store";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -28,6 +32,7 @@ const InitialLayout = () => {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="(profile)" options={{ headerShown: false }} />
+      <Stack.Screen name="(hangout)" options={{ headerShown: false }} />
     </Stack>
   );
 };
@@ -50,12 +55,19 @@ const tokenCache = {
 };
 
 const RootLayout = () => {
+  const queryClient = new QueryClient();
   return (
     <ClerkProvider
       publishableKey={CLERK_PUBLISHABLE_KEY!}
       tokenCache={tokenCache}
     >
-      <InitialLayout />
+      <QueryClientProvider client={queryClient}>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <SheetProvider>
+            <InitialLayout />
+          </SheetProvider>
+        </GestureHandlerRootView>
+      </QueryClientProvider>
     </ClerkProvider>
   );
 };
