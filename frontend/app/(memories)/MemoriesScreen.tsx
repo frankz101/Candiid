@@ -1,5 +1,8 @@
-import React from "react";
-import { Dimensions, StyleSheet, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import axios, { AxiosResponse } from "axios";
+import { router, useLocalSearchParams } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { Dimensions, Pressable, StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedStyle,
@@ -9,20 +12,32 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
+const postWidth = screenWidth / 2 - 15;
+const postHeight = (postWidth * 5) / 4;
 
 const MemoriesScreen = () => {
+  const { hangoutId, newPost } = useLocalSearchParams();
+  const isNewPost = newPost === "true";
+  const [isPlacementMode, setIsPlacementMode] = useState(false);
+
+  useEffect(() => {
+    if (isNewPost) {
+      setIsPlacementMode(true);
+    }
+  }, [isNewPost]);
+
   const screenX = useSharedValue<number>(0);
   const screenY = useSharedValue<number>(0);
 
-  const ballX = useSharedValue<number>(0);
-  const ballY = useSharedValue<number>(0);
+  const postX = useSharedValue<number>(0);
+  const postY = useSharedValue<number>(0);
 
   const scale = useSharedValue<number>(1);
 
   const scaleContext = useSharedValue({ scale: 1 });
   const screenContext = useSharedValue({ x: 0, y: 0 });
-  const ballContext = useSharedValue({ x: 0, y: 0 });
-  const isBallActive = useSharedValue<boolean>(false);
+  const postContext = useSharedValue({ x: 0, y: 0 });
+  const ispostActive = useSharedValue<boolean>(false);
 
   const screenPan = Gesture.Pan()
     .onStart((e) => {
@@ -32,7 +47,7 @@ const MemoriesScreen = () => {
       };
     })
     .onUpdate((e) => {
-      if (!isBallActive.value) {
+      if (!ispostActive.value) {
         let newX = (e.translationX + screenContext.value.x) / scale.value;
         let newY = (e.translationY + screenContext.value.y) / scale.value;
 
@@ -55,30 +70,31 @@ const MemoriesScreen = () => {
       }
     });
 
-  const ballPan = Gesture.Pan()
+  const postPan = Gesture.Pan()
     .onStart(() => {
-      isBallActive.value = true;
-      ballContext.value = {
-        x: ballX.value * scale.value,
-        y: ballY.value * scale.value,
+      ispostActive.value = true;
+      postContext.value = {
+        x: postX.value * scale.value,
+        y: postY.value * scale.value,
       };
     })
     .onUpdate((e) => {
-      let newBallX = (e.translationX + ballContext.value.x) / scale.value;
-      let newBallY = (e.translationY + ballContext.value.y) / scale.value;
+      let newpostX = (e.translationX + postContext.value.x) / scale.value;
+      let newpostY = (e.translationY + postContext.value.y) / scale.value;
 
-      const ballRadius = 25;
+      const halfPostWidth = postWidth / 2;
+      const halfPostHeight = postHeight / 2;
 
-      const minX = -screenWidth / 2 + ballRadius;
-      const maxX = screenWidth / 2 - ballRadius;
-      const minY = -screenHeight / 2 + ballRadius;
-      const maxY = screenHeight / 2 - ballRadius;
+      const minX = -screenWidth / 2 + halfPostWidth;
+      const maxX = screenWidth / 2 - halfPostWidth;
+      const minY = -screenHeight / 2 + halfPostHeight;
+      const maxY = screenHeight / 2 - halfPostHeight;
 
-      ballX.value = Math.min(Math.max(newBallX, minX), maxX);
-      ballY.value = Math.min(Math.max(newBallY, minY), maxY);
+      postX.value = Math.min(Math.max(newpostX, minX), maxX);
+      postY.value = Math.min(Math.max(newpostY, minY), maxY);
     })
     .onEnd(() => {
-      isBallActive.value = false;
+      ispostActive.value = false;
     });
 
   const pinch = Gesture.Pinch()
@@ -102,20 +118,34 @@ const MemoriesScreen = () => {
     };
   });
 
-  const ballStyle = useAnimatedStyle(() => {
+  const postStyle = useAnimatedStyle(() => {
     return {
-      transform: [{ translateX: ballX.value }, { translateY: ballY.value }],
+      transform: [{ translateX: postX.value }, { translateY: postY.value }],
     };
   });
 
   return (
-    <GestureDetector gesture={combinedGesture}>
-      <Animated.View style={[styles.container, containerStyle]}>
-        <GestureDetector gesture={ballPan}>
-          <Animated.View style={[styles.ball, ballStyle]} />
-        </GestureDetector>
-      </Animated.View>
-    </GestureDetector>
+    <View style={{ flex: 1 }}>
+      <GestureDetector gesture={combinedGesture}>
+        <Animated.View style={[styles.container, containerStyle]}>
+          {isPlacementMode && (
+            <GestureDetector gesture={postPan}>
+              <Animated.View style={[styles.post, postStyle]} />
+            </GestureDetector>
+          )}
+        </Animated.View>
+      </GestureDetector>
+      {isPlacementMode && (
+        <Pressable
+          onPress={() => {
+            router.push("/(tabs)/profile");
+          }}
+          style={{ position: "absolute", right: 14, bottom: 75 }}
+        >
+          <Ionicons name="checkmark-circle" size={64} />
+        </Pressable>
+      )}
+    </View>
   );
 };
 
@@ -128,10 +158,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "grey",
   },
-  ball: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+  post: {
+    width: postWidth,
+    height: postHeight,
+    borderRadius: 10,
     backgroundColor: "blue",
   },
 });

@@ -6,6 +6,9 @@ import {
   getDoc,
   setDoc,
   updateDoc,
+  where,
+  getDocs,
+  query,
 } from "firebase/firestore";
 import { db } from "../firebase.js";
 import { deleteObject, ref } from "firebase/storage";
@@ -59,4 +62,26 @@ const changeProfilePhotoInDatabase = async (userId, fileData) => {
   }
 };
 
-export { createUserInDatabase, changeProfilePhotoInDatabase };
+const fetchUserPostsFromDatabase = async (userId) => {
+  const postsCollection = collection(db, "posts");
+
+  const postsQuery = query(postsCollection, where("userId", "==", userId));
+
+  try {
+    const querySnapshot = await getDocs(postsQuery);
+    const posts = [];
+    querySnapshot.forEach((doc) => {
+      posts.push({ id: doc.id, ...doc.data() });
+    });
+    return posts;
+  } catch (error) {
+    console.error("Error fetching user posts: ", error);
+    throw error;
+  }
+};
+
+export {
+  createUserInDatabase,
+  changeProfilePhotoInDatabase,
+  fetchUserPostsFromDatabase,
+};

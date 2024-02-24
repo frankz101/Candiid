@@ -16,5 +16,6 @@ router.post("/hangout", postHangout);
 router.post("/hangout/:id/photo", upload.single("file"), postPhotoToHangout);
 router.get("/hangouts/users/:userId", getRecentHangouts);
 router.get("/hangout/:hangoutId", getHangout);
+router.put("/hangout/:hangoutId/post-position");
 
 export default router;

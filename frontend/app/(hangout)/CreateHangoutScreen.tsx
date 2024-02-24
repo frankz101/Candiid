@@ -28,18 +28,19 @@ const CreateHangoutScreen = () => {
       completed: false,
       hangoutDetails: hangoutDetails,
     };
-
     axios
       .post(`${process.env.EXPO_PUBLIC_API_URL}/hangout`, hangoutData)
       .then((response: AxiosResponse<any>) => {
         console.log(response.data);
+        router.push({
+          pathname: "/(memories)/MemoriesScreen",
+          params: { hangoutId: response.data.result, newPost: "true" },
+        });
+        setHangoutDetails("");
       })
       .catch((error) => {
         console.error(error);
       });
-
-    setHangoutDetails("");
-    router.push("/(tabs)/profile");
   };
 
   return (
