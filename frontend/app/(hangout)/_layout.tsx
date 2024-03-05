@@ -1,5 +1,5 @@
 import { View, Text } from "react-native";
-import React from "react";
+import React, { useState } from "react";
 import { Stack } from "expo-router";
 
 const Layout = () => {
@@ -8,6 +8,7 @@ const Layout = () => {
       <Stack.Screen name="CreateHangoutScreen" />
       <Stack.Screen name="[hangoutId]" />
       <Stack.Screen name="PreviewPost" />
+      <Stack.Screen name="MemoriesScreen" />
     </Stack>
   );
 };

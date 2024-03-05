@@ -9,7 +9,7 @@ const Home = () => {
     <SafeAreaView>
       <Text>Home</Text>
       <View>
-        <Pressable onPress={() => router.push("/(memories)/MemoriesScreen")}>
+        <Pressable onPress={() => router.push("/(hangout)/MemoriesScreen")}>
           <MaterialIcons name="photo" size={64} />
         </Pressable>
       </View>

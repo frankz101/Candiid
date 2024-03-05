@@ -67,7 +67,7 @@ const Profile = () => {
             key={hangout.id}
             onPress={() => router.push(`/(hangout)/${hangout.id}`)}
           >
-            <Text>{hangout.hangoutDetails}</Text>
+            <Text>{hangout.hangoutName}</Text>
           </Pressable>
         ))}
       </View>
@@ -80,7 +80,7 @@ const Profile = () => {
         </Pressable>
       </View>
       <View>
-        <Pressable onPress={() => router.push("/(memories)/MemoriesScreen")}>
+        <Pressable onPress={() => router.push("/(hangout)/MemoriesScreen")}>
           <MaterialIcons name="photo" size={64} />
         </Pressable>
       </View>

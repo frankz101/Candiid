@@ -44,7 +44,8 @@
     "react-native-screens": "~3.29.0",
     "react-native-vision-camera": "^3.8.2",
     "react-native-web": "~0.19.6",
-    "rn-fetch-blob": "^0.12.0"
+    "rn-fetch-blob": "^0.12.0",
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

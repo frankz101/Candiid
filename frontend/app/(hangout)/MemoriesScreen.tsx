@@ -1,8 +1,12 @@
+import AnimatedPost from "@/components/photo/AnimatedPost";
+import useStore from "@/store/useStore";
+import { useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
+import { useQuery } from "@tanstack/react-query";
 import axios, { AxiosResponse } from "axios";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Dimensions, Pressable, StyleSheet, View } from "react-native";
+import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedStyle,
@@ -16,15 +20,34 @@ const postWidth = screenWidth / 2 - 15;
 const postHeight = (postWidth * 5) / 4;
 
 const MemoriesScreen = () => {
-  const { hangoutId, newPost } = useLocalSearchParams();
+  const { user } = useUser();
+  const { userId, newPost } = useLocalSearchParams();
   const isNewPost = newPost === "true";
   const [isPlacementMode, setIsPlacementMode] = useState(false);
+  const hangoutDetails = useStore((state) => state.hangoutDetails);
+  const setHangoutDetails = useStore((state) => state.setHangoutDetails);
+
+  console.log(hangoutDetails);
 
   useEffect(() => {
     if (isNewPost) {
       setIsPlacementMode(true);
     }
   }, [isNewPost]);
+
+  const fetchHangouts = async () => {
+    console.log("Fetching Hangouts");
+    return axios
+      .get(
+        `${process.env.EXPO_PUBLIC_API_URL}/hangouts/users/user_2at1mqV4kVndS3s0ahs9Q0SsrQr`
+      )
+      .then((res) => res.data);
+  };
+
+  const { data: hangouts, isPending } = useQuery({
+    queryKey: ["hangouts"],
+    queryFn: fetchHangouts,
+  });
 
   const screenX = useSharedValue<number>(0);
   const screenY = useSharedValue<number>(0);
@@ -67,6 +90,8 @@ const MemoriesScreen = () => {
 
         screenX.value = Math.min(Math.max(newX, minX), maxX);
         screenY.value = Math.min(Math.max(newY, minY), maxY);
+
+        console.log(`Screen Position: X=${screenX.value}, Y=${screenY.value}`);
       }
     });
 
@@ -92,6 +117,8 @@ const MemoriesScreen = () => {
 
       postX.value = Math.min(Math.max(newpostX, minX), maxX);
       postY.value = Math.min(Math.max(newpostY, minY), maxY);
+
+      console.log(`Post Position: X=${postX.value}, Y=${postY.value}`);
     })
     .onEnd(() => {
       ispostActive.value = false;
@@ -124,22 +151,67 @@ const MemoriesScreen = () => {
     };
   });
 
-  return (
+  const postTempStyle = useAnimatedStyle(() => ({
+    width: postWidth,
+    height: postHeight,
+    borderRadius: 10,
+    backgroundColor: "blue",
+  }));
+
+  const handleHangoutSubmit = async () => {
+    const hangoutData = {
+      userId: user?.id,
+      completed: false,
+      ...hangoutDetails,
+      postX: postX.value,
+      postY: postY.value,
+    };
+    axios
+      .post(`${process.env.EXPO_PUBLIC_API_URL}/hangout`, hangoutData)
+      .then((response: AxiosResponse<any>) => {
+        console.log(response.data);
+        router.push({
+          pathname: "/(tabs)/profile",
+        });
+        setHangoutDetails({ hangoutName: "" });
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
+
+  return isPending ? (
+    <Text>Loading...</Text>
+  ) : (
     <View style={{ flex: 1 }}>
       <GestureDetector gesture={combinedGesture}>
         <Animated.View style={[styles.container, containerStyle]}>
+          {hangouts.map((hangout: any, index: number) => (
+            <AnimatedPost
+              key={index}
+              positionX={hangout.postX}
+              positionY={hangout.postY}
+            />
+          ))}
           {isPlacementMode && (
             <GestureDetector gesture={postPan}>
-              <Animated.View style={[styles.post, postStyle]} />
+              <Animated.View
+                style={[
+                  styles.post,
+                  postStyle,
+                  {
+                    position: "absolute",
+                    zIndex: 1,
+                  },
+                ]}
+              />
             </GestureDetector>
           )}
         </Animated.View>
       </GestureDetector>
       {isPlacementMode && (
         <Pressable
-          onPress={() => {
-            router.push("/(tabs)/profile");
-          }}
+          onPress={handleHangoutSubmit}
           style={{ position: "absolute", right: 14, bottom: 75 }}
         >
           <Ionicons name="checkmark-circle" size={64} />
@@ -165,137 +237,3 @@ const styles = StyleSheet.create({
     backgroundColor: "blue",
   },
 });
-
-// import React from "react";
-// import { StyleSheet, Text, View, FlatList } from "react-native";
-// import { Gesture, GestureDetector } from "react-native-gesture-handler";
-// import Animated, {
-//   useAnimatedStyle,
-//   useSharedValue,
-// } from "react-native-reanimated";
-
-// interface Item {
-//   id: string;
-//   title: string;
-// }
-
-// const data = Array.from({ length: 20 }, (_, i) => ({
-//   id: i.toString(),
-//   title: `Item ${i + 1}`,
-// }));
-
-// const renderItem = ({ item, index }: { item: Item; index: number }) => {
-//   const isEven = index % 2 === 0;
-//   const isFirstItem = index === 0;
-//   const style = isEven
-//     ? styles.evenItem
-//     : [styles.oddItem, { marginTop: isFirstItem ? 50 : -50 }];
-
-//   return (
-//     <View style={style}>
-//       <Text>{item.title}</Text>
-//     </View>
-//   );
-// };
-
-// const MemoriesScreen = () => {
-//   const numColumns = 2;
-//   const numRows = Math.ceil(data.length / numColumns);
-//   const itemHeight = 300;
-//   const itemWidth = 240;
-//   const marginTopAdjustment = 400;
-//   const containerHeight =
-//     numRows * itemHeight + (numRows - 1) * 8 + marginTopAdjustment;
-
-//   const containerWidth = numColumns * itemWidth + (numColumns - 1) * 16 + 400;
-
-//   const translateX = useSharedValue<number>(0);
-//   const translateY = useSharedValue<number>(0);
-
-//   const context = useSharedValue({ x: 0, y: 0 });
-
-//   const pan = Gesture.Pan()
-//     .onStart((e) => {
-//       context.value = { x: translateX.value, y: translateY.value };
-//     })
-//     .onUpdate((e) => {
-//       const newTranslateX = e.translationX + context.value.x;
-//       const newTranslateY = e.translationY + context.value.y;
-
-//       const maxX = containerWidth / 3.5;
-//       const maxY = containerHeight / 2.5;
-//       const minX = -containerWidth / 3.5;
-//       const minY = -containerHeight / 2.5;
-
-//       translateX.value = Math.max(minX, Math.min(maxX, newTranslateX));
-//       translateY.value = Math.max(minY, Math.min(maxY, newTranslateY));
-//     });
-
-//   const rStyle = useAnimatedStyle(() => {
-//     return {
-//       transform: [
-//         { translateX: translateX.value },
-//         { translateY: translateY.value },
-//       ],
-//     };
-//   });
-
-//   return (
-//     <GestureDetector gesture={pan}>
-//       <Animated.View style={[styles.screen, rStyle]}>
-//         <View
-//           style={{
-//             height: containerHeight,
-//             width: containerWidth,
-//             backgroundColor: "black",
-//           }}
-//         >
-//           <FlatList
-//             data={data}
-//             renderItem={renderItem}
-//             keyExtractor={(item) => item.id}
-//             numColumns={numColumns}
-//             scrollEnabled={false}
-//             contentContainerStyle={{
-//               flex: 1,
-//               justifyContent: "center",
-//               alignItems: "center",
-//             }}
-//           />
-//         </View>
-//       </Animated.View>
-//     </GestureDetector>
-//   );
-// };
-
-// export default MemoriesScreen;
-
-// const styles = StyleSheet.create({
-//   screen: {
-//     flex: 1,
-//     backgroundColor: "grey",
-//     justifyContent: "center",
-//     alignItems: "center",
-//   },
-//   box: {
-//     width: 240,
-//     height: 300,
-//     backgroundColor: "blue",
-//   },
-//   evenItem: {
-//     backgroundColor: "#f9c2ff",
-//     padding: 20,
-//     marginVertical: 8,
-//     marginHorizontal: 16,
-//     height: 300,
-//     width: 240,
-//   },
-//   oddItem: {
-//     backgroundColor: "#f9c2ff",
-//     padding: 20,
-//     marginVertical: 8,
-//     marginHorizontal: 16,
-//     height: 300,
-//     width: 240,
-//   },
-// });
