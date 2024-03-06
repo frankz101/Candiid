@@ -27,8 +27,6 @@ const MemoriesScreen = () => {
   const hangoutDetails = useStore((state) => state.hangoutDetails);
   const setHangoutDetails = useStore((state) => state.setHangoutDetails);
 
-  console.log(hangoutDetails);
-
   useEffect(() => {
     if (isNewPost) {
       setIsPlacementMode(true);
@@ -37,10 +35,9 @@ const MemoriesScreen = () => {
 
   const fetchHangouts = async () => {
     console.log("Fetching Memories");
+    console.log(`${process.env.EXPO_PUBLIC_API_URL}/memories/${user?.id}`);
     return axios
-      .get(
-        `${process.env.EXPO_PUBLIC_API_URL}/memories/user_2at1mqV4kVndS3s0ahs9Q0SsrQr`
-      )
+      .get(`${process.env.EXPO_PUBLIC_API_URL}/memories/${user?.id}`)
       .then((res) => res.data);
   };
 
@@ -151,23 +148,13 @@ const MemoriesScreen = () => {
     };
   });
 
-  const postTempStyle = useAnimatedStyle(() => ({
-    width: postWidth,
-    height: postHeight,
-    borderRadius: 10,
-    backgroundColor: "blue",
-  }));
-
   const handleHangoutSubmit = async () => {
     const hangoutData = {
       userId: user?.id,
       completed: false,
       ...hangoutDetails,
-      postX: postX.value,
-      postY: postY.value,
     };
-    console.log(`${process.env.EXPO_PUBLIC_API_URL}/hangout`);
-    console.log(hangoutData);
+
     try {
       const hangoutResponse = await axios.post(
         `${process.env.EXPO_PUBLIC_API_URL}/hangout`,

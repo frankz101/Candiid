@@ -2,7 +2,7 @@ import { useUser } from "@clerk/clerk-expo";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useRouter } from "expo-router";
-import { Dimensions, Pressable, View } from "react-native";
+import { Dimensions, Pressable, Text, View } from "react-native";
 import Animated, { useAnimatedStyle } from "react-native-reanimated";
 
 const screenWidth = Dimensions.get("window").width;
@@ -43,12 +43,16 @@ const AnimatedPost = ({
   };
 
   const { data: photoData, isPending } = useQuery({
-    queryKey: ["photo"],
+    queryKey: ["photo", postId],
     queryFn: fetchHangout,
   });
 
+  if (isPending) {
+    return <Text>Loading...</Text>;
+  }
+
   if (photoData) {
-    console.log("Photo Data:", photoData);
+    console.log("PostID: " + postId + " " + "Photo Data: " + photoData);
   }
 
   return (

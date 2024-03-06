@@ -9,23 +9,23 @@ import { SheetManager } from "react-native-actions-sheet";
 const Profile = () => {
   const router = useRouter();
 
-  const fetchHangouts = async () => {
-    console.log("Fetching Hangouts");
-    return axios
-      .get(
-        `${process.env.EXPO_PUBLIC_API_URL}/hangouts/users/user_2at1mqV4kVndS3s0ahs9Q0SsrQr`
-      )
-      .then((res) => res.data);
-  };
+  // const fetchHangouts = async () => {
+  //   console.log("Fetching Hangouts");
+  //   return axios
+  //     .get(
+  //       `${process.env.EXPO_PUBLIC_API_URL}/hangouts/users/user_2at1mqV4kVndS3s0ahs9Q0SsrQr`
+  //     )
+  //     .then((res) => res.data);
+  // };
 
-  const { data: hangouts, isPending } = useQuery({
-    queryKey: ["hangouts"],
-    queryFn: fetchHangouts,
-  });
+  // const { data: hangouts, isPending } = useQuery({
+  //   queryKey: ["hangouts"],
+  //   queryFn: fetchHangouts,
+  // });
 
-  if (isPending) {
-    return <Text>Is Loading...</Text>;
-  }
+  // if (isPending) {
+  //   return <Text>Is Loading...</Text>;
+  // }
 
   const openChangePhotoSheet = () => {
     SheetManager.show("change-photo");
@@ -61,7 +61,7 @@ const Profile = () => {
         </View>
       </View>
 
-      <View>
+      {/* <View>
         {hangouts?.map((hangout: any) => (
           <Pressable
             key={hangout.id}
@@ -70,7 +70,7 @@ const Profile = () => {
             <Text>{hangout.hangoutName}</Text>
           </Pressable>
         ))}
-      </View>
+      </View> */}
 
       <View>
         <Pressable
