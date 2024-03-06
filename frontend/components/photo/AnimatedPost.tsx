@@ -2,6 +2,7 @@ import { useUser } from "@clerk/clerk-expo";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useRouter } from "expo-router";
+import { useState } from "react";
 import { Dimensions, Pressable, Text, View } from "react-native";
 import Animated, { useAnimatedStyle } from "react-native-reanimated";
 
@@ -25,6 +26,7 @@ const AnimatedPost = ({
   hangoutId,
   memoryId,
 }: AnimatedPostProps) => {
+  const [isEnlarged, setIsEnlarged] = useState(false);
   const postStyle = useAnimatedStyle(() => ({
     position: "absolute",
     width: postWidth,
@@ -55,6 +57,22 @@ const AnimatedPost = ({
     console.log("PostID: " + postId + " " + "Photo Data: " + photoData);
   }
 
+  const handlePress = () => {
+    if (postId && photoData) {
+      setIsEnlarged(!isEnlarged);
+      router.push(
+        `/(hangout)/FullScreenImage?imageUrl=${photoData.result.photoUrls[0].fileUrl}`
+      );
+    } else {
+      router.push({
+        pathname: `/(hangout)/${hangoutId}`,
+        params: {
+          memoryId: memoryId,
+        },
+      });
+    }
+  };
+
   return (
     <Animated.View style={postStyle}>
       {postId && photoData ? (
@@ -65,14 +83,7 @@ const AnimatedPost = ({
         />
       ) : null}
       <Pressable
-        onPress={() =>
-          router.push({
-            pathname: `/(hangout)/${hangoutId}`,
-            params: {
-              memoryId: memoryId,
-            },
-          })
-        }
+        onPress={handlePress}
         style={{ position: "absolute", width: "100%", height: "100%" }}
       >
         <View />

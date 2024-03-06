@@ -9,6 +9,7 @@ const Layout = () => {
       <Stack.Screen name="[hangoutId]" />
       <Stack.Screen name="PreviewPost" />
       <Stack.Screen name="MemoriesScreen" />
+      <Stack.Screen name="FullScreenImage" />
     </Stack>
   );
 };

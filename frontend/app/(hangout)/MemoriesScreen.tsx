@@ -88,7 +88,7 @@ const MemoriesScreen = () => {
         screenX.value = Math.min(Math.max(newX, minX), maxX);
         screenY.value = Math.min(Math.max(newY, minY), maxY);
 
-        console.log(`Screen Position: X=${screenX.value}, Y=${screenY.value}`);
+        // console.log(`Screen Position: X=${screenX.value}, Y=${screenY.value}`);
       }
     });
 
@@ -115,7 +115,7 @@ const MemoriesScreen = () => {
       postX.value = Math.min(Math.max(newpostX, minX), maxX);
       postY.value = Math.min(Math.max(newpostY, minY), maxY);
 
-      console.log(`Post Position: X=${postX.value}, Y=${postY.value}`);
+      // console.log(`Post Position: X=${postX.value}, Y=${postY.value}`);
     })
     .onEnd(() => {
       ispostActive.value = false;
@@ -191,7 +191,6 @@ const MemoriesScreen = () => {
     <View style={{ flex: 1 }}>
       <GestureDetector gesture={combinedGesture}>
         <Animated.View style={[styles.container, containerStyle]}>
-          {console.log("Memories Screen: " + hangouts)}
           {hangouts?.map((hangout: any, index: number) => (
             <AnimatedPost
               key={index}
