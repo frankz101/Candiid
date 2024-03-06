@@ -36,10 +36,10 @@ const MemoriesScreen = () => {
   }, [isNewPost]);
 
   const fetchHangouts = async () => {
-    console.log("Fetching Hangouts");
+    console.log("Fetching Memories");
     return axios
       .get(
-        `${process.env.EXPO_PUBLIC_API_URL}/hangouts/users/user_2at1mqV4kVndS3s0ahs9Q0SsrQr`
+        `${process.env.EXPO_PUBLIC_API_URL}/memories/user_2at1mqV4kVndS3s0ahs9Q0SsrQr`
       )
       .then((res) => res.data);
   };
@@ -166,18 +166,36 @@ const MemoriesScreen = () => {
       postX: postX.value,
       postY: postY.value,
     };
-    axios
-      .post(`${process.env.EXPO_PUBLIC_API_URL}/hangout`, hangoutData)
-      .then((response: AxiosResponse<any>) => {
-        console.log(response.data);
-        router.push({
-          pathname: "/(tabs)/profile",
-        });
-        setHangoutDetails({ hangoutName: "" });
-      })
-      .catch((error) => {
-        console.error(error);
+    console.log(`${process.env.EXPO_PUBLIC_API_URL}/hangout`);
+    console.log(hangoutData);
+    try {
+      const hangoutResponse = await axios.post(
+        `${process.env.EXPO_PUBLIC_API_URL}/hangout`,
+        hangoutData
+      );
+      console.log(hangoutResponse.data);
+
+      const memoriesData = {
+        userId: user?.id,
+        hangoutId: hangoutResponse.data.result,
+        postX: postX.value,
+        postY: postY.value,
+      };
+
+      const memoriesResponse = await axios.post(
+        `${process.env.EXPO_PUBLIC_API_URL}/memories`,
+        memoriesData
+      );
+      console.log(memoriesResponse.data);
+
+      // Navigation and state update
+      router.push({
+        pathname: "/(tabs)/profile",
       });
+      setHangoutDetails({ hangoutName: "" });
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return isPending ? (
@@ -186,9 +204,13 @@ const MemoriesScreen = () => {
     <View style={{ flex: 1 }}>
       <GestureDetector gesture={combinedGesture}>
         <Animated.View style={[styles.container, containerStyle]}>
-          {hangouts.map((hangout: any, index: number) => (
+          {console.log("Memories Screen: " + hangouts)}
+          {hangouts?.map((hangout: any, index: number) => (
             <AnimatedPost
               key={index}
+              postId={hangout.postId}
+              hangoutId={hangout.hangoutId}
+              memoryId={hangout.id}
               positionX={hangout.postX}
               positionY={hangout.postY}
             />

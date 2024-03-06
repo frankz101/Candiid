@@ -9,7 +9,8 @@ import { Ionicons } from "@expo/vector-icons";
 import PhotoSquare from "@/components/photo/PhotoSquare";
 
 const Hangout = () => {
-  const { hangoutId } = useLocalSearchParams();
+  const { hangoutId, memoryId } = useLocalSearchParams();
+  console.log("Memory Id Hangout: " + memoryId);
   const [selectedPhotos, setSelectedPhotos] = useState<number[]>([]);
   const router = useRouter();
 
@@ -92,6 +93,7 @@ const Hangout = () => {
             pathname: "/(hangout)/PreviewPost",
             params: {
               hangoutId: hangoutId,
+              memoryId: memoryId,
               photoIndexes: selectedPhotos,
             },
           });

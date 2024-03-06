@@ -2,6 +2,7 @@ import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import {
   changeProfilePhotoInDatabase,
   createUserInDatabase,
+  fetchUserPostFromDatabase,
   fetchUserPostsFromDatabase,
 } from "../db/UserDatabase.js";
 import { storage } from "../firebase.js";
@@ -38,4 +39,9 @@ const fetchUserPosts = async (userId) => {
   return result;
 };
 
-export { createUser, changeProfilePhoto, fetchUserPosts };
+const fetchUserPost = async (userId, postId) => {
+  const result = await fetchUserPostFromDatabase(userId, postId);
+  return result;
+};
+
+export { createUser, changeProfilePhoto, fetchUserPosts, fetchUserPost };

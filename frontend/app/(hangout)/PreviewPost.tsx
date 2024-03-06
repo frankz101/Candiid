@@ -11,7 +11,8 @@ import PostCarousel from "@/components/photo/PostCarousel";
 
 const PreviewPost = () => {
   const { user } = useUser();
-  const { hangoutId, photoIndexes } = useLocalSearchParams();
+  const { hangoutId, memoryId, photoIndexes } = useLocalSearchParams();
+  console.log("Memory Id Preview Post: " + memoryId);
   const router = useRouter();
 
   const fetchHangout = async () => {
@@ -42,16 +43,27 @@ const PreviewPost = () => {
       photoUrls: selectedPhotos,
     };
 
-    axios
-      .post(`${process.env.EXPO_PUBLIC_API_URL}/posts`, postData)
-      .then((response: AxiosResponse<any>) => {
-        console.log(response.data);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+    try {
+      const response = await axios.post(
+        `${process.env.EXPO_PUBLIC_API_URL}/posts`,
+        postData
+      );
+      console.log(response.data);
+      const postId = response.data.result;
 
-    router.push("/(tabs)/profile");
+      const updateData = {
+        postId: postId,
+      };
+      await axios.put(
+        `${process.env.EXPO_PUBLIC_API_URL}/memories/${memoryId}`,
+        updateData
+      );
+      console.log("Hangout updated successfully");
+
+      router.push("/(tabs)/profile");
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (

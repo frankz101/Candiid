@@ -80,8 +80,26 @@ const fetchUserPostsFromDatabase = async (userId) => {
   }
 };
 
+const fetchUserPostFromDatabase = async (userId, postId) => {
+  const postRef = doc(db, "posts", postId);
+
+  try {
+    const docSnapshot = await getDoc(postRef);
+    if (docSnapshot.exists()) {
+      return { id: docSnapshot.id, ...docSnapshot.data() };
+    } else {
+      console.log("No such post found!");
+      return null;
+    }
+  } catch (error) {
+    console.error("Error fetching post by ID: ", error);
+    throw error;
+  }
+};
+
 export {
   createUserInDatabase,
   changeProfilePhotoInDatabase,
   fetchUserPostsFromDatabase,
+  fetchUserPostFromDatabase,
 };
