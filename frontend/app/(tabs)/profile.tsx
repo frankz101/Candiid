@@ -22,6 +22,12 @@ const Profile = () => {
         </View>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Pressable
+            onPress={() => router.push("/(profile)/AddFriendsScreen")}
+            style={{ paddingRight: 10 }}
+          >
+            <Ionicons name="heart" size={32} />
+          </Pressable>
+          <Pressable
             onPress={() => router.push("/(profile)/NotificationsScreen")}
             style={{ paddingRight: 10 }}
           >

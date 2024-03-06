@@ -7,6 +7,7 @@ const Layout = () => {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="SettingsScreen" />
       <Stack.Screen name="NotificationsScreen" />
+      <Stack.Screen name="AddFriendsScreen" />
     </Stack>
   );
 };
