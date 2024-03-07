@@ -5,6 +5,7 @@ import {
   getUserPosts,
   postUser,
   putUserProfilePhoto,
+  getUserProfilePhoto,
 } from "../controllers/UserController.js";
 
 var router = express.Router();
@@ -17,6 +18,7 @@ router.put(
   upload.single("profilePhoto"),
   putUserProfilePhoto
 );
+router.get("/user/:id/profile-photo", getUserProfilePhoto);
 router.get("/user/:id/posts", getUserPosts);
 router.get("/user/:userId/post/:postId", getUserPost);
 

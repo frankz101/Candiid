@@ -5,9 +5,12 @@ import { useRouter } from "expo-router";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import axios from "axios";
 import { SheetManager } from "react-native-actions-sheet";
+import { useUser } from "@clerk/clerk-expo";
+import { Image } from "expo-image";
 
 const Profile = () => {
   const router = useRouter();
+  const { user } = useUser();
 
   // const fetchHangouts = async () => {
   //   console.log("Fetching Hangouts");
@@ -27,6 +30,18 @@ const Profile = () => {
   //   return <Text>Is Loading...</Text>;
   // }
 
+  const fetchProfilePhoto = async () => {
+    console.log("Fetching Profile Photo");
+    return axios
+      .get(`${process.env.EXPO_PUBLIC_API_URL}/user/${user?.id}/profile-photo`)
+      .then((res) => res.data);
+  };
+
+  const { data: profileDetails, isPending } = useQuery({
+    queryKey: ["profileDetails", user?.id],
+    queryFn: fetchProfilePhoto,
+  });
+
   const openChangePhotoSheet = () => {
     SheetManager.show("change-photo");
   };
@@ -42,8 +57,18 @@ const Profile = () => {
         }}
       >
         <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Pressable onPress={openChangePhotoSheet}>
-            <Ionicons name="person-circle" size={64} />
+          <Pressable
+            onPress={openChangePhotoSheet}
+            style={{ paddingRight: 10 }}
+          >
+            {profileDetails ? (
+              <Image
+                source={{ uri: profileDetails.result.imageUrl }}
+                style={styles.profilePhoto}
+              />
+            ) : (
+              <Ionicons name="person-circle" size={64} />
+            )}
           </Pressable>
 
           <Text>franklin_zhu</Text>
@@ -93,5 +118,10 @@ export default Profile;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  profilePhoto: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
   },
 });

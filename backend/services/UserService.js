@@ -4,6 +4,7 @@ import {
   createUserInDatabase,
   fetchUserPostFromDatabase,
   fetchUserPostsFromDatabase,
+  fetchUserProfilePhotoFromDatabase,
 } from "../db/UserDatabase.js";
 import { storage } from "../firebase.js";
 
@@ -44,4 +45,15 @@ const fetchUserPost = async (userId, postId) => {
   return result;
 };
 
-export { createUser, changeProfilePhoto, fetchUserPosts, fetchUserPost };
+const fetchUserProfilePhoto = async (userId) => {
+  const result = await fetchUserProfilePhotoFromDatabase(userId);
+  return result;
+};
+
+export {
+  createUser,
+  changeProfilePhoto,
+  fetchUserPosts,
+  fetchUserPost,
+  fetchUserProfilePhoto,
+};

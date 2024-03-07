@@ -3,6 +3,7 @@ import {
   createUser,
   fetchUserPost,
   fetchUserPosts,
+  fetchUserProfilePhoto,
 } from "../services/UserService.js";
 
 const postUser = async (req, res) => {
@@ -52,6 +53,16 @@ const getUserPost = async (req, res) => {
   }
 };
 
+const getUserProfilePhoto = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const result = await fetchUserProfilePhoto(userId);
+    res.status(201).send({ result });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 // const putUserPostPosition = async (req, res) => {
 //   try {
 //     const { hangoutId } = req.params.hangoutId;
@@ -62,4 +73,10 @@ const getUserPost = async (req, res) => {
 //   }
 // }
 
-export { postUser, putUserProfilePhoto, getUserPosts, getUserPost };
+export {
+  postUser,
+  putUserProfilePhoto,
+  getUserPosts,
+  getUserPost,
+  getUserProfilePhoto,
+};

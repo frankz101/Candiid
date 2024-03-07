@@ -97,9 +97,28 @@ const fetchUserPostFromDatabase = async (userId, postId) => {
   }
 };
 
+const fetchUserProfilePhotoFromDatabase = async (userId) => {
+  const userRef = doc(db, "users", userId);
+
+  try {
+    const docSnapshot = await getDoc(userRef);
+    if (docSnapshot.exists()) {
+      const data = docSnapshot.data();
+      return { imageUrl: data.profilePhoto.fileUrl };
+    } else {
+      console.log("No such post found!");
+      return null;
+    }
+  } catch (error) {
+    console.error("Error fetching post by ID: ", error);
+    throw error;
+  }
+};
+
 export {
   createUserInDatabase,
   changeProfilePhotoInDatabase,
   fetchUserPostsFromDatabase,
   fetchUserPostFromDatabase,
+  fetchUserProfilePhotoFromDatabase,
 };
