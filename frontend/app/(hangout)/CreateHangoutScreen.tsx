@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import React, { useState } from "react";
 import SearchBar from "@/components/utils/SearchBar";
-import BackButton from "@/components/utils/BackButton";
+import BackButton from "@/components/utils/backButton";
 import { Ionicons } from "@expo/vector-icons";
 import { useUser } from "@clerk/clerk-expo";
 import axios, { AxiosResponse } from "axios";
