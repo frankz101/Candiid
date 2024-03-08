@@ -18,31 +18,11 @@ enum Strategy {
 
 const Login = () => {
   useWarmUpBrowser();
-  const { isLoaded, user } = useUser();
-  const [userSignedIn, setUserSignedIn] = useState(false);
 
-  const { startOAuthFlow: googleAuth } = useOAuth({ strategy: "oauth_google" });
-  const { startOAuthFlow: appleAuth } = useOAuth({ strategy: "oauth_apple" });
+  // const { startOAuthFlow: googleAuth } = useOAuth({ strategy: "oauth_google" });
+  // const { startOAuthFlow: appleAuth } = useOAuth({ strategy: "oauth_apple" });
 
   const router = useRouter();
-
-  useEffect(() => {
-    if (userSignedIn && isLoaded && user) {
-      const userData = {
-        userId: user.id,
-        email: user.primaryEmailAddress?.emailAddress,
-      };
-
-      axios
-        .post("http://localhost:3001/users", userData)
-        .then((response) => {
-          console.log(response.data.message);
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-    }
-  }, [userSignedIn, isLoaded, user]);
 
   // const onSelectAuth = async (strategy: Strategy) => {
   //   const selectedAuth = {
