@@ -2,6 +2,7 @@ import express from "express";
 import multer from "multer";
 import {
   getUserPosts,
+  getUsers,
   postUser,
   putUserProfilePhoto,
 } from "../controllers/UserController.js";
@@ -17,5 +18,6 @@ router.put(
   putUserProfilePhoto
 );
 router.get("/user/:id/posts", getUserPosts);
+router.get("/user/search/:username", getUsers);
 
 export default router;

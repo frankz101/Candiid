@@ -9,6 +9,7 @@ import {
   where,
   getDocs,
   query,
+  orderBy,
 } from "firebase/firestore";
 import { db } from "../firebase.js";
 import { deleteObject, ref } from "firebase/storage";
@@ -27,6 +28,33 @@ const createUserInDatabase = async (user) => {
     message = "User logged in";
   }
   return { userId: user.userId, message };
+};
+
+const searchUsersInDatabase = async (username) => {
+  const prefixLowerCase = username.toLowerCase();
+  const endValue = prefixLowerCase + "\uf8ff";
+
+  try {
+    const usersRef = collection(db, "users");
+    const q = query(
+      usersRef,
+      where("username", ">=", prefixLowerCase),
+      where("username", "<=", endValue),
+      orderBy("username")
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    const users = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    return users;
+  } catch (error) {
+    console.error("Error searching users by username prefix:", error);
+    throw error;
+  }
 };
 
 const changeProfilePhotoInDatabase = async (userId, fileData) => {
@@ -84,4 +112,5 @@ export {
   createUserInDatabase,
   changeProfilePhotoInDatabase,
   fetchUserPostsFromDatabase,
+  searchUsersInDatabase,
 };
