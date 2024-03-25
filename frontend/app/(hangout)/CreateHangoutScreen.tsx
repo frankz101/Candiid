@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import React, { useState } from "react";
 import SearchBar from "@/components/utils/SearchBar";
-import BackButton from "@/components/utils/backButton";
+import BackButton from "@/components/utils/BackButton";
 import { Ionicons } from "@expo/vector-icons";
 import { useUser } from "@clerk/clerk-expo";
 import axios, { AxiosResponse } from "axios";
@@ -43,6 +43,8 @@ const CreateHangoutScreen = () => {
       });
   };
 
+  const onSubmit = () => {};
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View
@@ -73,8 +75,10 @@ const CreateHangoutScreen = () => {
           <SearchBar
             clicked={clicked}
             searchPhrase={searchPhrase}
+            placeholder="Search Friends"
             setSearchPhrase={setSearchPhrase}
             setClicked={setClicked}
+            onSubmit={onSubmit}
           />
         </View>
 

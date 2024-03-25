@@ -13,15 +13,19 @@ import { Ionicons } from "@expo/vector-icons";
 type SearchBarProps = {
   clicked: boolean;
   searchPhrase: string;
+  placeholder: string;
   setSearchPhrase: (phrase: string) => void;
   setClicked: (clicked: boolean) => void;
+  onSubmit: () => void;
 };
 
 const SearchBar: React.FC<SearchBarProps> = ({
   clicked,
   searchPhrase,
+  placeholder,
   setSearchPhrase,
   setClicked,
+  onSubmit,
 }) => {
   return (
     <View style={styles.container}>
@@ -30,20 +34,23 @@ const SearchBar: React.FC<SearchBarProps> = ({
           clicked ? styles.searchBar__clicked : styles.searchBar__unclicked
         }
       >
-        <Ionicons
-          name="search"
-          size={20}
-          color="black"
-          style={{ marginLeft: 1 }}
-        />
+        <Pressable onPress={onSubmit}>
+          <Ionicons
+            name="search"
+            size={20}
+            color="black"
+            style={{ marginLeft: 1 }}
+          />
+        </Pressable>
         <TextInput
           style={styles.input}
-          placeholder="Search Friends"
+          placeholder={placeholder}
           value={searchPhrase}
           onChangeText={setSearchPhrase}
           onFocus={() => {
             setClicked(true);
           }}
+          onSubmitEditing={() => onSubmit}
         />
       </View>
       {clicked && (

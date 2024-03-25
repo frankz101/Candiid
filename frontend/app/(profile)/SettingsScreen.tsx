@@ -2,7 +2,7 @@ import { SafeAreaView, Pressable, StyleSheet, Text, View } from "react-native";
 import React from "react";
 import { useClerk } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
-import BackButton from "@/components/utils/backButton";
+import BackButton from "@/components/utils/BackButton";
 
 const SettingsScreen = () => {
   const { signOut } = useClerk();

@@ -8,10 +8,10 @@ import {
 } from "react-native";
 import React, { useState } from "react";
 import SearchBar from "@/components/utils/SearchBar";
-import BackButton from "@/components/utils/backButton";
+import BackButton from "@/components/utils/BackButton";
 import { Ionicons } from "@expo/vector-icons";
 import { useUser } from "@clerk/clerk-expo";
-import axios, { AxiosResponse } from "axios";
+import axios from "axios";
 import { useRouter } from "expo-router";
 
 interface Contact {
@@ -20,40 +20,6 @@ interface Contact {
   username: string;
   profilePhoto: string;
 }
-
-// Dummy data for contacts (replace this with actual data later lol)
-const contacts: Contact[] = [
-  {
-    id: 1,
-    name: "Ebeth Kim",
-    username: "ebeth",
-    profilePhoto: "url/to/photo",
-  },
-  {
-    id: 2,
-    name: "Frankie Zhu",
-    username: "codewithfrank",
-    profilePhoto: "url/to/photo",
-  },
-  {
-    id: 3,
-    name: "Andy Ren",
-    username: "meowmeow",
-    profilePhoto: "url/to/photo",
-  },
-  {
-    id: 4,
-    name: "Christina Wu",
-    username: "christinawu19",
-    profilePhoto: "url/to/photo",
-  },
-  {
-    id: 5,
-    name: "Jeff Yue",
-    username: "newjerseynumber3",
-    profilePhoto: "url/to/photo",
-  },
-];
 
 // New component for Contact Row
 const ContactRow: React.FC<{ contact: Contact }> = ({ contact }) => (
@@ -66,9 +32,10 @@ const ContactRow: React.FC<{ contact: Contact }> = ({ contact }) => (
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: "#aaa",
       }}
     >
+      <Ionicons name="person-circle-outline" size={40} color="black" />
+
       {/* Add the image component for the profile photo */}
     </View>
     <View style={{ marginLeft: 10, flex: 1 }}>
@@ -96,10 +63,21 @@ const ContactRow: React.FC<{ contact: Contact }> = ({ contact }) => (
 const AddFriendsScreen = () => {
   const [clicked, setClicked] = useState(false);
   const [searchPhrase, setSearchPhrase] = useState("");
+  const [searchResults, setSearchResults] = useState(null);
   const [hangoutDetails, setHangoutDetails] = useState("");
 
   const { user } = useUser();
   const router = useRouter();
+
+  const onSubmit = async () => {
+    const res = await axios.get(
+      `http://localhost:3001/user/search/${searchPhrase}`
+    );
+
+    setSearchResults(res.data.result);
+  };
+
+  console.log(searchResults);
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -119,15 +97,20 @@ const AddFriendsScreen = () => {
           <SearchBar
             clicked={clicked}
             searchPhrase={searchPhrase}
+            placeholder="Search Friends"
             setSearchPhrase={setSearchPhrase}
             setClicked={setClicked}
+            onSubmit={onSubmit}
           />
-          <Text style={{ fontSize: 20, padding: 4 }}>Contacts on Memories</Text>
-          {contacts.slice(0, 5).map((contact) => (
+          {searchResults?.map((contact: Contact) => (
             <ContactRow key={contact.id} contact={contact} />
           ))}
+          {/* <Text style={{ fontSize: 20, padding: 4 }}>Contacts on Memories</Text> */}
+          {/* {contacts.slice(0, 5).map((contact) => (
+            <ContactRow key={contact.id} contact={contact} />
+          ))} */}
 
-          <Pressable
+          {/* <Pressable
             style={({ pressed }) => [
               {
                 backgroundColor: pressed ? "#ddd" : "#ccc",
@@ -141,11 +124,11 @@ const AddFriendsScreen = () => {
             }}
           >
             <Text style={{ color: "#000" }}>Show more</Text>
-          </Pressable>
-          <Text style={{ fontSize: 20, padding: 4 }}>Recommended</Text>
-          {contacts.slice(0, 3).map((contact) => (
+          </Pressable> */}
+          {/* <Text style={{ fontSize: 20, padding: 4 }}>Recommended</Text> */}
+          {/* {contacts.slice(0, 3).map((contact) => (
             <ContactRow key={contact.id} contact={contact} />
-          ))}
+          ))} */}
         </View>
       </View>
     </SafeAreaView>
