@@ -10,14 +10,12 @@ app.use(express.json());
 import UserRoutes from "./routes/UserRoutes.js";
 import HangoutRoutes from "./routes/HangoutRoutes.js";
 import PostRoutes from "./routes/PostRoutes.js";
+import FriendRequestRoutes from "./routes/FriendRequestRoutes.js";
 
 app.use("/", UserRoutes);
 app.use("/", HangoutRoutes);
 app.use("/", PostRoutes);
-
-// app.listen(port, "0.0.0.0", () => {
-//   console.log(`Listening on port ${port}`);
-// });
+app.use("/", FriendRequestRoutes);
 
 app.listen(port, () => {
   console.log(`Listening on port ${port}`);

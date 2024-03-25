@@ -5,25 +5,35 @@ import {
   doc,
   getDoc,
   setDoc,
+  query,
+  where,
+  getDocs,
 } from "firebase/firestore";
 import { db } from "../firebase.js";
 
 const createFriendRequestInDatabase = async (friendRequest) => {
-  const friendRequestDocRef = doc(
-    db,
-    "friendRequests",
-    friendRequest.friendRequestId
-  );
-  const friendRequestDocSnap = await getDoc(friendRequestDocRef);
-  let message;
+  try {
+    const friendRequestRef = collection(db, "friendRequests");
+    const q = query(
+      friendRequestRef,
+      where("senderId", "==", friendRequest.senderId),
+      where("receiverId", "==", friendRequest.receiverId)
+    );
 
-  if (!friendRequestDocSnap.exists()) {
-    await setDoc(friendRequestDocRef, friendRequest);
-    message = "Friend request created";
-  } else {
-    message = "Friend requested";
+    const friendRequestDocSnap = await getDocs(q);
+    let message;
+
+    if (friendRequestDocSnap.empty) {
+      await addDoc(friendRequestRef, friendRequest);
+      message = "Friend request created";
+    } else {
+      message = "Friend requested";
+    }
+    return { friendRequestId: friendRequest.friendRequestId, message };
+  } catch (error) {
+    console.error("Error creating friend request:", error);
+    throw error;
   }
-  return { friendRequestId: friendRequest.friendRequestId, message };
 };
 
 export { createFriendRequestInDatabase };

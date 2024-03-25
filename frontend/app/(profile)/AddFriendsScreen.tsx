@@ -21,12 +21,15 @@ interface Contact {
   profilePhoto: string;
 }
 
-// New component for Contact Row
-const ContactRow: React.FC<{ contact: Contact }> = ({ contact }) => (
+interface ContactRowProps {
+  contact: Contact;
+  addFriend: () => Promise<void>;
+}
+
+const ContactRow: React.FC<ContactRowProps> = ({ contact, addFriend }) => (
   <View
     style={[{ padding: 10, flexDirection: "row", alignItems: "flex-start" }]}
   >
-    {/* Replace the following with a circular icon using the contact's profile photo */}
     <View
       style={{
         width: 40,
@@ -35,8 +38,6 @@ const ContactRow: React.FC<{ contact: Contact }> = ({ contact }) => (
       }}
     >
       <Ionicons name="person-circle-outline" size={40} color="black" />
-
-      {/* Add the image component for the profile photo */}
     </View>
     <View style={{ marginLeft: 10, flex: 1 }}>
       <Text style={{ fontSize: 16 }}>{contact.name}</Text>
@@ -51,9 +52,7 @@ const ContactRow: React.FC<{ contact: Contact }> = ({ contact }) => (
         },
         styles.centerRow,
       ]}
-      onPress={() => {
-        // Handle "Add Friend" button click
-      }}
+      onPress={addFriend}
     >
       <Text style={{ color: "#000" }}>Add Friend</Text>
     </Pressable>
@@ -64,7 +63,6 @@ const AddFriendsScreen = () => {
   const [clicked, setClicked] = useState(false);
   const [searchPhrase, setSearchPhrase] = useState("");
   const [searchResults, setSearchResults] = useState(null);
-  const [hangoutDetails, setHangoutDetails] = useState("");
 
   const { user } = useUser();
   const router = useRouter();
@@ -77,7 +75,14 @@ const AddFriendsScreen = () => {
     setSearchResults(res.data.result);
   };
 
-  console.log(searchResults);
+  const addFriend = async (contact: Contact) => {
+    const res = await axios.post("http://localhost:3001/friendRequest", {
+      senderId: user?.id,
+      receiverId: contact.id,
+      status: "pending",
+    });
+    console.log(res.data.result);
+  };
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -103,32 +108,12 @@ const AddFriendsScreen = () => {
             onSubmit={onSubmit}
           />
           {searchResults?.map((contact: Contact) => (
-            <ContactRow key={contact.id} contact={contact} />
+            <ContactRow
+              key={contact.id}
+              contact={contact}
+              addFriend={() => addFriend(contact)}
+            />
           ))}
-          {/* <Text style={{ fontSize: 20, padding: 4 }}>Contacts on Memories</Text> */}
-          {/* {contacts.slice(0, 5).map((contact) => (
-            <ContactRow key={contact.id} contact={contact} />
-          ))} */}
-
-          {/* <Pressable
-            style={({ pressed }) => [
-              {
-                backgroundColor: pressed ? "#ddd" : "#ccc",
-                padding: 10,
-                borderRadius: 5,
-              },
-              styles.centerRow,
-            ]}
-            onPress={() => {
-              // Load and display more friends
-            }}
-          >
-            <Text style={{ color: "#000" }}>Show more</Text>
-          </Pressable> */}
-          {/* <Text style={{ fontSize: 20, padding: 4 }}>Recommended</Text> */}
-          {/* {contacts.slice(0, 3).map((contact) => (
-            <ContactRow key={contact.id} contact={contact} />
-          ))} */}
         </View>
       </View>
     </SafeAreaView>
