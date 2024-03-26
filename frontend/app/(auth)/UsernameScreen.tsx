@@ -39,8 +39,8 @@ const UsernameScreen = () => {
     try {
       await signUp?.create({
         username,
-        phoneNumber,
-        firstName,
+        phoneNumber: Array.isArray(phoneNumber) ? phoneNumber[0] : phoneNumber,
+        firstName: Array.isArray(firstName) ? firstName[0] : firstName,
       });
 
       await signUp?.preparePhoneNumberVerification({ strategy: "phone_code" });

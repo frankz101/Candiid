@@ -26,7 +26,7 @@ interface User {
 const AddFriendsScreen = () => {
   const [clicked, setClicked] = useState(false);
   const [searchPhrase, setSearchPhrase] = useState("");
-  const [searchResults, setSearchResults] = useState(null);
+  const [searchResults, setSearchResults] = useState<User[]>([]);
 
   const { user } = useUser();
   const router = useRouter();
