@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useUser } from "@clerk/clerk-expo";
 import axios from "axios";
 import { useRouter } from "expo-router";
+import FriendBanner from "@/components/friends/FriendBanner";
 
 interface Contact {
   id: number;
@@ -20,44 +21,6 @@ interface Contact {
   username: string;
   profilePhoto: string;
 }
-
-interface ContactRowProps {
-  contact: Contact;
-  addFriend: () => Promise<void>;
-}
-
-const ContactRow: React.FC<ContactRowProps> = ({ contact, addFriend }) => (
-  <View
-    style={[{ padding: 10, flexDirection: "row", alignItems: "flex-start" }]}
-  >
-    <View
-      style={{
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-      }}
-    >
-      <Ionicons name="person-circle-outline" size={40} color="black" />
-    </View>
-    <View style={{ marginLeft: 10, flex: 1 }}>
-      <Text style={{ fontSize: 16 }}>{contact.name}</Text>
-      <Text style={{ color: "#777" }}>{"@" + contact.username}</Text>
-    </View>
-    <Pressable
-      style={({ pressed }) => [
-        {
-          backgroundColor: pressed ? "#ddd" : "#ccc",
-          padding: 10,
-          borderRadius: 5,
-        },
-        styles.centerRow,
-      ]}
-      onPress={addFriend}
-    >
-      <Text style={{ color: "#000" }}>Add Friend</Text>
-    </Pressable>
-  </View>
-);
 
 const AddFriendsScreen = () => {
   const [clicked, setClicked] = useState(false);
@@ -97,7 +60,7 @@ const AddFriendsScreen = () => {
         <Text style={{ fontSize: 24 }}>Add Friends</Text>
         <View style={{ width: 32 }} />
       </View>
-      <View style={styles.test}>
+      <View style={styles.container}>
         <View>
           <SearchBar
             clicked={clicked}
@@ -108,7 +71,7 @@ const AddFriendsScreen = () => {
             onSubmit={onSubmit}
           />
           {searchResults?.map((contact: Contact) => (
-            <ContactRow
+            <FriendBanner
               key={contact.id}
               contact={contact}
               addFriend={() => addFriend(contact)}
@@ -123,16 +86,9 @@ const AddFriendsScreen = () => {
 export default AddFriendsScreen;
 
 const styles = StyleSheet.create({
-  centerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  test: {
+  container: {
     flexDirection: "column",
     justifyContent: "space-evenly",
-    // borderColor: "black",
-    // borderWidth: 1,
     height: "100%",
   },
 });
