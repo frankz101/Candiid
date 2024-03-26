@@ -1,4 +1,7 @@
-import { createFriendRequest } from "../services/FriendRequestService.js";
+import {
+  createFriendRequest,
+  retrieveFriendRequests,
+} from "../services/FriendRequestService.js";
 
 const sendFriendRequest = async (req, res) => {
   try {
@@ -9,4 +12,13 @@ const sendFriendRequest = async (req, res) => {
   }
 };
 
-export { sendFriendRequest };
+const getFriendRequests = async (req, res) => {
+  try {
+    const result = await retrieveFriendRequests(req.params.id);
+    res.status(201).send({ result });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export { sendFriendRequest, getFriendRequests };

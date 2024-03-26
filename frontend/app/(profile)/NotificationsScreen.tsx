@@ -1,12 +1,32 @@
 import { Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
-import React from "react";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
 import BackButton from "@/components/utils/BackButton";
+import { useUser } from "@clerk/clerk-expo";
+import axios from "axios";
+import FriendBanner from "@/components/friends/FriendBanner";
+
+interface Contact {
+  id: number;
+  name: string;
+  username: string;
+  profilePhoto: string;
+  userId: string;
+}
 
 const NotificationsScreen = () => {
-  const router = useRouter();
+  const [friendRequests, setFriendRequests] = useState(null);
+  const { user } = useUser();
+  const getFriendRequests = async () => {
+    const res = await axios.get(
+      `http://localhost:3001/friendRequest/get/${user?.id}`
+    );
+    console.log(res.data.result);
+    setFriendRequests(res.data.result);
+  };
 
+  useEffect(() => {
+    getFriendRequests();
+  }, []);
   return (
     <SafeAreaView>
       <View
@@ -19,6 +39,15 @@ const NotificationsScreen = () => {
         <BackButton />
         <Text style={{ fontSize: 24 }}>Notifications</Text>
         <View style={{ width: 32 }} />
+      </View>
+      <View>
+        {friendRequests?.map((contact: Contact) => (
+          <FriendBanner
+            key={contact.userId}
+            contact={contact}
+            addFriend={getFriendRequests}
+          />
+        ))}
       </View>
     </SafeAreaView>
   );

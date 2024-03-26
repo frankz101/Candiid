@@ -1,10 +1,16 @@
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { createFriendRequestInDatabase } from "../db/FriendRequestDatabase.js";
-import { storage } from "../firebase.js";
+import {
+  createFriendRequestInDatabase,
+  getFriendRequestInDatabase,
+} from "../db/FriendRequestDatabase.js";
 
 const createFriendRequest = async (friendRequestData) => {
   const result = await createFriendRequestInDatabase(friendRequestData);
   return result;
 };
 
-export { createFriendRequest };
+const retrieveFriendRequests = async (userId) => {
+  const result = await getFriendRequestInDatabase(userId);
+  return result;
+};
+
+export { createFriendRequest, retrieveFriendRequests };
