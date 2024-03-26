@@ -13,9 +13,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { useUser } from "@clerk/clerk-expo";
 import axios from "axios";
 import { useRouter } from "expo-router";
-import FriendBanner from "@/components/friends/FriendBanner";
+import FriendBanner from "@/components/friends/UserBanner";
 
-interface Contact {
+interface User {
   id: number;
   name: string;
   username: string;
@@ -37,15 +37,6 @@ const AddFriendsScreen = () => {
     );
 
     setSearchResults(res.data.result);
-  };
-
-  const addFriend = async (contact: Contact) => {
-    const res = await axios.post("http://localhost:3001/friendRequest", {
-      senderId: user?.id,
-      receiverId: contact.id,
-      status: "pending",
-    });
-    console.log(res.data.result);
   };
 
   return (
@@ -71,12 +62,8 @@ const AddFriendsScreen = () => {
             setClicked={setClicked}
             onSubmit={onSubmit}
           />
-          {searchResults?.map((contact: Contact) => (
-            <FriendBanner
-              key={contact.id}
-              contact={contact}
-              addFriend={() => addFriend(contact)}
-            />
+          {searchResults?.map((user: User) => (
+            <FriendBanner key={user.id} user={user} type="searchResults" />
           ))}
         </View>
       </View>

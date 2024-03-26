@@ -3,9 +3,9 @@ import React, { useEffect, useState } from "react";
 import BackButton from "@/components/utils/BackButton";
 import { useUser } from "@clerk/clerk-expo";
 import axios from "axios";
-import FriendBanner from "@/components/friends/FriendBanner";
+import UserBanner from "@/components/friends/UserBanner";
 
-interface Contact {
+interface User {
   id: number;
   name: string;
   username: string;
@@ -14,14 +14,19 @@ interface Contact {
 }
 
 const NotificationsScreen = () => {
-  const [friendRequests, setFriendRequests] = useState(null);
+  const [friendRequests, setFriendRequests] = useState<User[]>([]);
   const { user } = useUser();
   const getFriendRequests = async () => {
     const res = await axios.get(
       `http://localhost:3001/friendRequest/get/${user?.id}`
     );
-    console.log(res.data.result);
     setFriendRequests(res.data.result);
+  };
+
+  const updateFriendRequests = (userId: string) => {
+    setFriendRequests((currentRequests) =>
+      currentRequests?.filter((request: User) => request.userId !== userId)
+    );
   };
 
   useEffect(() => {
@@ -41,11 +46,12 @@ const NotificationsScreen = () => {
         <View style={{ width: 32 }} />
       </View>
       <View>
-        {friendRequests?.map((contact: Contact) => (
-          <FriendBanner
+        {friendRequests?.map((contact: User) => (
+          <UserBanner
             key={contact.userId}
-            contact={contact}
-            addFriend={getFriendRequests}
+            user={contact}
+            type="friendRequests"
+            onHandleRequest={() => updateFriendRequests(contact.userId)}
           />
         ))}
       </View>
