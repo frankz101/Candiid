@@ -11,13 +11,17 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
+  withSpring,
 } from "react-native-reanimated";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { runOnJS } from "react-native-reanimated";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
-const postWidth = screenWidth / 2 - 15;
-const postHeight = (postWidth * 5) / 4;
+// const postWidth = screenWidth / 2 - 15;
+// const postHeight = (postWidth * 5) / 4;
+
+const padding = 20;
+const imageWidth = (screenWidth - padding * 6) / 3; // Subtract total padding and divide by 3
 
 const MemoriesScreen = () => {
   const { user } = useUser();
@@ -57,7 +61,17 @@ const MemoriesScreen = () => {
   const scaleContext = useSharedValue({ scale: 1 });
   const screenContext = useSharedValue({ x: 0, y: 0 });
   const postContext = useSharedValue({ x: 0, y: 0 });
-  const ispostActive = useSharedValue<boolean>(false);
+  const isPostActive = useSharedValue<boolean>(false);
+
+  const springBorder = () => {
+    console.log("SPRING");
+    screenX.value = withSpring(0, {
+      stiffness: 60,
+    });
+    screenY.value = withSpring(0, {
+      stiffness: 60,
+    });
+  };
 
   const screenPan = Gesture.Pan()
     .onStart((e) => {
@@ -67,7 +81,7 @@ const MemoriesScreen = () => {
       };
     })
     .onUpdate((e) => {
-      if (!ispostActive.value) {
+      if (!isPostActive.value) {
         let newX = (e.translationX + screenContext.value.x) / scale.value;
         let newY = (e.translationY + screenContext.value.y) / scale.value;
 
@@ -85,16 +99,22 @@ const MemoriesScreen = () => {
         const minX = -maxX;
         const minY = -maxY;
 
+        if (newX >= maxX || newY >= maxY || newX <= minX || newY <= minY) {
+          runOnJS(springBorder)();
+        }
+
         screenX.value = Math.min(Math.max(newX, minX), maxX);
         screenY.value = Math.min(Math.max(newY, minY), maxY);
 
+        // console.log("newX:", newX, "newY:", newY);
+        // console.log("maxX:", maxX, "maxY:", maxY, "minX:", minX, "minY:", minY);
         // console.log(`Screen Position: X=${screenX.value}, Y=${screenY.value}`);
       }
     });
 
   const postPan = Gesture.Pan()
     .onStart(() => {
-      ispostActive.value = true;
+      isPostActive.value = true;
       postContext.value = {
         x: postX.value * scale.value,
         y: postY.value * scale.value,
@@ -104,8 +124,11 @@ const MemoriesScreen = () => {
       let newpostX = (e.translationX + postContext.value.x) / scale.value;
       let newpostY = (e.translationY + postContext.value.y) / scale.value;
 
-      const halfPostWidth = postWidth / 2;
-      const halfPostHeight = postHeight / 2;
+      // const halfPostWidth = postWidth / 2;
+      // const halfPostHeight = postHeight / 2;
+
+      const halfPostWidth = imageWidth / 2;
+      const halfPostHeight = imageWidth / 2;
 
       const minX = -screenWidth / 2 + halfPostWidth;
       const maxX = screenWidth / 2 - halfPostWidth;
@@ -118,7 +141,7 @@ const MemoriesScreen = () => {
       // console.log(`Post Position: X=${postX.value}, Y=${postY.value}`);
     })
     .onEnd(() => {
-      ispostActive.value = false;
+      isPostActive.value = false;
     });
 
   const pinch = Gesture.Pinch()
@@ -188,7 +211,7 @@ const MemoriesScreen = () => {
   return isPending ? (
     <Text>Loading...</Text>
   ) : (
-    <View style={{ flex: 1 }}>
+    <Animated.View style={{ flex: 1 }} sharedTransitionTag="MemoriesScreen">
       <GestureDetector gesture={combinedGesture}>
         <Animated.View style={[styles.container, containerStyle]}>
           {hangouts?.map((hangout: any, index: number) => (
@@ -225,7 +248,7 @@ const MemoriesScreen = () => {
           <Ionicons name="checkmark-circle" size={64} />
         </Pressable>
       )}
-    </View>
+    </Animated.View>
   );
 };
 
@@ -239,8 +262,10 @@ const styles = StyleSheet.create({
     backgroundColor: "grey",
   },
   post: {
-    width: postWidth,
-    height: postHeight,
+    // width: postWidth,
+    // height: postHeight,
+    width: imageWidth,
+    height: imageWidth,
     borderRadius: 10,
     backgroundColor: "blue",
   },

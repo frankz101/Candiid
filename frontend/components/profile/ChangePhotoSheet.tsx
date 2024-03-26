@@ -33,7 +33,7 @@ const ChangePhotoSheet = () => {
         .then((data) => {
           console.log("Profile photo change success:", data);
           queryClient.invalidateQueries({
-            queryKey: ["profileDetails", user?.id],
+            queryKey: ["profile", user?.id],
           });
         })
         .catch((error) => {

@@ -22,7 +22,7 @@ const Hangout = () => {
   };
 
   const { data: hangoutData, isPending } = useQuery({
-    queryKey: ["hangout", hangoutId],
+    queryKey: ["hangoutPhotos", hangoutId],
     queryFn: fetchHangout,
   });
 

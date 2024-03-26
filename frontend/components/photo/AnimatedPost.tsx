@@ -10,8 +10,11 @@ import Animated, { useAnimatedStyle } from "react-native-reanimated";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
-const postWidth = screenWidth / 2 - 15;
-const postHeight = (postWidth * 5) / 4;
+// const postWidth = screenWidth / 2 - 15;
+// const postHeight = (postWidth * 5) / 4;
+
+const padding = 20;
+const imageWidth = (screenWidth - padding * 6) / 3; // Subtract total padding and divide by 3
 
 interface AnimatedPostProps {
   positionX: number;
@@ -31,8 +34,8 @@ const AnimatedPost = ({
   const [isEnlarged, setIsEnlarged] = useState(false);
   const postStyle = useAnimatedStyle(() => ({
     position: "absolute",
-    width: postWidth,
-    height: postHeight,
+    width: imageWidth,
+    height: imageWidth,
     borderRadius: 10,
     transform: [{ translateX: positionX }, { translateY: positionY }],
     backgroundColor: postId ? "transparent" : "blue",

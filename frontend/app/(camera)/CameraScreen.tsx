@@ -6,7 +6,8 @@ import {
   Text,
   View,
 } from "react-native";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   useCameraPermission,
   useCameraDevice,
@@ -21,6 +22,14 @@ import axios from "axios";
 import RNFetchBlob from "rn-fetch-blob";
 import { useUser } from "@clerk/clerk-expo";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import BackButton from "@/components/utils/BackButton";
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withTiming,
+} from "react-native-reanimated";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = screenWidth * (5 / 4);
@@ -30,6 +39,7 @@ const CameraScreen = () => {
   const { isLoaded, user } = useUser();
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!hasPermission) {
@@ -65,8 +75,24 @@ const CameraScreen = () => {
   const isActive = isFocused && appState === "active";
   const camera = useRef<Camera>(null);
 
+  const flashOpacity = useSharedValue(0);
+
+  const flashStyle = useAnimatedStyle(() => {
+    return {
+      opacity: flashOpacity.value,
+    };
+  });
+
+  const triggerFlash = () => {
+    flashOpacity.value = withSequence(
+      withTiming(1, { duration: 50 }),
+      withTiming(0, { duration: 50 })
+    );
+  };
+
   const onCameraCapture = async () => {
     try {
+      triggerFlash();
       const photoFile = await camera.current?.takePhoto();
       if (photoFile && isLoaded && user) {
         const uri = photoFile.path;
@@ -94,7 +120,6 @@ const CameraScreen = () => {
           .then((response) => response.json())
           .then((data) => {
             console.log("Upload success:", data);
-            router.push("/(tabs)/profile");
           })
           .catch((error) => {
             console.error("Error uploading photo:", error);
@@ -105,8 +130,27 @@ const CameraScreen = () => {
     }
   };
 
+  const handleCameraComplete = () => {
+    queryClient.invalidateQueries({
+      queryKey: ["hangoutPhotos", id],
+    });
+    router.back();
+  };
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          paddingVertical: 24,
+        }}
+      >
+        <BackButton />
+        <Text style={{ fontSize: 24 }}>Camera</Text>
+        <View style={{ width: 32 }} />
+      </View>
       <View style={{ flex: 1 }}>
         <Camera
           ref={camera}
@@ -116,12 +160,19 @@ const CameraScreen = () => {
           photo={true}
           style={styles.cameraPreview}
         />
+        <Animated.View style={[styles.flashOverlay, flashStyle]} />
       </View>
       <Pressable
         onPress={onCameraCapture}
         style={{ position: "absolute", alignSelf: "center", bottom: 75 }}
       >
-        <Feather name="circle" size={80} color="white" />
+        <Feather name="circle" size={80} color="black" />
+      </Pressable>
+      <Pressable
+        onPress={handleCameraComplete}
+        style={{ position: "absolute", right: 20, bottom: 90 }}
+      >
+        <Feather name="arrow-right-circle" size={48} />
       </Pressable>
     </SafeAreaView>
   );
@@ -134,5 +185,14 @@ const styles = StyleSheet.create({
     width: screenWidth,
     height: screenHeight,
     alignSelf: "center",
+    borderRadius: 30,
+  },
+  flashOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    backgroundColor: "white",
   },
 });

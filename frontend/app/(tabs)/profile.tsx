@@ -1,5 +1,12 @@
-import { SafeAreaView, Pressable, StyleSheet, Text, View } from "react-native";
-import { useQuery } from "@tanstack/react-query";
+import {
+  SafeAreaView,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  ScrollView,
+} from "react-native";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import React from "react";
 import { useRouter } from "expo-router";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
@@ -7,28 +14,24 @@ import axios from "axios";
 import { SheetManager } from "react-native-actions-sheet";
 import { useUser } from "@clerk/clerk-expo";
 import { Image } from "expo-image";
+import MemoriesView from "@/components/profile/MemoriesView";
+import Animated from "react-native-reanimated";
 
 const Profile = () => {
   const router = useRouter();
   const { user } = useUser();
 
-  // const fetchHangouts = async () => {
-  //   console.log("Fetching Hangouts");
-  //   return axios
-  //     .get(
-  //       `${process.env.EXPO_PUBLIC_API_URL}/hangouts/users/user_2at1mqV4kVndS3s0ahs9Q0SsrQr`
-  //     )
-  //     .then((res) => res.data);
-  // };
+  const fetchMemories = async () => {
+    console.log("Fetching Memories");
+    return axios
+      .get(`${process.env.EXPO_PUBLIC_API_URL}/memories/${user?.id}`)
+      .then((res) => res.data);
+  };
 
-  // const { data: hangouts, isPending } = useQuery({
-  //   queryKey: ["hangouts"],
-  //   queryFn: fetchHangouts,
+  // const { data: memoriesData, isPending } = useQuery({
+  //   queryKey: ["memories", user?.id],
+  //   queryFn: fetchMemories,
   // });
-
-  // if (isPending) {
-  //   return <Text>Is Loading...</Text>;
-  // }
 
   const fetchProfilePhoto = async () => {
     console.log("Fetching Profile Photo");
@@ -37,14 +40,28 @@ const Profile = () => {
       .then((res) => res.data);
   };
 
-  const { data: profileDetails, isPending } = useQuery({
-    queryKey: ["profileDetails", user?.id],
-    queryFn: fetchProfilePhoto,
+  // const { data: profileDetails, isPending } = useQuery({
+  //   queryKey: ["profileDetails", user?.id],
+  //   queryFn: fetchProfilePhoto,
+  // });
+
+  const [memories, profile] = useQueries({
+    queries: [
+      { queryKey: ["memories", user?.id], queryFn: fetchMemories },
+      { queryKey: ["profile", user?.id], queryFn: fetchProfilePhoto },
+    ],
   });
+
+  const { data: memoriesData, isPending: isPendingMemories } = memories;
+  const { data: profileDetails, isPending: isPendingProfile } = profile;
 
   const openChangePhotoSheet = () => {
     SheetManager.show("change-photo");
   };
+
+  if (isPendingProfile) {
+    return <Text>Is Loading...</Text>;
+  }
 
   return (
     <SafeAreaView>
@@ -96,6 +113,33 @@ const Profile = () => {
           </Pressable>
         ))}
       </View> */}
+      {isPendingMemories ? (
+        <View
+          style={{
+            height: "50%",
+            borderWidth: 1,
+            borderColor: "black",
+            borderRadius: 10,
+          }}
+        />
+      ) : (
+        <Animated.View
+          style={{
+            justifyContent: "center",
+            alignItems: "center",
+            height: "50%",
+            borderWidth: 1,
+            borderColor: "black",
+            borderRadius: 10,
+            overflow: "hidden",
+          }}
+          sharedTransitionTag="MemoriesScreen"
+        >
+          <Pressable onPress={() => router.push("/(hangout)/MemoriesScreen")}>
+            <MemoriesView hangouts={memoriesData} />
+          </Pressable>
+        </Animated.View>
+      )}
 
       <View>
         <Pressable
