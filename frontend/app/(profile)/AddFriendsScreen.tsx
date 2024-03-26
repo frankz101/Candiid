@@ -20,6 +20,7 @@ interface Contact {
   name: string;
   username: string;
   profilePhoto: string;
+  userId: string;
 }
 
 const AddFriendsScreen = () => {

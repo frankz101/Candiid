@@ -6,6 +6,7 @@ interface Contact {
   name: string;
   username: string;
   profilePhoto: string;
+  userId: string;
 }
 
 interface FriendBannerProps {
