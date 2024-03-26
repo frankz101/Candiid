@@ -4,11 +4,21 @@ import {
   fetchUserPost,
   fetchUserPosts,
   fetchUserProfilePhoto,
+  searchUsers,
 } from "../services/UserService.js";
 
 const postUser = async (req, res) => {
   try {
     const result = await createUser(req.body);
+    res.status(201).send({ result });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+const getUsers = async (req, res) => {
+  try {
+    const result = await searchUsers(req.params.username);
     res.status(201).send({ result });
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -77,6 +87,7 @@ export {
   postUser,
   putUserProfilePhoto,
   getUserPosts,
+  getUsers,
   getUserPost,
   getUserProfilePhoto,
 };

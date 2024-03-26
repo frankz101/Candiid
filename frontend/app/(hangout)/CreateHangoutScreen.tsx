@@ -52,6 +52,8 @@ const CreateHangoutScreen = () => {
     });
   };
 
+  const onSubmit = () => {};
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View
@@ -82,8 +84,10 @@ const CreateHangoutScreen = () => {
           <SearchBar
             clicked={clicked}
             searchPhrase={searchPhrase}
+            placeholder="Search Friends"
             setSearchPhrase={setSearchPhrase}
             setClicked={setClicked}
+            onSubmit={onSubmit}
           />
         </View>
 

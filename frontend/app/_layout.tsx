@@ -25,7 +25,7 @@ const InitialLayout = () => {
     if (isSignedIn && !inTabsGroup) {
       router.replace("/(tabs)/");
     } else if (!isSignedIn) {
-      router.replace("/login");
+      router.replace("/SignUpScreen");
     }
   }, [isSignedIn]);
 

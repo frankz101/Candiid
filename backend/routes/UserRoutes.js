@@ -3,6 +3,7 @@ import multer from "multer";
 import {
   getUserPost,
   getUserPosts,
+  getUsers,
   postUser,
   putUserProfilePhoto,
   getUserProfilePhoto,
@@ -21,5 +22,6 @@ router.put(
 router.get("/user/:id/profile-photo", getUserProfilePhoto);
 router.get("/user/:id/posts", getUserPosts);
 router.get("/user/:userId/post/:postId", getUserPost);
+router.get("/user/search/:username", getUsers);
 
 export default router;
