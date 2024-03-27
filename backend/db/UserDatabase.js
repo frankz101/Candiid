@@ -148,6 +148,41 @@ const fetchUserProfilePhotoFromDatabase = async (userId) => {
   }
 };
 
+const fetchFriendsFromDatabase = async (userId) => {
+  const userRef = doc(db, "users", userId);
+
+  try {
+    const docSnapshot = await getDoc(userRef);
+    if (docSnapshot.exists()) {
+      const data = docSnapshot.data();
+      const friends = data.friends || [];
+      const friendsData = [];
+
+      for (const friendId of friends) {
+        const friendRef = doc(db, "users", friendId);
+        const friendSnapshot = await getDoc(friendRef);
+        if (friendSnapshot.exists()) {
+          const friendData = friendSnapshot.data();
+          const profilePhotoUrl = friendData.profilePhoto?.fileUrl || null;
+          friendsData.push({
+            id: friendId,
+            profilePhoto: profilePhotoUrl,
+            firstName: friendData.name,
+          });
+        }
+      }
+
+      return friendsData;
+    } else {
+      console.log("No such user found!");
+      return [];
+    }
+  } catch (error) {
+    console.error("Error fetching friends from database: ", error);
+    throw error;
+  }
+};
+
 export {
   createUserInDatabase,
   changeProfilePhotoInDatabase,
@@ -155,4 +190,5 @@ export {
   fetchUserPostFromDatabase,
   fetchUserProfilePhotoFromDatabase,
   searchUsersInDatabase,
+  fetchFriendsFromDatabase,
 };

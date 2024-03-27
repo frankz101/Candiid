@@ -1,6 +1,8 @@
 import {
+  FlatList,
   Pressable,
   SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -15,6 +17,8 @@ import axios, { AxiosResponse } from "axios";
 import { useRouter } from "expo-router";
 import useStore from "@/store/useStore";
 import { HangoutDetails } from "@/store/createHangoutSlice";
+import { useQuery } from "@tanstack/react-query";
+import { Image } from "expo-image";
 
 const CreateHangoutScreen = () => {
   const [clicked, setClicked] = useState(false);
@@ -22,9 +26,36 @@ const CreateHangoutScreen = () => {
   const [hangoutName, setHangoutName] = useState("");
   const hangoutDetails = useStore((state) => state.hangoutDetails);
   const setHangoutDetails = useStore((state) => state.setHangoutDetails);
-
+  const { addFriend, removeFriend } = useStore();
   const { user } = useUser();
   const router = useRouter();
+
+  const dummyFriendsData = {
+    result: Array.from({ length: 20 }, (_, index) => ({
+      userId: `user_${index + 1}`,
+      profilePhoto: null,
+      firstName: "Rex",
+    })),
+  };
+
+  const firstHalf = dummyFriendsData.result.slice(
+    0,
+    Math.ceil(dummyFriendsData.result.length / 2)
+  );
+  const secondHalf = dummyFriendsData.result.slice(
+    Math.ceil(dummyFriendsData.result.length / 2)
+  );
+
+  const fetchFriends = async () => {
+    return axios
+      .get(`${process.env.EXPO_PUBLIC_API_URL}/user/${user?.id}/friends`)
+      .then((res) => res.data);
+  };
+
+  const { data: friendsData, isPending } = useQuery({
+    queryKey: ["friendsData", user?.id],
+    queryFn: fetchFriends,
+  });
 
   useEffect(() => {
     if (hangoutDetails?.hangoutName) {
@@ -35,6 +66,7 @@ const CreateHangoutScreen = () => {
   const handleHangoutSubmit = async () => {
     const newHangoutDetails: HangoutDetails = {
       hangoutName: hangoutName,
+      selectedFriends: hangoutDetails?.selectedFriends || [],
     };
 
     console.log(hangoutName);
@@ -78,17 +110,86 @@ const CreateHangoutScreen = () => {
           />
         </View>
         <View>
-          <Text style={{ alignSelf: "center", padding: 4 }}>
-            Invite your Friends
-          </Text>
-          <SearchBar
-            clicked={clicked}
-            searchPhrase={searchPhrase}
-            placeholder="Search Friends"
-            setSearchPhrase={setSearchPhrase}
-            setClicked={setClicked}
-            onSubmit={onSubmit}
-          />
+          <View>
+            <Text style={{ alignSelf: "center", padding: 4 }}>
+              Invite your Friends
+            </Text>
+            <SearchBar
+              clicked={clicked}
+              searchPhrase={searchPhrase}
+              placeholder="Search Friends"
+              setSearchPhrase={setSearchPhrase}
+              setClicked={setClicked}
+              onSubmit={onSubmit}
+            />
+          </View>
+
+          <View>
+            {isPending ? (
+              <Text>Loading friends...</Text>
+            ) : (
+              <ScrollView
+                horizontal={true}
+                showsHorizontalScrollIndicator={false}
+                directionalLockEnabled={true}
+                alwaysBounceVertical={false}
+                automaticallyAdjustContentInsets={false}
+              >
+                <FlatList
+                  data={dummyFriendsData.result}
+                  // data={friendsData.result}
+                  renderItem={({ item, index }) => (
+                    <View>
+                      <Pressable
+                        key={index}
+                        style={styles.friendItem}
+                        onPress={() => {
+                          console.log("Pressed");
+                          console.log(hangoutDetails?.selectedFriends);
+                          if (
+                            hangoutDetails?.selectedFriends.includes(
+                              item.userId
+                            )
+                          ) {
+                            removeFriend(item.userId);
+                          } else {
+                            addFriend(item.userId);
+                          }
+                        }}
+                      >
+                        {item.profilePhoto ? (
+                          <Image
+                            source={{ uri: item.profilePhoto }}
+                            style={styles.profilePhoto}
+                          />
+                        ) : (
+                          <Ionicons name="person-circle" size={64} />
+                        )}
+                      </Pressable>
+                      {hangoutDetails?.selectedFriends.includes(
+                        item.userId
+                      ) && (
+                        <Ionicons
+                          name="checkmark-circle-outline"
+                          size={24}
+                          style={styles.checkmarkIcon}
+                        />
+                      )}
+                      <Text style={{ alignSelf: "center" }}>
+                        {item.firstName}
+                      </Text>
+                    </View>
+                  )}
+                  keyExtractor={(item, index) => index.toString()}
+                  key={Math.ceil(dummyFriendsData.result.length / 2)}
+                  numColumns={Math.ceil(dummyFriendsData.result.length / 2)}
+                  showsVerticalScrollIndicator={false}
+                  showsHorizontalScrollIndicator={false}
+                  // columnWrapperStyle={styles.columnWrapper}
+                />
+              </ScrollView>
+            )}
+          </View>
         </View>
 
         <View
@@ -128,5 +229,23 @@ const styles = StyleSheet.create({
     // borderColor: "black",
     // borderWidth: 1,
     height: "100%",
+  },
+  profilePhoto: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+  },
+  friendItem: {
+    flex: 1,
+    padding: 7, // Adjust the margin as needed
+  },
+  columnWrapper: {
+    justifyContent: "space-between",
+  },
+  checkmarkIcon: {
+    position: "absolute",
+    right: 10,
+    bottom: 15,
+    color: "green",
   },
 });

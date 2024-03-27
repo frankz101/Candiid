@@ -18,9 +18,10 @@ import { db } from "../firebase.js";
 const createHangoutInDatabase = async (hangout) => {
   const hangoutCollection = collection(db, "hangouts");
   try {
+    const { selectedFriends, ...hangoutData } = hangout;
     const docRef = await addDoc(hangoutCollection, {
-      ...hangout,
-      participantIds: arrayUnion(hangout.userId),
+      ...hangoutData,
+      participantIds: arrayUnion(hangout.userId, ...selectedFriends),
       createdAt: serverTimestamp(),
     });
 

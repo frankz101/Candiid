@@ -6,6 +6,7 @@ import {
   fetchUserPostsFromDatabase,
   fetchUserProfilePhotoFromDatabase,
   searchUsersInDatabase,
+  fetchFriendsFromDatabase,
 } from "../db/UserDatabase.js";
 import { storage } from "../firebase.js";
 
@@ -56,6 +57,11 @@ const fetchUserProfilePhoto = async (userId) => {
   return result;
 };
 
+const fetchFriends = async (userId) => {
+  const result = await fetchFriendsFromDatabase(userId);
+  return result;
+};
+
 export {
   createUser,
   changeProfilePhoto,
@@ -63,4 +69,5 @@ export {
   searchUsers,
   fetchUserPost,
   fetchUserProfilePhoto,
+  fetchFriends,
 };

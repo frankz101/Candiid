@@ -7,6 +7,7 @@ import {
   postUser,
   putUserProfilePhoto,
   getUserProfilePhoto,
+  getFriends,
 } from "../controllers/UserController.js";
 
 var router = express.Router();
@@ -23,5 +24,6 @@ router.get("/user/:id/profile-photo", getUserProfilePhoto);
 router.get("/user/:id/posts", getUserPosts);
 router.get("/user/:userId/post/:postId", getUserPost);
 router.get("/user/search/:username", getUsers);
+router.get("/user/:id/friends", getFriends);
 
 export default router;

@@ -202,7 +202,7 @@ const MemoriesScreen = () => {
       router.push({
         pathname: "/(tabs)/profile",
       });
-      setHangoutDetails({ hangoutName: "" });
+      setHangoutDetails({ hangoutName: "", selectedFriends: [] });
     } catch (error) {
       console.error(error);
     }
