@@ -62,7 +62,7 @@ const changeProfilePhotoInDatabase = async (userId, fileData) => {
 
   try {
     const userDoc = await getDoc(userDocRef);
-    const currentProfilePhoto = userDoc.data().profilePhoto.fileUrl;
+    const currentProfilePhoto = userDoc.data().profilePhoto?.fileUrl;
 
     if (currentProfilePhoto) {
       const url = new URL(currentProfilePhoto);
@@ -143,7 +143,7 @@ const fetchUserProfilePhotoFromDatabase = async (userId) => {
       return null;
     }
   } catch (error) {
-    console.error("Error fetching post by ID: ", error);
+    console.error("Error fetching profile photo by ID: ", error);
     throw error;
   }
 };

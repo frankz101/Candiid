@@ -198,6 +198,11 @@ const MemoriesScreen = () => {
       );
       console.log(memoriesResponse.data);
 
+      const hangoutRequestsResponse = await axios.post(
+        `${process.env.EXPO_PUBLIC_API_URL}/hangout/${hangoutResponse.data.result}/requests`,
+        hangoutDetails?.selectedFriends
+      );
+
       // Navigation and state update
       router.push({
         pathname: "/(tabs)/profile",

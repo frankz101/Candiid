@@ -21,7 +21,8 @@ const createHangoutInDatabase = async (hangout) => {
     const { selectedFriends, ...hangoutData } = hangout;
     const docRef = await addDoc(hangoutCollection, {
       ...hangoutData,
-      participantIds: arrayUnion(hangout.userId, ...selectedFriends),
+      participantIds: arrayUnion(hangout.userId),
+      pendingRequests: arrayUnion(...selectedFriends),
       createdAt: serverTimestamp(),
     });
 
@@ -94,9 +95,100 @@ const fetchHangoutFromDatabase = async (hangoutId) => {
   }
 };
 
+const createHangoutRequestsInDatabase = async (hangoutId, selectedFriends) => {
+  try {
+    const hangoutRequestRef = collection(db, "hangoutRequests");
+    let messages = [];
+
+    for (const friendId of selectedFriends) {
+      const hangoutRequestDoc = {
+        hangoutId: hangoutId,
+        receiverId: friendId,
+        status: "pending",
+        createdAt: serverTimestamp(),
+      };
+
+      const docRef = await addDoc(hangoutRequestRef, hangoutRequestDoc);
+      messages.push({
+        hangoutRequestId: docRef.id,
+        receiverId: friendId,
+        message: "Hangout invite sent",
+      });
+    }
+
+    return messages;
+  } catch (error) {
+    console.error("Error creating hangout invites:", error);
+    throw error;
+  }
+};
+
+const fetchHangoutRequestsInDatabase = async (userId) => {
+  try {
+    const hangoutRequestsRef = collection(db, "hangoutRequests");
+    const q = query(hangoutRequestsRef, where("receiverId", "==", userId));
+    const querySnapshot = await getDocs(q);
+    const hangoutRequests = [];
+
+    querySnapshot.forEach((doc) => {
+      hangoutRequests.push({ id: doc.id, ...doc.data() });
+    });
+
+    return hangoutRequests;
+  } catch (error) {
+    console.error("Error fetching hangout requests:", error);
+    throw error;
+  }
+};
+
+const handleHangoutRequestInDatabase = async (hangoutId, hangoutRequest) => {
+  try {
+    const hangoutRequestRef = collection(db, "hangoutRequests");
+    const q = query(
+      hangoutRequestRef,
+      where("hangoutId", "==", hangoutId),
+      where("receiverId", "==", hangoutRequest.receiverId)
+    );
+
+    const docSnap = await getDocs(q);
+
+    if (!docSnap.empty) {
+      const documentSnapshot = docSnap.docs[0];
+      const docRef = documentSnapshot.ref;
+      await deleteDoc(docRef);
+      console.log("Hangout request deleted");
+    } else {
+      console.log("No hangout request found");
+    }
+
+    if (hangoutRequest.status == "accept") {
+      const hangoutDocRef = doc(db, "hangouts", hangoutId);
+
+      updateDoc(hangoutDocRef, {
+        pendingRequests: arrayRemove(hangoutRequest.receiverId),
+        participantIds: arrayUnion(hangoutRequest.receiverId),
+      })
+        .then(() => {
+          console.log(
+            `User ${hangoutRequest.receiverId} added to hangout: ${hangoutId}'s.`
+          );
+        })
+        .catch((error) => {
+          console.error("Error updating document:", error);
+        });
+    }
+  } catch (error) {
+    console.error("Error handling friend request: ", error);
+    throw error;
+  }
+};
+
 export {
   createHangoutInDatabase,
   addPhotoToHangoutInDatabase,
   fetchRecentHangoutsFromDatabase,
   fetchHangoutFromDatabase,
+  createHangoutRequestsInDatabase,
+  fetchHangoutRequestsInDatabase,
+  handleHangoutRequestInDatabase,
 };
