@@ -8,6 +8,7 @@ const Layout = () => {
       <Stack.Screen name="SignUpScreen" />
       <Stack.Screen name="PhoneNumberScreen" />
       <Stack.Screen name="FirstNameScreen" />
+      <Stack.Screen name="LoginScreen" />
     </Stack>
   );
 };

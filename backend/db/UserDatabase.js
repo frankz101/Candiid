@@ -132,7 +132,12 @@ const fetchUserProfilePhotoFromDatabase = async (userId) => {
     const docSnapshot = await getDoc(userRef);
     if (docSnapshot.exists()) {
       const data = docSnapshot.data();
-      return { imageUrl: data.profilePhoto.fileUrl };
+      if (data.profilePhoto.fileUrl) {
+        return { imageUrl: data.profilePhoto.fileUrl };
+      } else {
+        console.log("User does not have profile photo");
+        return null;
+      }
     } else {
       console.log("No such post found!");
       return null;
