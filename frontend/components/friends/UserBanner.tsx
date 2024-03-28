@@ -1,6 +1,7 @@
 import { useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 interface User {
@@ -9,7 +10,13 @@ interface User {
   username: string;
   profilePhoto: string;
   userId: string;
+  friendStatus: string;
 }
+
+type FriendUpdateAction = {
+  action: string;
+  friendId: string;
+};
 
 interface UserBannerProps {
   user: User;
@@ -23,12 +30,71 @@ const UserBanner: React.FC<UserBannerProps> = ({
   onHandleRequest,
 }) => {
   const { user: currentUser } = useUser();
-  const addFriend = async () => {
-    const res = await axios.post("http://localhost:3001/friendRequest", {
-      senderId: currentUser?.id,
-      receiverId: user.userId,
-    });
-  };
+  const [pendingUpdates, setPendingUpdates] = useState<FriendUpdateAction[]>(
+    []
+  );
+  const [friendStatus, setFriendStatus] = useState(user.friendStatus);
+  console.log(user.friendStatus);
+
+  useEffect(() => {
+    return () => {
+      const finalUpdates = pendingUpdates.reduce((acc: any, update: any) => {
+        if (acc[update.friendId]) {
+          if (
+            acc[update.friendId].action === "add" &&
+            update.action === "removeRequest"
+          ) {
+            // Cancel out add and removeRequest actions
+            delete acc[update.friendId];
+          } else if (
+            acc[update.friendId].action === "removeRequest" &&
+            update.action === "add"
+          ) {
+            // Cancel out removeRequest and add actions
+            delete acc[update.friendId];
+          }
+        } else {
+          acc[update.friendId] = update;
+        }
+        return acc;
+      }, {});
+
+      // Perform the updates
+      Object.values(finalUpdates).forEach(async (update: any) => {
+        if (update.action === "add") {
+          await axios.post("http://localhost:3001/friendRequest", {
+            senderId: currentUser?.id,
+            receiverId: update.friendId,
+          });
+          console.log("Added");
+        } else if (update.action === "removeFriend") {
+          console.log("Remove Friend");
+          await axios.put(
+            `http://localhost:3001/friends/remove/users/${currentUser?.id}`,
+            {
+              receiverId: update.friendId,
+            }
+          );
+        } else if (update.action === "removeRequest") {
+          console.log("Remove Request");
+          console.log(user.userId);
+          console.log(currentUser?.id);
+          await axios.post("http://localhost:3001/friendRequest/handle", {
+            senderId: user.userId,
+            receiverId: currentUser?.id,
+            status: "reject",
+          });
+        }
+      });
+    };
+  }, [pendingUpdates]);
+
+  // const addFriend = async () => {
+  //   const res = await axios.post("http://localhost:3001/friendRequest", {
+  //     senderId: currentUser?.id,
+  //     receiverId: user.userId,
+  //   });
+  // };
   const handleRequest = async (status: string) => {
     const res = await axios.post("http://localhost:3001/friendRequest/handle", {
       senderId: user.userId,
@@ -40,6 +106,31 @@ const UserBanner: React.FC<UserBannerProps> = ({
       onHandleRequest(user.userId);
     }
   };
+
+  const addFriend = (friendId: string) => {
+    setPendingUpdates((currentUpdates) => [
+      ...currentUpdates,
+      { action: "add", friendId },
+    ]);
+    setFriendStatus("Friend Requested");
+  };
+
+  const removeFriend = (friendId: string) => {
+    setPendingUpdates((currentUpdates) => [
+      ...currentUpdates,
+      { action: "removeFriend", friendId },
+    ]);
+    setFriendStatus("Not Friends");
+  };
+
+  const removeRequest = (friendId: string) => {
+    setPendingUpdates((currentUpdates) => [
+      ...currentUpdates,
+      { action: "removeRequest", friendId },
+    ]);
+    setFriendStatus("Not Friends");
+  };
+
   return (
     <View
       style={[{ padding: 10, flexDirection: "row", alignItems: "flex-start" }]}
@@ -58,20 +149,53 @@ const UserBanner: React.FC<UserBannerProps> = ({
         <Text style={{ color: "#777" }}>{"@" + user.username}</Text>
       </View>
       {type === "searchResults" && (
-        <Pressable
-          style={({ pressed }) => [
-            {
-              backgroundColor: pressed ? "#ddd" : "#ccc",
-              padding: 10,
-              borderRadius: 5,
-            },
-            styles.centerRow,
-          ]}
-          onPress={addFriend}
-        >
-          <Text style={{ color: "#000" }}>Add Friend</Text>
-        </Pressable>
+        <View style={styles.centerRow}>
+          {friendStatus === "Already Friends" ? (
+            <Pressable
+              style={({ pressed }) => [
+                {
+                  backgroundColor: pressed ? "#ddd" : "#ccc",
+                  padding: 10,
+                  borderRadius: 5,
+                },
+                styles.centerRow,
+              ]}
+              onPress={() => removeFriend(user.userId)}
+            >
+              <Text style={{ color: "#000" }}>Remove Friend</Text>
+            </Pressable>
+          ) : friendStatus === "Friend Requested" ? (
+            <Pressable
+              style={({ pressed }) => [
+                {
+                  backgroundColor: pressed ? "#ddd" : "#ccc",
+                  padding: 10,
+                  borderRadius: 5,
+                },
+                styles.centerRow,
+              ]}
+              onPress={() => removeRequest(user.userId)}
+            >
+              <Text style={{ color: "#000" }}>Remove Request</Text>
+            </Pressable>
+          ) : (
+            <Pressable
+              style={({ pressed }) => [
+                {
+                  backgroundColor: pressed ? "#ddd" : "#ccc",
+                  padding: 10,
+                  borderRadius: 5,
+                },
+                styles.centerRow,
+              ]}
+              onPress={() => addFriend(user.userId)}
+            >
+              <Text style={{ color: "#000" }}>Add Friend</Text>
+            </Pressable>
+          )}
+        </View>
       )}
+
       {type === "friendRequests" && (
         <View style={{ flexDirection: "row" }}>
           <Pressable

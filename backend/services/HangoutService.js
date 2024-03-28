@@ -62,9 +62,11 @@ const fetchHangoutRequests = async (userId) => {
 };
 
 const createHangoutRequests = async (hangoutId, hangoutRequestData) => {
+  const { selectedFriends, hangoutName } = hangoutRequestData;
   const result = await createHangoutRequestsInDatabase(
     hangoutId,
-    hangoutRequestData
+    selectedFriends,
+    hangoutName
   );
   return result;
 };

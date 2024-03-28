@@ -19,7 +19,7 @@ const postUser = async (req, res) => {
 
 const getUsers = async (req, res) => {
   try {
-    const result = await searchUsers(req.params.username);
+    const result = await searchUsers(req.params.username, req.params.userId);
     res.status(201).send({ result });
   } catch (err) {
     res.status(500).send({ message: err.message });

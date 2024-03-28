@@ -2,6 +2,7 @@ import {
   createFriendRequest,
   retrieveFriendRequests,
   respondToFriendRequest,
+  unAddFriend,
 } from "../services/FriendRequestService.js";
 
 const getFriendRequests = async (req, res) => {
@@ -31,4 +32,20 @@ const handleFriendRequest = async (req, res) => {
   }
 };
 
-export { getFriendRequests, sendFriendRequest, handleFriendRequest };
+const removeFriend = async (req, res) => {
+  console.log("REMOVING");
+  const userId = req.params.id;
+  try {
+    const result = await unAddFriend(userId, req.body);
+    res.status(201).send({ result });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export {
+  getFriendRequests,
+  sendFriendRequest,
+  handleFriendRequest,
+  removeFriend,
+};

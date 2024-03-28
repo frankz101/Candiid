@@ -11,6 +11,7 @@ import {
   deleteDoc,
   updateDoc,
   arrayUnion,
+  arrayRemove,
 } from "firebase/firestore";
 import { db } from "../firebase.js";
 
@@ -52,6 +53,32 @@ const getFriendRequestInDatabase = async (userId) => {
         return docSnap.data();
       } else {
         console.log("No friend request sender exists");
+        return null;
+      }
+    });
+
+    const usersResults = await Promise.all(usersPromises);
+    const users = usersResults.filter((user) => user !== null);
+    return users;
+  } catch (error) {
+    console.error("Error getting friend requests: ", error);
+    throw error;
+  }
+};
+
+const getFriendRequestSentInDatabase = async (userId) => {
+  try {
+    const friendRequestRef = collection(db, "friendRequests");
+    const q = query(friendRequestRef, where("senderId", "==", userId));
+    const friendRequestsDocSnap = await getDocs(q);
+
+    const usersPromises = friendRequestsDocSnap.docs.map(async (document) => {
+      const docRef = doc(db, "users", document.data().receiverId);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        return docSnap.data();
+      } else {
+        console.log("No friend request receiver exists");
         return null;
       }
     });
@@ -119,8 +146,35 @@ const handleFriendRequestInDatabase = async (friendRequest) => {
   }
 };
 
+const removeFriendInDatabase = async (userId, friendId) => {
+  try {
+    const userDocRef = doc(db, "users", userId);
+    const friendDocRef = doc(db, "users", friendId);
+
+    await updateDoc(userDocRef, {
+      friends: arrayRemove(friendId),
+    });
+
+    await updateDoc(friendDocRef, {
+      friends: arrayRemove(userId),
+    });
+
+    console.log(
+      `Friend ${friendId} removed from user ${userId}'s friends list.`
+    );
+    console.log(
+      `User ${userId} removed from friend ${friendId}'s friends list.`
+    );
+  } catch (error) {
+    console.error("Error removing friend from database:", error);
+    throw error;
+  }
+};
+
 export {
   getFriendRequestInDatabase,
   createFriendRequestInDatabase,
   handleFriendRequestInDatabase,
+  removeFriendInDatabase,
+  getFriendRequestSentInDatabase,
 };

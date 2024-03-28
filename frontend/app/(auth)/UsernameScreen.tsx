@@ -36,6 +36,7 @@ const UsernameScreen = () => {
   }, [userSignedIn, isLoaded, user]);
 
   const handleSubmit = async () => {
+    console.log("Pressed");
     try {
       await signUp?.create({
         username,
@@ -45,7 +46,7 @@ const UsernameScreen = () => {
 
       await signUp?.preparePhoneNumberVerification({ strategy: "phone_code" });
     } catch (err: any) {
-      console.error();
+      console.error(err.message);
     }
   };
 
@@ -61,7 +62,7 @@ const UsernameScreen = () => {
         console.log("error signing up");
       }
     } catch (err: any) {
-      console.error();
+      console.error(err.message);
     }
   };
 

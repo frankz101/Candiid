@@ -12,6 +12,8 @@ import {
   limit,
   query,
   getDoc,
+  deleteDoc,
+  arrayRemove,
 } from "firebase/firestore";
 import { db } from "../firebase.js";
 
@@ -95,7 +97,11 @@ const fetchHangoutFromDatabase = async (hangoutId) => {
   }
 };
 
-const createHangoutRequestsInDatabase = async (hangoutId, selectedFriends) => {
+const createHangoutRequestsInDatabase = async (
+  hangoutId,
+  selectedFriends,
+  hangoutName
+) => {
   try {
     const hangoutRequestRef = collection(db, "hangoutRequests");
     let messages = [];
@@ -103,6 +109,7 @@ const createHangoutRequestsInDatabase = async (hangoutId, selectedFriends) => {
     for (const friendId of selectedFriends) {
       const hangoutRequestDoc = {
         hangoutId: hangoutId,
+        hangoutName: hangoutName,
         receiverId: friendId,
         status: "pending",
         createdAt: serverTimestamp(),

@@ -21,6 +21,7 @@ interface User {
   username: string;
   profilePhoto: string;
   userId: string;
+  friendStatus: string;
 }
 
 const AddFriendsScreen = () => {
@@ -33,11 +34,11 @@ const AddFriendsScreen = () => {
 
   const onSubmit = async () => {
     const res = await axios.get(
-      `http://localhost:3001/user/search/${searchPhrase}`
+      `http://localhost:3001/user/search/${searchPhrase}/users/${user?.id}`
     );
 
     setSearchResults(res.data.result);
-    console.log(searchResults);
+    console.log("Search results " + searchResults);
   };
 
   return (
@@ -64,7 +65,17 @@ const AddFriendsScreen = () => {
             onSubmit={onSubmit}
           />
           {searchResults?.map((user: User) => (
-            <FriendBanner key={user.id} user={user} type="searchResults" />
+            <Pressable
+              onPress={() =>
+                router.push({
+                  pathname: "/(profile)/ProfileScreen",
+                  params: { userId: user.id },
+                })
+              }
+              key={user.id}
+            >
+              <FriendBanner user={user} type="searchResults" />
+            </Pressable>
           ))}
         </View>
       </View>

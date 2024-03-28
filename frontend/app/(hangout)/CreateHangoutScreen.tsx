@@ -32,7 +32,7 @@ const CreateHangoutScreen = () => {
 
   const dummyFriendsData = {
     result: Array.from({ length: 20 }, (_, index) => ({
-      userId: `user_${index + 1}`,
+      id: `user_${index + 1}`,
       profilePhoto: null,
       firstName: "Rex",
     })),
@@ -136,24 +136,19 @@ const CreateHangoutScreen = () => {
                 automaticallyAdjustContentInsets={false}
               >
                 <FlatList
-                  data={dummyFriendsData.result}
-                  // data={friendsData.result}
+                  data={friendsData.result}
                   renderItem={({ item, index }) => (
                     <View>
                       <Pressable
                         key={index}
                         style={styles.friendItem}
                         onPress={() => {
-                          console.log("Pressed");
-                          console.log(hangoutDetails?.selectedFriends);
                           if (
-                            hangoutDetails?.selectedFriends.includes(
-                              item.userId
-                            )
+                            hangoutDetails?.selectedFriends.includes(item.id)
                           ) {
-                            removeFriend(item.userId);
+                            removeFriend(item.id);
                           } else {
-                            addFriend(item.userId);
+                            addFriend(item.id);
                           }
                         }}
                       >
@@ -166,9 +161,7 @@ const CreateHangoutScreen = () => {
                           <Ionicons name="person-circle" size={64} />
                         )}
                       </Pressable>
-                      {hangoutDetails?.selectedFriends.includes(
-                        item.userId
-                      ) && (
+                      {hangoutDetails?.selectedFriends.includes(item.id) && (
                         <Ionicons
                           name="checkmark-circle-outline"
                           size={24}

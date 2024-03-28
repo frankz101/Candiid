@@ -26,9 +26,13 @@ const imageWidth = (screenWidth - padding * 6) / 3; // Subtract total padding an
 const MemoriesScreen = () => {
   const { user } = useUser();
   const { userId, newPost } = useLocalSearchParams();
+  let hangoutId = useLocalSearchParams().hangoutId;
   const isNewPost = newPost === "true";
   const [isPlacementMode, setIsPlacementMode] = useState(false);
-  const hangoutDetails = useStore((state) => state.hangoutDetails);
+  const hangoutDetails = useStore((state) => state.hangoutDetails) || {
+    hangoutName: "",
+    selectedFriends: [],
+  };
   const setHangoutDetails = useStore((state) => state.setHangoutDetails);
 
   useEffect(() => {
@@ -172,22 +176,30 @@ const MemoriesScreen = () => {
   });
 
   const handleHangoutSubmit = async () => {
-    const hangoutData = {
-      userId: user?.id,
-      completed: false,
-      ...hangoutDetails,
-    };
+    if (!hangoutId) {
+      const hangoutData = {
+        userId: user?.id,
+        completed: false,
+        ...hangoutDetails,
+      };
+
+      try {
+        const hangoutResponse = await axios.post(
+          `${process.env.EXPO_PUBLIC_API_URL}/hangout`,
+          hangoutData
+        );
+        hangoutId = hangoutResponse.data.result;
+        console.log(hangoutResponse.data);
+      } catch (error) {
+        console.error("Error creating hangout:", error);
+        return;
+      }
+    }
 
     try {
-      const hangoutResponse = await axios.post(
-        `${process.env.EXPO_PUBLIC_API_URL}/hangout`,
-        hangoutData
-      );
-      console.log(hangoutResponse.data);
-
       const memoriesData = {
         userId: user?.id,
-        hangoutId: hangoutResponse.data.result,
+        hangoutId: hangoutId,
         postX: postX.value,
         postY: postY.value,
       };
@@ -198,18 +210,23 @@ const MemoriesScreen = () => {
       );
       console.log(memoriesResponse.data);
 
-      const hangoutRequestsResponse = await axios.post(
-        `${process.env.EXPO_PUBLIC_API_URL}/hangout/${hangoutResponse.data.result}/requests`,
-        hangoutDetails?.selectedFriends
-      );
+      if (hangoutDetails.selectedFriends.length > 0) {
+        const hangoutRequestsResponse = await axios.post(
+          `${process.env.EXPO_PUBLIC_API_URL}/hangout/${hangoutId}/requests`,
+          {
+            selectedFriends: hangoutDetails.selectedFriends,
+            hangoutName: hangoutDetails.hangoutName,
+          }
+        );
+        console.log(hangoutRequestsResponse.data);
+      }
 
-      // Navigation and state update
       router.push({
         pathname: "/(tabs)/profile",
       });
       setHangoutDetails({ hangoutName: "", selectedFriends: [] });
     } catch (error) {
-      console.error(error);
+      console.error("Error creating memories or hangout requests:", error);
     }
   };
 

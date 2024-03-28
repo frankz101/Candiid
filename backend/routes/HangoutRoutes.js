@@ -22,6 +22,6 @@ router.get("/hangout/:hangoutId", getHangout);
 router.put("/hangout/:hangoutId/post-position");
 router.get("/hangout/requests/users/:userId", getHangoutRequests);
 router.post("/hangout/:hangoutId/requests", postHangoutRequests);
-router.put("/hangout/:hangoutId/requests/users/:userId", putHangoutRequest);
+router.put("/hangout/:hangoutId/requests", putHangoutRequest);
 
 export default router;

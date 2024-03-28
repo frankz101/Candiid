@@ -2,10 +2,17 @@ import {
   createFriendRequestInDatabase,
   getFriendRequestInDatabase,
   handleFriendRequestInDatabase,
+  removeFriendInDatabase,
+  getFriendRequestSentInDatabase,
 } from "../db/FriendRequestDatabase.js";
 
 const retrieveFriendRequests = async (userId) => {
   const result = await getFriendRequestInDatabase(userId);
+  return result;
+};
+
+const retrieveFriendRequestsSent = async (userId) => {
+  const result = await getFriendRequestSentInDatabase(userId);
   return result;
 };
 
@@ -19,4 +26,15 @@ const respondToFriendRequest = async (friendRequestData) => {
   return result;
 };
 
-export { retrieveFriendRequests, createFriendRequest, respondToFriendRequest };
+const unAddFriend = async (userId, friendData) => {
+  const result = await removeFriendInDatabase(userId, friendData.receiverId);
+  return result;
+};
+
+export {
+  retrieveFriendRequests,
+  createFriendRequest,
+  respondToFriendRequest,
+  unAddFriend,
+  retrieveFriendRequestsSent,
+};
