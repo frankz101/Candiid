@@ -1,8 +1,10 @@
 import React from "react";
 import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
+  withSpring,
 } from "react-native-reanimated";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import AnimatedPost from "@/components/photo/AnimatedPost";
@@ -35,6 +37,15 @@ const MemoriesView: React.FC<MemoriesViewProps> = ({ hangouts }) => {
   const screenContext = useSharedValue({ x: 0, y: 0 });
   const isPostActive = useSharedValue<boolean>(false);
 
+  const springBorder = () => {
+    screenX.value = withSpring(0, {
+      stiffness: 60,
+    });
+    screenY.value = withSpring(0, {
+      stiffness: 60,
+    });
+  };
+
   const screenPan = Gesture.Pan()
     .onStart((e) => {
       screenContext.value = {
@@ -43,35 +54,11 @@ const MemoriesView: React.FC<MemoriesViewProps> = ({ hangouts }) => {
       };
     })
     .onUpdate((e) => {
-      // let newX = (e.translationX + screenContext.value.x) / scale.value;
-      // let newY = (e.translationY + screenContext.value.y) / scale.value;
-
-      // const extraSpace = 50;
-      // const maxX = Math.max(
-      //   0,
-      //   ((screenWidth * scale.value - screenWidth) / 2 + extraSpace) /
-      //     scale.value
-      // );
-      // const maxY = Math.max(
-      //   0,
-      //   ((screenHeight * scale.value - screenHeight) / 2 + extraSpace) /
-      //     scale.value
-      // );
-      // const minX = -maxX;
-      // const minY = -maxY;
-
-      // screenX.value = Math.min(Math.max(newX, minX), maxX);
-      // screenY.value = Math.min(Math.max(newY, minY), maxY);
-
-      // screenX.value = newX;
-      // screenY.value = newY;
-
       let newX = (e.translationX + screenContext.value.x) / scale.value;
       let newY = (e.translationY + screenContext.value.y) / scale.value;
 
       const containerWidth = screenWidth * scale.value;
       const containerHeight = screenHeight * scale.value; // Use the scaled dimensions of the inner container
-      console.log(containerHeight);
       const extraSpace = 35;
       const maxX = Math.max(0, (containerWidth - screenWidth) / 2 + extraSpace);
       const maxY =
@@ -79,12 +66,12 @@ const MemoriesView: React.FC<MemoriesViewProps> = ({ hangouts }) => {
       const minX = -maxX;
       const minY = -maxY;
 
+      if (newX >= maxX || newY >= maxY || newX <= minX || newY <= minY) {
+        runOnJS(springBorder)();
+      }
+
       screenX.value = Math.min(Math.max(newX, minX), maxX);
       screenY.value = Math.min(Math.max(newY, minY), maxY);
-
-      // console.log("newX:", newX, "newY:", newY);
-      // console.log("maxX:", maxX, "maxY:", maxY, "minX:", minX, "minY:", minY);
-      // console.log(`Screen Position: X=${screenX.value}, Y=${screenY.value}`);
     });
 
   const pinch = Gesture.Pinch()

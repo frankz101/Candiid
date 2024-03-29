@@ -42,66 +42,67 @@ const UserBanner: React.FC<UserBannerProps> = ({
 
   useEffect(() => {
     return () => {
-      const finalUpdates = pendingUpdates.reduce((acc: any, update: any) => {
-        if (acc[update.friendId]) {
-          if (
-            acc[update.friendId].action === "add" &&
-            update.action === "removeRequest"
-          ) {
-            // Cancel out add and removeRequest actions
-            delete acc[update.friendId];
-          } else if (
-            acc[update.friendId].action === "removeRequest" &&
-            update.action === "add"
-          ) {
-            // Cancel out removeRequest and add actions
-            delete acc[update.friendId];
-          }
-        } else {
-          acc[update.friendId] = update;
-        }
-        return acc;
-      }, {});
-
-      // Perform the updates
-      Object.values(finalUpdates).forEach(async (update: any) => {
-        if (update.action === "add") {
-          await axios.post("http://localhost:3001/friendRequest", {
-            senderId: currentUser?.id,
-            receiverId: update.friendId,
-          });
-          console.log("Added");
-        } else if (update.action === "removeFriend") {
-          console.log("Remove Friend");
-          await axios.put(
-            `http://localhost:3001/friends/remove/users/${currentUser?.id}`,
-            {
-              receiverId: update.friendId,
-            }
-          );
-        } else if (update.action === "removeRequest") {
-          await axios.post("http://localhost:3001/friendRequest/handle", {
-            senderId: user.userId,
-            receiverId: currentUser?.id,
-            status: "reject",
-          });
-        }
-      });
+      applyUpdates();
     };
   }, [pendingUpdates]);
 
-  // const addFriend = async () => {
-  //   const res = await axios.post("http://localhost:3001/friendRequest", {
-  //     senderId: currentUser?.id,
-  //     receiverId: user.userId,
-  //   });
-  // };
-  const handleRequest = async (status: string) => {
-    const res = await axios.post("http://localhost:3001/friendRequest/handle", {
-      senderId: user.userId,
-      receiverId: currentUser?.id,
-      status,
+  const applyUpdates = async () => {
+    const finalUpdates = pendingUpdates.reduce((acc: any, update: any) => {
+      if (acc[update.friendId]) {
+        if (
+          acc[update.friendId].action === "add" &&
+          update.action === "removeRequest"
+        ) {
+          delete acc[update.friendId];
+        } else if (
+          acc[update.friendId].action === "removeRequest" &&
+          update.action === "add"
+        ) {
+          delete acc[update.friendId];
+        }
+      } else {
+        acc[update.friendId] = update;
+      }
+      return acc;
+    }, {});
+
+    Object.values(finalUpdates).forEach(async (update: any) => {
+      if (update.action === "add") {
+        await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/friendRequest`, {
+          senderId: currentUser?.id,
+          receiverId: update.friendId,
+        });
+        console.log("Added");
+      } else if (update.action === "removeFriend") {
+        console.log("Remove Friend");
+        await axios.put(
+          `${process.env.EXPO_PUBLIC_API_URL}/friends/remove/users/${currentUser?.id}`,
+          {
+            receiverId: update.friendId,
+          }
+        );
+      } else if (update.action === "removeRequest") {
+        await axios.post(
+          `${process.env.EXPO_PUBLIC_API_URL}/friendRequest/handle`,
+          {
+            senderId: user.userId,
+            receiverId: currentUser?.id,
+            status: "reject",
+          }
+        );
+      }
     });
+  };
+
+  const handleRequest = async (status: string) => {
+    const res = await axios.post(
+      `${process.env.EXPO_PUBLIC_API_URL}/friendRequest/handle`,
+      {
+        senderId: user.userId,
+        receiverId: currentUser?.id,
+        status,
+      }
+    );
 
     if (res.status === 201 && onHandleRequest) {
       onHandleRequest(user.userId);
@@ -134,12 +135,13 @@ const UserBanner: React.FC<UserBannerProps> = ({
 
   return (
     <Pressable
-      onPress={() =>
+      onPress={async () => {
         router.push({
           pathname: "/(profile)/ProfileScreen",
           params: { userId: user.userId },
-        })
-      }
+        });
+        await applyUpdates();
+      }}
     >
       <View
         style={[

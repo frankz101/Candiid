@@ -201,6 +201,17 @@ const fetchFriendsFromDatabase = async (userId) => {
   }
 };
 
+const editUserDetailsInDatabase = async (userId, userDetails) => {
+  try {
+    const userDocRef = doc(db, "users", userId);
+    await updateDoc(userDocRef, userDetails);
+    console.log(`User ${userId} updated successfully.`);
+  } catch (error) {
+    console.error("Error updating user details:", error);
+    throw error;
+  }
+};
+
 export {
   createUserInDatabase,
   changeProfilePhotoInDatabase,
@@ -210,4 +221,5 @@ export {
   searchUsersInDatabase,
   fetchFriendsFromDatabase,
   searchUserInDatabase,
+  editUserDetailsInDatabase,
 };

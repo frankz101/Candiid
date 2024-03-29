@@ -9,6 +9,7 @@ const Layout = () => {
       <Stack.Screen name="NotificationsScreen" />
       <Stack.Screen name="AddFriendsScreen" />
       <Stack.Screen name="ProfileScreen" />
+      <Stack.Screen name="EditProfileScreen" />
     </Stack>
   );
 };

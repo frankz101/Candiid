@@ -36,7 +36,7 @@ const AddFriendsScreen = () => {
 
   const onSubmit = async () => {
     const res = await axios.get(
-      `http://localhost:3001/user/search/${searchPhrase}/users/${user?.id}`
+      `${process.env.EXPO_PUBLIC_API_URL}/user/search/${searchPhrase}/users/${user?.id}`
     );
 
     setSearchResults(res.data.result);

@@ -31,7 +31,7 @@ const ProfileScreen = () => {
   };
 
   const fetchUser = async () => {
-    console.log("Fetching Memories");
+    console.log("Fetching User Information");
     return axios
       .get(`${process.env.EXPO_PUBLIC_API_URL}/users/${userId}/${user?.id}`)
       .then((res) => res.data);
@@ -72,9 +72,9 @@ const ProfileScreen = () => {
           >
             {profileDetails &&
             profileDetails.result &&
-            profileDetails.result.imageUrl ? (
+            profileDetails.result.profilePhoto ? (
               <Image
-                source={{ uri: profileDetails.result.imageUrl }}
+                source={{ uri: profileDetails.result.profilePhoto.fileUrl }}
                 style={styles.profilePhoto}
               />
             ) : (
@@ -82,7 +82,7 @@ const ProfileScreen = () => {
             )}
           </Pressable>
 
-          <Text>franklin_zhu</Text>
+          <Text>{profileDetails.result.username}</Text>
         </View>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Pressable onPress={() => router.push("/(profile)/SettingsScreen")}>

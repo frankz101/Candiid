@@ -92,7 +92,7 @@ const Profile = () => {
             )}
           </Pressable>
 
-          <Text>franklin_zhu</Text>
+          <Text>{user?.fullName}</Text>
         </View>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Pressable

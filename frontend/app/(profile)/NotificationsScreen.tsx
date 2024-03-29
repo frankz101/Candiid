@@ -26,7 +26,7 @@ const NotificationsScreen = () => {
   const router = useRouter();
   const getFriendRequests = async () => {
     const res = await axios.get(
-      `http://localhost:3001/friendRequest/get/${user?.id}`
+      `${process.env.EXPO_PUBLIC_API_URL}/friendRequest/get/${user?.id}`
     );
     setFriendRequests(res.data.result);
   };

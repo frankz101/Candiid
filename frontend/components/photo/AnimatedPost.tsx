@@ -100,10 +100,10 @@ const AnimatedPost = ({
     <Animated.View style={postStyle} sharedTransitionTag={postId}>
       {postId && photoData ? (
         <Animated.Image
-          // source={{ uri: photoData.result.photoUrls[0].fileUrl }}
-          source={{
-            uri: imageUrl,
-          }}
+          source={{ uri: photoData.result.photoUrls[0].fileUrl }}
+          // source={{
+          //   uri: imageUrl,
+          // }} FOR TESTING PURPOSES
           style={{ width: "100%", height: "100%" }}
           sharedTransitionTag={postId + "1"}
           resizeMode="cover"

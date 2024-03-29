@@ -27,6 +27,7 @@ const respondToFriendRequest = async (friendRequestData) => {
 };
 
 const unAddFriend = async (userId, friendData) => {
+  console.log("Removing");
   const result = await removeFriendInDatabase(userId, friendData.receiverId);
   return result;
 };

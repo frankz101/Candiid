@@ -7,6 +7,7 @@ import {
   searchUsers,
   fetchFriends,
   searchUser,
+  editUserDetails,
 } from "../services/UserService.js";
 
 const postUser = async (req, res) => {
@@ -105,6 +106,16 @@ const getFriends = async (req, res) => {
   }
 };
 
+const putUserDetails = async (req, res) => {
+  const userId = req.params.id;
+  try {
+    const result = await editUserDetails(userId, req.body);
+    res.status(201).send({ result });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export {
   postUser,
   putUserProfilePhoto,
@@ -114,4 +125,5 @@ export {
   getUserProfilePhoto,
   getFriends,
   getUserWithId,
+  putUserDetails,
 };

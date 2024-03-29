@@ -9,6 +9,7 @@ import {
   getUserProfilePhoto,
   getFriends,
   getUserWithId,
+  putUserDetails,
 } from "../controllers/UserController.js";
 
 var router = express.Router();
@@ -27,5 +28,6 @@ router.get("/user/:id/posts", getUserPosts);
 router.get("/user/:userId/post/:postId", getUserPost);
 router.get("/user/search/:username/users/:userId", getUsers);
 router.get("/user/:id/friends", getFriends);
+router.put("/user/:id/details", putUserDetails);
 
 export default router;

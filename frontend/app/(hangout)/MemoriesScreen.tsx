@@ -68,7 +68,6 @@ const MemoriesScreen = () => {
   const isPostActive = useSharedValue<boolean>(false);
 
   const springBorder = () => {
-    console.log("SPRING");
     screenX.value = withSpring(0, {
       stiffness: 60,
     });

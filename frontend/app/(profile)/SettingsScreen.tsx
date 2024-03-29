@@ -23,13 +23,17 @@ const SettingsScreen = () => {
       </View>
       <Pressable
         onPress={() => {
+          router.push("/(profile)/EditProfileScreen");
+        }}
+        style={styles.listItem}
+      >
+        <Text>Edit Profile</Text>
+      </Pressable>
+      <Pressable
+        onPress={() => {
           signOut();
         }}
-        style={{
-          flexDirection: "row",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
+        style={styles.listItem}
       >
         <Text>Logout</Text>
       </Pressable>
@@ -39,4 +43,11 @@ const SettingsScreen = () => {
 
 export default SettingsScreen;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  listItem: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    margin: 8,
+  },
+});
