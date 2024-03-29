@@ -75,6 +75,7 @@ const getUserPost = async (req, res) => {
 };
 
 const getUserProfilePhoto = async (req, res) => {
+  console.log("Profile Getting Called");
   try {
     const userId = req.params.id;
     const result = await fetchUserProfilePhoto(userId);

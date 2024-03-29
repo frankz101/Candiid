@@ -16,7 +16,7 @@ const postHeight = (postWidth * 5) / 4;
 interface Hangout {
   postId: string;
   hangoutId: string;
-  memoryId: string;
+  id: string;
   postX: number;
   postY: number;
 }
@@ -120,7 +120,7 @@ const MemoriesView: React.FC<MemoriesViewProps> = ({ hangouts }) => {
               key={index}
               postId={hangout.postId}
               hangoutId={hangout.hangoutId}
-              memoryId={hangout.memoryId}
+              memoryId={hangout.id}
               positionX={hangout.postX}
               positionY={hangout.postY}
             />

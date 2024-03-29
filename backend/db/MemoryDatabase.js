@@ -51,6 +51,8 @@ const fetchMemoriesFromDatabase = async (userId) => {
 };
 
 const updateMemoryInDatabase = async (memoryId, memoryData) => {
+  console.log("Memory ID" + memoryId);
+  console.log("MemoryData: " + memoryData);
   try {
     const memoryDocRef = doc(db, "memories", memoryId);
     console.log(memoryData);

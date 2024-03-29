@@ -86,6 +86,7 @@ const AnimatedPost = ({
         },
       });
     } else {
+      console.log("MEMORY ID: " + memoryId);
       router.push({
         pathname: `/(hangout)/${hangoutId}`,
         params: {

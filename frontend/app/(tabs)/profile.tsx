@@ -20,7 +20,6 @@ import Animated from "react-native-reanimated";
 const Profile = () => {
   const router = useRouter();
   const { user } = useUser();
-
   const fetchMemories = async () => {
     console.log("Fetching Memories");
     return axios
@@ -59,9 +58,14 @@ const Profile = () => {
     SheetManager.show("change-photo");
   };
 
-  if (isPendingProfile) {
+  // if (isPendingProfile) {
+  //   return <Text>Is Loading...</Text>;
+  // }
+  if (isPendingMemories) {
     return <Text>Is Loading...</Text>;
   }
+
+  console.log(memoriesData);
 
   return (
     <SafeAreaView>
