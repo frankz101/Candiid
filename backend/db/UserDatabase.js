@@ -30,6 +30,24 @@ const createUserInDatabase = async (user) => {
   return { userId: user.userId, message };
 };
 
+const searchUserInDatabase = async (userId) => {
+  const userDocRef = doc(db, "users", userId);
+
+  try {
+    const userDocSnap = await getDoc(userDocRef);
+    if (userDocSnap.exists()) {
+      console.log("User document data:", userDocSnap.data());
+      return userDocSnap.data();
+    } else {
+      console.log("No such user document!");
+      return null;
+    }
+  } catch (error) {
+    console.error("Error getting user document:", error);
+    throw error;
+  }
+};
+
 const searchUsersInDatabase = async (username) => {
   const prefixLowerCase = username.toLowerCase();
   const endValue = prefixLowerCase + "\uf8ff";
@@ -191,4 +209,5 @@ export {
   fetchUserProfilePhotoFromDatabase,
   searchUsersInDatabase,
   fetchFriendsFromDatabase,
+  searchUserInDatabase,
 };

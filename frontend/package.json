@@ -23,6 +23,7 @@
     "expo": "~50.0.6",
     "expo-application": "^5.8.3",
     "expo-auth-session": "^5.4.0",
+    "expo-blur": "~12.9.2",
     "expo-dev-client": "^3.3.8",
     "expo-font": "~11.10.2",
     "expo-image": "^1.10.6",

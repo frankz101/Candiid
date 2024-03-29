@@ -7,6 +7,7 @@ import {
   fetchUserProfilePhotoFromDatabase,
   searchUsersInDatabase,
   fetchFriendsFromDatabase,
+  searchUserInDatabase,
 } from "../db/UserDatabase.js";
 import { storage } from "../firebase.js";
 import {
@@ -17,6 +18,38 @@ import {
 const createUser = async (userData) => {
   const userId = await createUserInDatabase(userData);
   return userId;
+};
+
+const searchUser = async (friendId, userId) => {
+  try {
+    const friendData = await searchUserInDatabase(friendId);
+
+    // Check if the friendId is in the user's friends list
+    const friends = await fetchFriends(userId);
+    const friendIds = friends.map((friend) => friend.id);
+    const isAlreadyFriend = friendIds.includes(friendId);
+
+    // Check if there's a pending friend request from the user to the friend
+    const sentFriendRequests = await retrieveFriendRequestsSent(userId);
+    const hasSentRequest = sentFriendRequests.some(
+      (request) => request.receiverId === friendId
+    );
+
+    let friendStatus = "Not Friends";
+    if (isAlreadyFriend) {
+      friendStatus = "Already Friends";
+    } else if (hasSentRequest) {
+      friendStatus = "Friend Requested";
+    }
+
+    return {
+      ...friendData,
+      friendStatus,
+    };
+  } catch (error) {
+    console.error("Error getting friend data with status:", error);
+    throw error;
+  }
 };
 
 const searchUsers = async (username, userId) => {
@@ -100,4 +133,5 @@ export {
   fetchUserPost,
   fetchUserProfilePhoto,
   fetchFriends,
+  searchUser,
 };

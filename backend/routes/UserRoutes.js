@@ -8,6 +8,7 @@ import {
   putUserProfilePhoto,
   getUserProfilePhoto,
   getFriends,
+  getUserWithId,
 } from "../controllers/UserController.js";
 
 var router = express.Router();
@@ -15,6 +16,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 router.post("/users", postUser);
+router.get("/users/:friendId/:userId", getUserWithId);
 router.put(
   "/user/:id/profile-photo",
   upload.single("profilePhoto"),

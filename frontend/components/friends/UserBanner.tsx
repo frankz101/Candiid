@@ -1,6 +1,8 @@
 import { useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
+import { Image } from "expo-image";
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -8,7 +10,9 @@ interface User {
   id: number;
   name: string;
   username: string;
-  profilePhoto: string;
+  profilePhoto: {
+    fileUrl: string;
+  };
   userId: string;
   friendStatus: string;
 }
@@ -34,7 +38,7 @@ const UserBanner: React.FC<UserBannerProps> = ({
     []
   );
   const [friendStatus, setFriendStatus] = useState(user.friendStatus);
-  console.log(user.friendStatus);
+  const router = useRouter();
 
   useEffect(() => {
     return () => {
@@ -76,9 +80,6 @@ const UserBanner: React.FC<UserBannerProps> = ({
             }
           );
         } else if (update.action === "removeRequest") {
-          console.log("Remove Request");
-          console.log(user.userId);
-          console.log(currentUser?.id);
           await axios.post("http://localhost:3001/friendRequest/handle", {
             senderId: user.userId,
             receiverId: currentUser?.id,
@@ -132,101 +133,119 @@ const UserBanner: React.FC<UserBannerProps> = ({
   };
 
   return (
-    <View
-      style={[{ padding: 10, flexDirection: "row", alignItems: "flex-start" }]}
+    <Pressable
+      onPress={() =>
+        router.push({
+          pathname: "/(profile)/ProfileScreen",
+          params: { userId: user.userId },
+        })
+      }
     >
       <View
-        style={{
-          width: 40,
-          height: 40,
-          borderRadius: 20,
-        }}
+        style={[
+          { padding: 10, flexDirection: "row", alignItems: "flex-start" },
+        ]}
       >
-        <Ionicons name="person-circle-outline" size={40} color="black" />
-      </View>
-      <View style={{ marginLeft: 10, flex: 1 }}>
-        <Text style={{ fontSize: 16 }}>{user.name}</Text>
-        <Text style={{ color: "#777" }}>{"@" + user.username}</Text>
-      </View>
-      {type === "searchResults" && (
-        <View style={styles.centerRow}>
-          {friendStatus === "Already Friends" ? (
-            <Pressable
-              style={({ pressed }) => [
-                {
-                  backgroundColor: pressed ? "#ddd" : "#ccc",
-                  padding: 10,
-                  borderRadius: 5,
-                },
-                styles.centerRow,
-              ]}
-              onPress={() => removeFriend(user.userId)}
-            >
-              <Text style={{ color: "#000" }}>Remove Friend</Text>
-            </Pressable>
-          ) : friendStatus === "Friend Requested" ? (
-            <Pressable
-              style={({ pressed }) => [
-                {
-                  backgroundColor: pressed ? "#ddd" : "#ccc",
-                  padding: 10,
-                  borderRadius: 5,
-                },
-                styles.centerRow,
-              ]}
-              onPress={() => removeRequest(user.userId)}
-            >
-              <Text style={{ color: "#000" }}>Remove Request</Text>
-            </Pressable>
+        <View
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+          }}
+        >
+          {user.profilePhoto && user.profilePhoto.fileUrl ? (
+            <Image
+              source={{ uri: user.profilePhoto.fileUrl }}
+              style={styles.profilePhoto}
+            />
           ) : (
-            <Pressable
-              style={({ pressed }) => [
-                {
-                  backgroundColor: pressed ? "#ddd" : "#ccc",
-                  padding: 10,
-                  borderRadius: 5,
-                },
-                styles.centerRow,
-              ]}
-              onPress={() => addFriend(user.userId)}
-            >
-              <Text style={{ color: "#000" }}>Add Friend</Text>
-            </Pressable>
+            <Ionicons name="person-circle" size={40} />
           )}
         </View>
-      )}
-
-      {type === "friendRequests" && (
-        <View style={{ flexDirection: "row" }}>
-          <Pressable
-            style={({ pressed }) => [
-              {
-                backgroundColor: pressed ? "#ddd" : "#ccc",
-                padding: 10,
-                borderRadius: 5,
-              },
-              styles.centerRow,
-            ]}
-            onPress={() => handleRequest("reject")}
-          >
-            <Text style={{ color: "#000" }}>Reject</Text>
-          </Pressable>
-          <Pressable
-            style={({ pressed }) => [
-              {
-                backgroundColor: pressed ? "#ddd" : "#ccc",
-                padding: 10,
-                borderRadius: 5,
-              },
-              styles.centerRow,
-            ]}
-            onPress={() => handleRequest("accept")}
-          >
-            <Text style={{ color: "#000" }}>Accept</Text>
-          </Pressable>
+        <View style={{ marginLeft: 10, flex: 1 }}>
+          <Text style={{ fontSize: 16 }}>{user.name}</Text>
+          <Text style={{ color: "#777" }}>{"@" + user.username}</Text>
         </View>
-      )}
-    </View>
+        {type === "searchResults" && (
+          <View style={styles.centerRow}>
+            {friendStatus === "Already Friends" ? (
+              <Pressable
+                style={({ pressed }) => [
+                  {
+                    backgroundColor: pressed ? "#ddd" : "#ccc",
+                    padding: 10,
+                    borderRadius: 5,
+                  },
+                  styles.centerRow,
+                ]}
+                onPress={() => removeFriend(user.userId)}
+              >
+                <Text style={{ color: "#000" }}>Remove Friend</Text>
+              </Pressable>
+            ) : friendStatus === "Friend Requested" ? (
+              <Pressable
+                style={({ pressed }) => [
+                  {
+                    backgroundColor: pressed ? "#ddd" : "#ccc",
+                    padding: 10,
+                    borderRadius: 5,
+                  },
+                  styles.centerRow,
+                ]}
+                onPress={() => removeRequest(user.userId)}
+              >
+                <Text style={{ color: "#000" }}>Remove Request</Text>
+              </Pressable>
+            ) : (
+              <Pressable
+                style={({ pressed }) => [
+                  {
+                    backgroundColor: pressed ? "#ddd" : "#ccc",
+                    padding: 10,
+                    borderRadius: 5,
+                  },
+                  styles.centerRow,
+                ]}
+                onPress={() => addFriend(user.userId)}
+              >
+                <Text style={{ color: "#000" }}>Add Friend</Text>
+              </Pressable>
+            )}
+          </View>
+        )}
+
+        {type === "friendRequests" && (
+          <View style={{ flexDirection: "row" }}>
+            <Pressable
+              style={({ pressed }) => [
+                {
+                  backgroundColor: pressed ? "#ddd" : "#ccc",
+                  padding: 10,
+                  borderRadius: 5,
+                },
+                styles.centerRow,
+              ]}
+              onPress={() => handleRequest("reject")}
+            >
+              <Text style={{ color: "#000" }}>Reject</Text>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [
+                {
+                  backgroundColor: pressed ? "#ddd" : "#ccc",
+                  padding: 10,
+                  borderRadius: 5,
+                },
+                styles.centerRow,
+              ]}
+              onPress={() => handleRequest("accept")}
+            >
+              <Text style={{ color: "#000" }}>Accept</Text>
+            </Pressable>
+          </View>
+        )}
+      </View>
+    </Pressable>
   );
 };
 
@@ -237,5 +256,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+  },
+  profilePhoto: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
   },
 });

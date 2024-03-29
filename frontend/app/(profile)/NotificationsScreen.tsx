@@ -12,7 +12,9 @@ interface User {
   id: number;
   name: string;
   username: string;
-  profilePhoto: string;
+  profilePhoto: {
+    fileUrl: string;
+  };
   userId: string;
   friendStatus: string;
 }

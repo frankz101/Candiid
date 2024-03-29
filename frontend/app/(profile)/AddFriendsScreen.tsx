@@ -19,7 +19,9 @@ interface User {
   id: number;
   name: string;
   username: string;
-  profilePhoto: string;
+  profilePhoto: {
+    fileUrl: string;
+  };
   userId: string;
   friendStatus: string;
 }
@@ -65,17 +67,7 @@ const AddFriendsScreen = () => {
             onSubmit={onSubmit}
           />
           {searchResults?.map((user: User) => (
-            <Pressable
-              onPress={() =>
-                router.push({
-                  pathname: "/(profile)/ProfileScreen",
-                  params: { userId: user.id },
-                })
-              }
-              key={user.id}
-            >
-              <FriendBanner user={user} type="searchResults" />
-            </Pressable>
+            <FriendBanner key={user.id} user={user} type="searchResults" />
           ))}
         </View>
       </View>

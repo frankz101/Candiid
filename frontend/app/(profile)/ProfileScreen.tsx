@@ -16,8 +16,10 @@ import { useUser } from "@clerk/clerk-expo";
 import { Image } from "expo-image";
 import MemoriesView from "@/components/profile/MemoriesView";
 import Animated from "react-native-reanimated";
+import { BlurView } from "expo-blur";
 
 const ProfileScreen = () => {
+  const { user } = useUser();
   const router = useRouter();
   const { userId } = useLocalSearchParams();
 
@@ -28,27 +30,17 @@ const ProfileScreen = () => {
       .then((res) => res.data);
   };
 
-  // const { data: memoriesData, isPending } = useQuery({
-  //   queryKey: ["memories", user?.id],
-  //   queryFn: fetchMemories,
-  // });
-
-  const fetchProfilePhoto = async () => {
-    console.log("Fetching Profile Photo");
+  const fetchUser = async () => {
+    console.log("Fetching Memories");
     return axios
-      .get(`${process.env.EXPO_PUBLIC_API_URL}/user/${userId}/profile-photo`)
+      .get(`${process.env.EXPO_PUBLIC_API_URL}/users/${userId}/${user?.id}`)
       .then((res) => res.data);
   };
-
-  // const { data: profileDetails, isPending } = useQuery({
-  //   queryKey: ["profileDetails", user?.id],
-  //   queryFn: fetchProfilePhoto,
-  // });
 
   const [memories, profile] = useQueries({
     queries: [
       { queryKey: ["memories", userId], queryFn: fetchMemories },
-      { queryKey: ["profile", userId], queryFn: fetchProfilePhoto },
+      { queryKey: ["profile", userId], queryFn: fetchUser },
     ],
   });
 
@@ -78,7 +70,9 @@ const ProfileScreen = () => {
             onPress={openChangePhotoSheet}
             style={{ paddingRight: 10 }}
           >
-            {profileDetails ? (
+            {profileDetails &&
+            profileDetails.result &&
+            profileDetails.result.imageUrl ? (
               <Image
                 source={{ uri: profileDetails.result.imageUrl }}
                 style={styles.profilePhoto}
@@ -96,17 +90,6 @@ const ProfileScreen = () => {
           </Pressable>
         </View>
       </View>
-
-      {/* <View>
-        {hangouts?.map((hangout: any) => (
-          <Pressable
-            key={hangout.id}
-            onPress={() => router.push(`/(hangout)/${hangout.id}`)}
-          >
-            <Text>{hangout.hangoutName}</Text>
-          </Pressable>
-        ))}
-      </View> */}
       {isPendingMemories ? (
         <View
           style={{
@@ -132,6 +115,18 @@ const ProfileScreen = () => {
           <Pressable onPress={() => router.push("/(hangout)/MemoriesScreen")}>
             <MemoriesView hangouts={memoriesData} />
           </Pressable>
+          {profileDetails.result.friendStatus === "Not Friends" && (
+            <BlurView
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+              }}
+              intensity={50}
+            />
+          )}
         </Animated.View>
       )}
     </SafeAreaView>
