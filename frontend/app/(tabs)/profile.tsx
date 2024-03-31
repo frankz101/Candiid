@@ -66,6 +66,7 @@ const Profile = () => {
   }
 
   console.log(memoriesData);
+  console.log(profileDetails);
 
   return (
     <SafeAreaView>
@@ -82,9 +83,11 @@ const Profile = () => {
             onPress={openChangePhotoSheet}
             style={{ paddingRight: 10 }}
           >
-            {profileDetails ? (
+            {profileDetails &&
+            profileDetails.result &&
+            profileDetails.result.imageUrl ? (
               <Image
-                source={{ uri: profileDetails.result.imageUrl }}
+                source={{ uri: profileDetails?.result?.imageUrl }}
                 style={styles.profilePhoto}
               />
             ) : (
@@ -92,7 +95,7 @@ const Profile = () => {
             )}
           </Pressable>
 
-          <Text>franklin_zhu</Text>
+          <Text>{user?.username}</Text>
         </View>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Pressable

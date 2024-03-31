@@ -82,7 +82,7 @@ const ProfileScreen = () => {
             )}
           </Pressable>
 
-          <Text>franklin_zhu</Text>
+          <Text></Text>
         </View>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Pressable onPress={() => router.push("/(profile)/SettingsScreen")}>
