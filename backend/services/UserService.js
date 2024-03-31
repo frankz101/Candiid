@@ -9,6 +9,7 @@ import {
   fetchFriendsFromDatabase,
   searchUserInDatabase,
   editUserDetailsInDatabase,
+  fetchFriendsPostsFromDatabase,
 } from "../db/UserDatabase.js";
 import { storage } from "../firebase.js";
 import {
@@ -136,6 +137,11 @@ const editUserDetails = async (userId, userDetails) => {
   return result;
 };
 
+const fetchFriendsPosts = async (userId) => {
+  const result = await fetchFriendsPostsFromDatabase(userId);
+  return result;
+};
+
 export {
   createUser,
   changeProfilePhoto,
@@ -146,4 +152,5 @@ export {
   fetchFriends,
   searchUser,
   editUserDetails,
+  fetchFriendsPosts,
 };

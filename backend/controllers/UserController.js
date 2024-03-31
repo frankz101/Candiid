@@ -8,6 +8,7 @@ import {
   fetchFriends,
   searchUser,
   editUserDetails,
+  fetchFriendsPosts,
 } from "../services/UserService.js";
 
 const postUser = async (req, res) => {
@@ -116,6 +117,16 @@ const putUserDetails = async (req, res) => {
   }
 };
 
+const getPosts = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const result = await fetchFriendsPosts(userId);
+    res.status(201).send({ result });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export {
   postUser,
   putUserProfilePhoto,
@@ -126,4 +137,5 @@ export {
   getFriends,
   getUserWithId,
   putUserDetails,
+  getPosts,
 };

@@ -19,7 +19,7 @@ import PhotoSquare from "@/components/photo/PhotoSquare";
 import BackButton from "@/components/utils/BackButton";
 
 const screenHeight = Dimensions.get("window").height;
-const headerHeight = 120;
+const headerHeight = 140;
 const bottomPadding = 20;
 
 const scrollViewHeight = screenHeight - headerHeight - bottomPadding;
@@ -134,10 +134,7 @@ const Hangout = () => {
         renderItem={renderPhoto}
         keyExtractor={(item, index) => index.toString()}
         numColumns={3}
-        contentContainerStyle={{
-          justifyContent: "center",
-          flexGrow: 1,
-        }}
+        contentContainerStyle={styles.scrollViewContainer}
         ListEmptyComponent={
           <View style={styles.emptyAlbumContainer}>
             <View style={styles.greyPost}>

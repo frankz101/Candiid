@@ -150,7 +150,7 @@ const fetchUserProfilePhotoFromDatabase = async (userId) => {
     const docSnapshot = await getDoc(userRef);
     if (docSnapshot.exists()) {
       const data = docSnapshot.data();
-      if (data.profilePhoto.fileUrl) {
+      if (data.profilePhoto && data.profilePhoto.fileUrl) {
         return { imageUrl: data.profilePhoto.fileUrl };
       } else {
         console.log("User does not have profile photo");
@@ -212,6 +212,44 @@ const editUserDetailsInDatabase = async (userId, userDetails) => {
   }
 };
 
+const fetchFriendsPostsFromDatabase = async (userId) => {
+  const userRef = doc(db, "users", userId);
+
+  try {
+    const docSnapshot = await getDoc(userRef);
+    if (docSnapshot.exists()) {
+      const data = docSnapshot.data();
+      const friends = data.friends || [];
+      const friendsPosts = [];
+
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+      for (const friendId of friends) {
+        const q = query(
+          collection(db, "posts"),
+          where("userId", "==", friendId),
+          where("createdAt", ">=", oneWeekAgo),
+          orderBy("createdAt", "desc")
+        );
+
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach((doc) => {
+          friendsPosts.push(doc.data());
+        });
+      }
+
+      return friendsPosts;
+    } else {
+      console.log("No such user found!");
+      return [];
+    }
+  } catch (error) {
+    console.error("Error fetching friends' posts from database: ", error);
+    throw error;
+  }
+};
+
 export {
   createUserInDatabase,
   changeProfilePhotoInDatabase,
@@ -222,4 +260,5 @@ export {
   fetchFriendsFromDatabase,
   searchUserInDatabase,
   editUserDetailsInDatabase,
+  fetchFriendsPostsFromDatabase,
 };

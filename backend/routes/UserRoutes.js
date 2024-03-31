@@ -10,6 +10,7 @@ import {
   getFriends,
   getUserWithId,
   putUserDetails,
+  getPosts,
 } from "../controllers/UserController.js";
 
 var router = express.Router();
@@ -29,5 +30,6 @@ router.get("/user/:userId/post/:postId", getUserPost);
 router.get("/user/search/:username/users/:userId", getUsers);
 router.get("/user/:id/friends", getFriends);
 router.put("/user/:id/details", putUserDetails);
+router.get("/user/:id/feed", getPosts);
 
 export default router;
