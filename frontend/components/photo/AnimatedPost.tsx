@@ -3,7 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Dimensions, Pressable, Text, View, Image } from "react-native";
+import {
+  Dimensions,
+  Pressable,
+  Text,
+  View,
+  Image,
+  StyleSheet,
+} from "react-native";
 import Animated, { useAnimatedStyle } from "react-native-reanimated";
 // import placeholderImage from "../../assets/images/1709686840466-42B3F6F8-4E3E-4058-9ED5-D1870BB1FE87.jpeg";
 // import { Image } from "expo-image";
@@ -38,7 +45,7 @@ const AnimatedPost = ({
     height: imageWidth,
     borderRadius: 10,
     transform: [{ translateX: positionX }, { translateY: positionY }],
-    backgroundColor: postId ? "transparent" : "blue",
+    backgroundColor: "blue",
   }));
   const router = useRouter();
   const { user } = useUser();
@@ -120,3 +127,14 @@ const AnimatedPost = ({
 };
 
 export default AnimatedPost;
+
+const styles = StyleSheet.create({
+  post: {
+    // width: postWidth,
+    // height: postHeight,
+    width: imageWidth,
+    height: imageWidth,
+    borderRadius: 10,
+    backgroundColor: "blue",
+  },
+});

@@ -104,7 +104,7 @@ const MemoriesView: React.FC<MemoriesViewProps> = ({ hangouts }) => {
         <Animated.View style={[styles.container, containerStyle]}>
           {hangouts.map((hangout, index) => (
             <AnimatedPost
-              key={index}
+              key={index + hangout.hangoutId}
               postId={hangout.postId}
               hangoutId={hangout.hangoutId}
               memoryId={hangout.id}

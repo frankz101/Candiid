@@ -237,7 +237,7 @@ const MemoriesScreen = () => {
         <Animated.View style={[styles.container, containerStyle]}>
           {hangouts?.map((hangout: any, index: number) => (
             <AnimatedPost
-              key={index}
+              key={index + hangout.hangoutId}
               postId={hangout.postId}
               hangoutId={hangout.hangoutId}
               memoryId={hangout.id}

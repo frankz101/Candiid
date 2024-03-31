@@ -19,7 +19,7 @@ import { useAppState } from "@react-native-community/hooks";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import axios from "axios";
-import RNFetchBlob from "rn-fetch-blob";
+import RNFetchBlob, { FetchBlobResponse } from "rn-fetch-blob";
 import { useUser } from "@clerk/clerk-expo";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import BackButton from "@/components/utils/BackButton";
@@ -41,11 +41,21 @@ const CameraScreen = () => {
   const router = useRouter();
   const queryClient = useQueryClient();
 
+  const [isSubmitDisabled, setIsSubmitDisabled] = useState(false);
+  const [pendingUploads, setPendingUploads] = useState<
+    Promise<FetchBlobResponse>[]
+  >([]);
+
   useEffect(() => {
     if (!hasPermission) {
       requestPermission(); // ADD SOMETHING WHERE IF A USER REJECTS THEN USE LINKING API TO TELL USER TO ENABLE IN SETTINGS
     }
   }, [hasPermission]);
+
+  useEffect(() => {
+    console.log("Pending Uploads:");
+    pendingUploads.map((upload) => console.log(upload));
+  }, [pendingUploads]);
 
   console.log("Has camera permission:" + hasPermission);
 
@@ -93,6 +103,7 @@ const CameraScreen = () => {
   const onCameraCapture = async () => {
     try {
       triggerFlash();
+      setIsSubmitDisabled(true);
       const photoFile = await camera.current?.takePhoto();
       if (photoFile && isLoaded && user) {
         const uri = photoFile.path;
@@ -100,9 +111,9 @@ const CameraScreen = () => {
         const takenBy = user.id;
         const takenAt = new Date().toISOString();
 
-        RNFetchBlob.fetch(
+        const uploadPromise = RNFetchBlob.fetch(
           "POST",
-          `${process.env.EXPO_PUBLIC_API_URL}/hangout/${id}/photo`, //replace the hangout ID
+          `${process.env.EXPO_PUBLIC_API_URL}/hangout/${id}/photo`,
           {
             "Content-Type": "multipart/form-data",
           },
@@ -116,25 +127,31 @@ const CameraScreen = () => {
             { name: "takenBy", data: takenBy },
             { name: "takenAt", data: takenAt },
           ]
-        )
-          .then((response) => response.json())
-          .then((data) => {
-            console.log("Upload success:", data);
-          })
-          .catch((error) => {
-            console.error("Error uploading photo:", error);
-          });
+        );
+        setPendingUploads((prev) => [...prev, uploadPromise]);
       }
     } catch (error) {
       console.error("Error capturing photo:", error);
+    } finally {
+      setTimeout(() => {
+        setIsSubmitDisabled(false);
+      }, 500);
     }
   };
 
   const handleCameraComplete = () => {
-    queryClient.invalidateQueries({
-      queryKey: ["hangoutPhotos", id],
-    });
     router.back();
+
+    (async () => {
+      await Promise.all(pendingUploads);
+      queryClient
+        .invalidateQueries({
+          queryKey: ["hangoutPhotos", id],
+        })
+        .then(() => {
+          console.log("Invalidated Query in Background");
+        });
+    })();
   };
 
   return (
@@ -170,9 +187,10 @@ const CameraScreen = () => {
       </Pressable>
       <Pressable
         onPress={handleCameraComplete}
+        disabled={isSubmitDisabled}
         style={{ position: "absolute", right: 20, bottom: 90 }}
       >
-        <Feather name="arrow-right-circle" size={48} />
+        {!isSubmitDisabled && <Feather name="arrow-right-circle" size={48} />}
       </Pressable>
     </SafeAreaView>
   );

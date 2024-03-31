@@ -2,11 +2,14 @@ import { SafeAreaView, StyleSheet, Text, TextInput, View } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useUser } from "@clerk/clerk-expo";
+import { useQueryClient } from "@tanstack/react-query";
 
 const EditProfileScreen = () => {
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
+
+  const queryClient = useQueryClient();
 
   const { user } = useUser();
 
@@ -41,6 +44,9 @@ const EditProfileScreen = () => {
             userDetails
           );
           console.log("Profile updated successfully");
+          await queryClient.invalidateQueries({
+            queryKey: ["profile", user?.id],
+          });
         } catch (error) {
           console.error("Error updating profile:", error);
         }

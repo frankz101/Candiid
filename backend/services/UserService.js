@@ -23,6 +23,11 @@ const createUser = async (userData) => {
 
 const searchUser = async (friendId, userId) => {
   try {
+    if (friendId === userId) {
+      // If the friendId is the same as the userId, return the user data without checking the friend status
+      return await searchUserInDatabase(friendId);
+    }
+
     const friendData = await searchUserInDatabase(friendId);
 
     // Check if the friendId is in the user's friends list

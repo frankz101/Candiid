@@ -64,7 +64,7 @@ const PreviewPost = () => {
         updateData
       );
       console.log("Hangout updated successfully");
-      router.push("/(tabs)/profile");
+      router.navigate("/(tabs)/profile");
     } catch (error) {
       console.error(error);
     }

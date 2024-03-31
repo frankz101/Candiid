@@ -76,7 +76,7 @@ const CreateHangoutScreen = () => {
 
     console.log("Second: " + hangoutDetails);
 
-    router.push({
+    router.navigate({
       pathname: "/(hangout)/MemoriesScreen",
       params: {
         newPost: "true",

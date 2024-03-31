@@ -5,9 +5,11 @@ import {
   Text,
   View,
   ScrollView,
+  RefreshControl,
+  Dimensions,
 } from "react-native";
-import { useQueries, useQuery } from "@tanstack/react-query";
-import React from "react";
+import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
+import React, { useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import axios from "axios";
@@ -18,10 +20,18 @@ import MemoriesView from "@/components/profile/MemoriesView";
 import Animated from "react-native-reanimated";
 import { BlurView } from "expo-blur";
 
+const screenHeight = Dimensions.get("window").height;
+const headerHeight = 120;
+const bottomPadding = 20;
+
+const scrollViewHeight = screenHeight - headerHeight - bottomPadding;
+
 const ProfileScreen = () => {
   const { user } = useUser();
   const router = useRouter();
   const { userId } = useLocalSearchParams();
+  const [refreshing, setRefreshing] = useState(false);
+  const queryClient = useQueryClient();
 
   const fetchMemories = async () => {
     console.log("Fetching Memories");
@@ -47,12 +57,22 @@ const ProfileScreen = () => {
   const { data: memoriesData, isPending: isPendingMemories } = memories;
   const { data: profileDetails, isPending: isPendingProfile } = profile;
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await queryClient.invalidateQueries({ queryKey: ["memories", userId] });
+    await queryClient.invalidateQueries({ queryKey: ["profile", userId] });
+    setRefreshing(false);
+  };
+
   const openChangePhotoSheet = () => {
     SheetManager.show("change-photo");
   };
 
-  if (isPendingProfile) {
+  if (isPendingMemories || isPendingProfile) {
     return <Text>Is Loading...</Text>;
+  }
+  if (profileDetails) {
+    console.log(profileDetails);
   }
 
   return (
@@ -62,7 +82,8 @@ const ProfileScreen = () => {
           flexDirection: "row",
           justifyContent: "space-between",
           alignItems: "center",
-          padding: 12,
+          paddingHorizontal: 18,
+          paddingVertical: 10,
         }}
       >
         <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -82,7 +103,12 @@ const ProfileScreen = () => {
             )}
           </Pressable>
 
-          <Text>{profileDetails.result.username}</Text>
+          <View>
+            <Text style={styles.name}>{profileDetails.result.name}</Text>
+            <Text
+              style={styles.username}
+            >{`@${profileDetails.result.username}`}</Text>
+          </View>
         </View>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Pressable onPress={() => router.push("/(profile)/SettingsScreen")}>
@@ -90,26 +116,14 @@ const ProfileScreen = () => {
           </Pressable>
         </View>
       </View>
-      {isPendingMemories ? (
-        <View
-          style={{
-            height: "50%",
-            borderWidth: 1,
-            borderColor: "black",
-            borderRadius: 10,
-          }}
-        />
-      ) : (
+      <ScrollView
+        contentContainerStyle={styles.scrollViewContainer}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         <Animated.View
-          style={{
-            justifyContent: "center",
-            alignItems: "center",
-            height: "50%",
-            borderWidth: 1,
-            borderColor: "black",
-            borderRadius: 10,
-            overflow: "hidden",
-          }}
+          style={styles.animatedView}
           sharedTransitionTag="MemoriesScreen"
         >
           <Pressable onPress={() => router.push("/(hangout)/MemoriesScreen")}>
@@ -128,7 +142,7 @@ const ProfileScreen = () => {
             />
           )}
         </Animated.View>
-      )}
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -143,5 +157,27 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
+  },
+  scrollViewContainer: {
+    flexGrow: 1,
+    height: scrollViewHeight,
+  },
+  animatedView: {
+    justifyContent: "center",
+    alignItems: "center",
+    height: 300,
+    borderWidth: 1,
+    borderColor: "black",
+    borderRadius: 10,
+    overflow: "hidden",
+    marginVertical: 10,
+  },
+  name: {
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  username: {
+    fontSize: 14,
+    opacity: 0.8,
   },
 });
