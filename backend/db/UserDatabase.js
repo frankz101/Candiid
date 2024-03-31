@@ -218,7 +218,8 @@ const fetchFriendsPostsFromDatabase = async (userId) => {
         const q = query(
           collection(db, "posts"),
           where("userId", "==", friendId),
-          where("createdAt", ">=", oneWeekAgo)
+          where("createdAt", ">=", oneWeekAgo),
+          orderBy("createdAt", "desc")
         );
 
         const querySnapshot = await getDocs(q);
