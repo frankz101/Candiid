@@ -68,11 +68,26 @@ const UserBanner: React.FC<UserBannerProps> = ({
 
     Object.values(finalUpdates).forEach(async (update: any) => {
       if (update.action === "add") {
-        await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/friendRequest`, {
-          senderId: currentUser?.id,
-          receiverId: update.friendId,
-        });
-        console.log("Added");
+        const response = await axios.post(
+          `${process.env.EXPO_PUBLIC_API_URL}/friendRequest`,
+          {
+            senderId: currentUser?.id,
+            receiverId: update.friendId,
+          }
+        );
+        if (response.status === 201) {
+          console.log("Added");
+          await axios.post(
+            `${process.env.EXPO_PUBLIC_API_URL}/notification/send`,
+            {
+              userId: update.friendId,
+              title: "New Friend Request",
+              body: `${
+                currentUser?.fullName || "Someone"
+              } has sent you a friend request!`,
+            }
+          );
+        }
       } else if (update.action === "removeFriend") {
         console.log("Remove Friend");
         await axios.put(

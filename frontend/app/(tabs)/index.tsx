@@ -15,6 +15,7 @@ import { useUser } from "@clerk/clerk-expo";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import Carousel from "react-native-reanimated-carousel";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 interface Photo {
   fileUrl: string;
@@ -27,6 +28,9 @@ const screenWidth = Dimensions.get("screen").width;
 const Home = () => {
   const router = useRouter();
   const { user } = useUser();
+  const { expoPushToken, notification } = usePushNotifications();
+  const data = JSON.stringify(notification, undefined, 2);
+  console.log(expoPushToken?.data ?? "");
 
   const fetchFriendsPosts = async () => {
     return axios
@@ -41,6 +45,8 @@ const Home = () => {
 
   return (
     <SafeAreaView>
+      <Text>Token: {expoPushToken?.data ?? ""}</Text>
+      <Text>Notification: {data}</Text>
       <FlatList
         data={posts}
         keyExtractor={(item) => item.hangoutId}

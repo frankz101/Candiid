@@ -84,7 +84,7 @@ const CreateHangoutScreen = () => {
     });
   };
 
-  const onSubmit = () => {};
+  const onSubmit = () => {}; //TO DO NEED TO BE ABLE TO SEARCH FRIENDS
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
