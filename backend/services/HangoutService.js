@@ -4,6 +4,9 @@ import {
   createHangoutInDatabase,
   fetchHangoutFromDatabase,
   fetchRecentHangoutsFromDatabase,
+  fetchHangoutRequestsInDatabase,
+  createHangoutRequestsInDatabase,
+  handleHangoutRequestInDatabase,
 } from "../db/HangoutDatabase.js";
 import { storage } from "../firebase.js";
 
@@ -53,4 +56,35 @@ const fetchHangout = async (hangoutId) => {
   return result;
 };
 
-export { createHangout, addPhotoToHangout, fetchRecentHangouts, fetchHangout };
+const fetchHangoutRequests = async (userId) => {
+  const result = await fetchHangoutRequestsInDatabase(userId);
+  return result;
+};
+
+const createHangoutRequests = async (hangoutId, hangoutRequestData) => {
+  const { selectedFriends, hangoutName } = hangoutRequestData;
+  const result = await createHangoutRequestsInDatabase(
+    hangoutId,
+    selectedFriends,
+    hangoutName
+  );
+  return result;
+};
+
+const handleHangoutRequest = async (hangoutId, handleRequestData) => {
+  const result = await handleHangoutRequestInDatabase(
+    hangoutId,
+    handleRequestData
+  );
+  return result;
+};
+
+export {
+  createHangout,
+  addPhotoToHangout,
+  fetchRecentHangouts,
+  fetchHangout,
+  fetchHangoutRequests,
+  createHangoutRequests,
+  handleHangoutRequest,
+};

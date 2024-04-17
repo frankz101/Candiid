@@ -1,17 +1,36 @@
-import { StyleSheet, Text, View, Pressable, FlatList } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  Pressable,
+  FlatList,
+  ScrollView,
+  Dimensions,
+  RefreshControl,
+} from "react-native";
 import { Image } from "expo-image";
 import React, { useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { Ionicons } from "@expo/vector-icons";
+import { AntDesign, Feather, Ionicons } from "@expo/vector-icons";
 import PhotoSquare from "@/components/photo/PhotoSquare";
+import BackButton from "@/components/utils/BackButton";
+
+const screenHeight = Dimensions.get("window").height;
+const headerHeight = 140;
+const bottomPadding = 20;
+
+const scrollViewHeight = screenHeight - headerHeight - bottomPadding;
 
 const Hangout = () => {
-  const { hangoutId } = useLocalSearchParams();
+  const { hangoutId, memoryId } = useLocalSearchParams();
+  console.log("Memory ID Hangout: " + memoryId);
   const [selectedPhotos, setSelectedPhotos] = useState<number[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const fetchHangout = async () => {
     return axios
@@ -20,15 +39,13 @@ const Hangout = () => {
   };
 
   const { data: hangoutData, isPending } = useQuery({
-    queryKey: ["hangout"],
+    queryKey: ["hangoutPhotos", hangoutId],
     queryFn: fetchHangout,
   });
 
   if (isPending) {
     return <Text>LOADING...</Text>;
   }
-
-  const isAlbumEmpty = hangoutData?.sharedAlbum?.length === 0;
 
   const handleImageSelect = async (index: number) => {
     setSelectedPhotos((currentSelected: any) => {
@@ -40,8 +57,6 @@ const Hangout = () => {
       return currentSelected;
     });
   };
-
-  console.log(selectedPhotos);
 
   interface Photo {
     fileUrl: string;
@@ -55,22 +70,50 @@ const Hangout = () => {
     />
   );
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await queryClient.invalidateQueries({
+      queryKey: ["hangoutPhotos", hangoutId],
+    });
+    setRefreshing(false);
+  };
+
   return (
-    <SafeAreaView>
-      <Text>{hangoutId}</Text>
-      <Pressable
-        onPress={() =>
-          router.push({
-            pathname: "/(camera)/CameraScreen",
-            params: { id: hangoutId },
-          })
+    <SafeAreaView style={{ flex: 1 }}>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          paddingBottom: 28,
+        }}
+      >
+        <BackButton />
+        <Text style={{ fontSize: 24 }}>{hangoutData.hangoutName}</Text>
+        <View style={{ width: 32 }} />
+      </View>
+
+      {/* <ScrollView
+        contentContainerStyle={styles.scrollViewContainer}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        <Ionicons name="camera" size={64} />
-      </Pressable>
-      <View>
         {isAlbumEmpty ? (
-          <Text>Empty Album</Text>
+          <View style={styles.emptyAlbumContainer}>
+            <View style={styles.greyPost}>
+              <Pressable
+                onPress={() => {
+                  router.push({
+                    pathname: "/(camera)/CameraScreen",
+                    params: { id: hangoutId },
+                  });
+                }}
+              >
+                <Ionicons name="add" size={32} color="white" />
+              </Pressable>
+            </View>
+          </View>
         ) : (
           <FlatList
             data={hangoutData.sharedAlbum}
@@ -84,20 +127,62 @@ const Hangout = () => {
             }}
           />
         )}
-      </View>
+      </ScrollView> */}
 
+      <FlatList
+        data={hangoutData.sharedAlbum}
+        renderItem={renderPhoto}
+        keyExtractor={(item, index) => index.toString()}
+        numColumns={3}
+        contentContainerStyle={styles.scrollViewContainer}
+        ListEmptyComponent={
+          <View style={styles.emptyAlbumContainer}>
+            <View style={styles.greyPost}>
+              <Pressable
+                onPress={() => {
+                  router.push({
+                    pathname: "/(camera)/CameraScreen",
+                    params: { id: hangoutId },
+                  });
+                }}
+              >
+                <Ionicons name="add" size={32} color="white" />
+              </Pressable>
+            </View>
+          </View>
+        }
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      />
+
+      {selectedPhotos?.length > 0 && (
+        <Pressable
+          onPress={() => {
+            router.push({
+              pathname: "/(hangout)/PreviewPost",
+              params: {
+                hangoutId: hangoutId,
+                memoryId: memoryId,
+                photoIndexes: selectedPhotos,
+              },
+            });
+          }}
+          style={{ position: "absolute", right: 20, bottom: 75 }}
+        >
+          <Feather name="arrow-right-circle" size={64} />
+        </Pressable>
+      )}
       <Pressable
-        onPress={() => {
+        onPress={() =>
           router.push({
-            pathname: "/(hangout)/PreviewPost",
-            params: {
-              hangoutId: hangoutId,
-              photoIndexes: selectedPhotos,
-            },
-          });
-        }}
+            pathname: "/(camera)/CameraScreen",
+            params: { id: hangoutId },
+          })
+        }
+        style={{ position: "absolute", alignSelf: "center", bottom: 75 }}
       >
-        <Text>Preview Post</Text>
+        <Ionicons name="camera" size={64} />
       </Pressable>
     </SafeAreaView>
   );
@@ -111,5 +196,23 @@ const styles = StyleSheet.create({
     // flexWrap: "wrap",
     // justifyContent: "space-between", // This will ensure even spacing between the images
     // padding: 8, // Add padding around the whole grid
+  },
+  emptyAlbumContainer: {
+    flex: 1,
+    // justifyContent: "center",
+    // alignItems: "center",
+  },
+  greyPost: {
+    width: 100,
+    height: 100,
+    backgroundColor: "grey",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 10,
+  },
+
+  scrollViewContainer: {
+    flexGrow: 1,
+    height: scrollViewHeight,
   },
 });

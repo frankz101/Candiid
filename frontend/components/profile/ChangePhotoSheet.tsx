@@ -6,11 +6,14 @@ import { SheetManager } from "react-native-actions-sheet";
 import { useUser } from "@clerk/clerk-expo";
 import axios, { AxiosResponse } from "axios";
 import RNFetchBlob from "rn-fetch-blob";
+import { useQueryClient } from "@tanstack/react-query";
 
 const ChangePhotoSheet = () => {
   const { user } = useUser();
+  const queryClient = useQueryClient();
 
   const handleProfilePhoto = async (image: any) => {
+    closeChangePhotoSheet();
     try {
       RNFetchBlob.fetch(
         "PUT",
@@ -29,6 +32,9 @@ const ChangePhotoSheet = () => {
         .then((response) => response.json())
         .then((data) => {
           console.log("Profile photo change success:", data);
+          queryClient.invalidateQueries({
+            queryKey: ["profile", user?.id],
+          });
         })
         .catch((error) => {
           console.error("Error changing profile photo:", error);

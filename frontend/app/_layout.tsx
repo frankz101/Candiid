@@ -3,9 +3,10 @@ import { SheetProvider } from "react-native-actions-sheet";
 import "@/components/utils/sheets";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { Slot, Stack, useRouter, useSegments } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import * as SecureStore from "expo-secure-store";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import React from "react";
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -54,8 +55,9 @@ const tokenCache = {
   },
 };
 
-const RootLayout = () => {
+const RootLayout = React.memo(() => {
   const queryClient = new QueryClient();
+  console.log("Root Layout Rendered");
   return (
     <ClerkProvider
       publishableKey={CLERK_PUBLISHABLE_KEY!}
@@ -70,6 +72,6 @@ const RootLayout = () => {
       </QueryClientProvider>
     </ClerkProvider>
   );
-};
+});
 
 export default RootLayout;

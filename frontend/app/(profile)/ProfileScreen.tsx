@@ -5,12 +5,12 @@ import {
   Text,
   View,
   ScrollView,
-  Dimensions,
   RefreshControl,
+  Dimensions,
 } from "react-native";
 import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useState } from "react";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import axios from "axios";
 import { SheetManager } from "react-native-actions-sheet";
@@ -26,30 +26,31 @@ const bottomPadding = 20;
 
 const scrollViewHeight = screenHeight - headerHeight - bottomPadding;
 
-const Profile = () => {
-  const router = useRouter();
+const ProfileScreen = () => {
   const { user } = useUser();
+  const router = useRouter();
+  const { userId } = useLocalSearchParams();
   const [refreshing, setRefreshing] = useState(false);
   const queryClient = useQueryClient();
 
   const fetchMemories = async () => {
     console.log("Fetching Memories");
     return axios
-      .get(`${process.env.EXPO_PUBLIC_API_URL}/memories/${user?.id}`)
+      .get(`${process.env.EXPO_PUBLIC_API_URL}/memories/${userId}`)
       .then((res) => res.data);
   };
 
   const fetchUser = async () => {
     console.log("Fetching User Information");
     return axios
-      .get(`${process.env.EXPO_PUBLIC_API_URL}/users/${user?.id}/${user?.id}`)
+      .get(`${process.env.EXPO_PUBLIC_API_URL}/users/${userId}/${user?.id}`)
       .then((res) => res.data);
   };
 
   const [memories, profile] = useQueries({
     queries: [
-      { queryKey: ["memories", user?.id], queryFn: fetchMemories },
-      { queryKey: ["profile", user?.id], queryFn: fetchUser },
+      { queryKey: ["memories", userId], queryFn: fetchMemories },
+      { queryKey: ["profile", userId], queryFn: fetchUser },
     ],
   });
 
@@ -58,8 +59,8 @@ const Profile = () => {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await queryClient.invalidateQueries({ queryKey: ["memories", user?.id] });
-    await queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
+    await queryClient.invalidateQueries({ queryKey: ["memories", userId] });
+    await queryClient.invalidateQueries({ queryKey: ["profile", userId] });
     setRefreshing(false);
   };
 
@@ -70,12 +71,13 @@ const Profile = () => {
   if (isPendingMemories || isPendingProfile) {
     return <Text>Is Loading...</Text>;
   }
-
-  console.log(profileDetails.result);
+  if (profileDetails) {
+    console.log(profileDetails);
+  }
 
   return (
     <SafeAreaView>
-      <View // Turn this into one component later
+      <View
         style={{
           flexDirection: "row",
           justifyContent: "space-between",
@@ -100,6 +102,7 @@ const Profile = () => {
               <Ionicons name="person-circle" size={64} />
             )}
           </Pressable>
+
           <View>
             <Text style={styles.name}>{profileDetails.result.name}</Text>
             <Text
@@ -108,24 +111,11 @@ const Profile = () => {
           </View>
         </View>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Pressable
-            onPress={() => router.push("/(profile)/AddFriendsScreen")}
-            style={{ paddingRight: 10 }}
-          >
-            <Ionicons name="people" size={32} />
-          </Pressable>
-          <Pressable
-            onPress={() => router.push("/(profile)/NotificationsScreen")}
-            style={{ paddingRight: 10 }}
-          >
-            <Ionicons name="heart" size={32} />
-          </Pressable>
           <Pressable onPress={() => router.push("/(profile)/SettingsScreen")}>
             <Ionicons name="menu" size={32} />
           </Pressable>
         </View>
       </View>
-
       <ScrollView
         contentContainerStyle={styles.scrollViewContainer}
         refreshControl={
@@ -139,30 +129,34 @@ const Profile = () => {
           <Pressable onPress={() => router.push("/(hangout)/MemoriesScreen")}>
             <MemoriesView hangouts={memoriesData} />
           </Pressable>
+          {profileDetails.result.friendStatus === "Not Friends" && (
+            <BlurView
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+              }}
+              intensity={50}
+            />
+          )}
         </Animated.View>
-
-        <View>
-          <Pressable
-            onPress={() => router.push("/(hangout)/CreateHangoutScreen")}
-          >
-            <Ionicons name="add-circle-outline" size={64} />
-          </Pressable>
-        </View>
-        <View>
-          <Pressable onPress={() => router.push("/(hangout)/MemoriesScreen")}>
-            <MaterialIcons name="photo" size={64} />
-          </Pressable>
-        </View>
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-export default Profile;
+export default ProfileScreen;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  profilePhoto: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
   },
   scrollViewContainer: {
     flexGrow: 1,
@@ -177,12 +171,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     overflow: "hidden",
     marginVertical: 10,
-  },
-
-  profilePhoto: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
   },
   name: {
     fontSize: 20,
