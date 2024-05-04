@@ -67,6 +67,7 @@ const Profile = () => {
     SheetManager.show("change-photo");
   };
 
+  console.log(profileDetails);
   if (isPendingMemories || isPendingProfile) {
     return <Text>Is Loading...</Text>;
   }

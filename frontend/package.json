@@ -11,7 +11,10 @@
     "build:ios": "react-native bundle --entry-file='./(tabs)/index.tsx' --bundle-output='./ios/main.jsbundle' --dev=false --platform='ios'"
   },
   "jest": {
-    "preset": "jest-expo"
+    "preset": "jest-expo",
+    "setupFilesAfterEnv": [
+      "./jest-setup.js"
+    ]
   },
   "dependencies": {
     "@clerk/clerk-expo": "^0.20.1",
