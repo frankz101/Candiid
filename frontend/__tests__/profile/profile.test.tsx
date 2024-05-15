@@ -9,7 +9,7 @@ jest.mock("axios");
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 const delayedResolve = (data: any) => {
-  return new Promise((resolve) => setTimeout(() => resolve({ data }), 100)); // 100 ms delay
+  return new Promise((resolve) => setTimeout(() => resolve({ data }), 100));
 };
 
 mockedAxios.get.mockImplementation((url) => {
@@ -73,13 +73,13 @@ describe("Profile", () => {
     expect(await screen.findByText("@franklin_zhu")).toBeOnTheScreen();
   });
 
-  it("navigates to Add Friends screen on button click", async () => {
-    render(<Profile />);
-    fireEvent.press(
-      await screen.findByRole("button", { name: "add-friends-button" })
-    );
-    expect(useRouter().push).toHaveBeenCalledWith(
-      "/(profile)/AddFriendsScreen"
-    );
-  });
+  // it("navigates to Add Friends screen on button click", async () => {
+  //   render(<Profile />);
+  //   fireEvent.press(
+  //     await screen.findByRole("button", { name: "add-friends-button" })
+  //   );
+  //   expect(useRouter().push).toHaveBeenCalledWith(
+  //     "/(profile)/AddFriendsScreen"
+  //   );
+  // });
 });

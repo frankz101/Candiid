@@ -102,16 +102,17 @@ const MemoriesView: React.FC<MemoriesViewProps> = ({ hangouts }) => {
     <View>
       <GestureDetector gesture={combinedGesture}>
         <Animated.View style={[styles.container, containerStyle]}>
-          {hangouts.map((hangout, index) => (
-            <AnimatedPost
-              key={index + hangout.hangoutId}
-              postId={hangout.postId}
-              hangoutId={hangout.hangoutId}
-              memoryId={hangout.id}
-              positionX={hangout.postX}
-              positionY={hangout.postY}
-            />
-          ))}
+          {hangouts &&
+            hangouts.map((hangout, index) => (
+              <AnimatedPost
+                key={index + hangout.hangoutId}
+                postId={hangout.postId}
+                hangoutId={hangout.hangoutId}
+                memoryId={hangout.id}
+                positionX={hangout.postX}
+                positionY={hangout.postY}
+              />
+            ))}
         </Animated.View>
       </GestureDetector>
     </View>

@@ -51,6 +51,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
             setClicked(true);
           }}
           onSubmitEditing={() => onSubmit}
+          accessibilityLabel="search-bar"
         />
       </View>
       {clicked && (

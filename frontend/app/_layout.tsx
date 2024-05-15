@@ -7,6 +7,8 @@ import { useEffect, useMemo, useState } from "react";
 import * as SecureStore from "expo-secure-store";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import React from "react";
+import * as SplashScreen from "expo-splash-screen";
+import { ImageBackground } from "react-native";
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -14,6 +16,9 @@ const InitialLayout = () => {
   const { isLoaded, isSignedIn } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+
+  SplashScreen.preventAutoHideAsync();
+  setTimeout(SplashScreen.hideAsync, 1000);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -56,6 +61,7 @@ const tokenCache = {
 };
 
 const RootLayout = React.memo(() => {
+  const image = "";
   const queryClient = new QueryClient();
   console.log("Root Layout Rendered");
   return (

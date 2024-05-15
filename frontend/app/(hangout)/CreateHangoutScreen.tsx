@@ -107,6 +107,7 @@ const CreateHangoutScreen = () => {
             multiline={false} //change back to true later
             maxLength={90}
             value={hangoutName}
+            accessibilityLabel="text-input"
           />
         </View>
         <View>
@@ -140,6 +141,7 @@ const CreateHangoutScreen = () => {
                   renderItem={({ item, index }) => (
                     <View>
                       <Pressable
+                        accessibilityRole="button"
                         key={index}
                         style={styles.friendItem}
                         onPress={() => {
@@ -198,6 +200,7 @@ const CreateHangoutScreen = () => {
               justifyContent: "center",
               padding: 8,
             }}
+            accessibilityRole="button"
           >
             <Text>Create your hangout</Text>
             <Ionicons name="arrow-forward" size={32} />

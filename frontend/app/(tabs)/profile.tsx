@@ -67,12 +67,15 @@ const Profile = () => {
     SheetManager.show("change-photo");
   };
 
-  console.log(profileDetails);
   if (isPendingMemories || isPendingProfile) {
     return <Text>Is Loading...</Text>;
   }
 
-  console.log(profileDetails.result);
+  const userProfile = profileDetails?.result || {
+    name: "Unknown User",
+    username: "unknown_user",
+    profilePhoto: null,
+  };
 
   return (
     <SafeAreaView>
@@ -90,11 +93,9 @@ const Profile = () => {
             onPress={openChangePhotoSheet}
             style={{ paddingRight: 10 }}
           >
-            {profileDetails &&
-            profileDetails.result &&
-            profileDetails.result.profilePhoto ? (
+            {profileDetails && userProfile && userProfile.profilePhoto ? (
               <Image
-                source={{ uri: profileDetails.result.profilePhoto.fileUrl }}
+                source={{ uri: userProfile.profilePhoto.fileUrl }}
                 style={styles.profilePhoto}
               />
             ) : (
@@ -102,10 +103,8 @@ const Profile = () => {
             )}
           </Pressable>
           <View>
-            <Text style={styles.name}>{profileDetails.result.name}</Text>
-            <Text
-              style={styles.username}
-            >{`@${profileDetails.result.username}`}</Text>
+            <Text style={styles.name}>{userProfile.name}</Text>
+            <Text style={styles.username}>{`@${userProfile.username}`}</Text>
           </View>
         </View>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
