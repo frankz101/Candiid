@@ -7,6 +7,12 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
+const iconNames = {
+  index: "home-outline",
+  camera: "camera-outline",
+  profile: "person-outline",
+} as const;
+
 const Layout = () => {
   return (
     <Tabs
@@ -22,15 +28,7 @@ const Layout = () => {
           paddingTop: hp(1.2),
         },
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
-
-          if (route.name === "index") {
-            iconName = "home-outline";
-          } else if (route.name === "camera") {
-            iconName = "camera-outline";
-          } else if (route.name === "profile") {
-            iconName = "person-outline";
-          }
+          const iconName = iconNames[route.name as keyof typeof iconNames];
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
