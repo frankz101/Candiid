@@ -19,12 +19,10 @@ import { Image } from "expo-image";
 import MemoriesView from "@/components/profile/MemoriesView";
 import Animated from "react-native-reanimated";
 import { BlurView } from "expo-blur";
-
-const screenHeight = Dimensions.get("window").height;
-const headerHeight = 120;
-const bottomPadding = 20;
-
-const scrollViewHeight = screenHeight - headerHeight - bottomPadding;
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 const Profile = () => {
   const router = useRouter();
@@ -78,60 +76,28 @@ const Profile = () => {
   };
 
   return (
-    <SafeAreaView>
-      <View // Turn this into one component later
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          paddingHorizontal: 18,
-          paddingVertical: 10,
-        }}
-      >
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Pressable
-            onPress={openChangePhotoSheet}
-            style={{ paddingRight: 10 }}
-          >
-            {profileDetails && userProfile && userProfile.profilePhoto ? (
-              <Image
-                source={{ uri: userProfile.profilePhoto.fileUrl }}
-                style={styles.profilePhoto}
-              />
-            ) : (
-              <Ionicons name="person-circle" size={64} />
-            )}
-          </Pressable>
-          <View>
-            <Text style={styles.name}>{userProfile.name}</Text>
-            <Text style={styles.username}>{`@${userProfile.username}`}</Text>
-          </View>
-        </View>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Pressable
-            onPress={() => router.push("/(profile)/AddFriendsScreen")}
-            style={{ paddingRight: 10 }}
-          >
-            <Ionicons name="people" size={32} />
-          </Pressable>
-          <Pressable
-            onPress={() => router.push("/(profile)/NotificationsScreen")}
-            style={{ paddingRight: 10 }}
-          >
-            <Ionicons name="heart" size={32} />
-          </Pressable>
-          <Pressable onPress={() => router.push("/(profile)/SettingsScreen")}>
-            <Ionicons name="menu" size={32} />
-          </Pressable>
-        </View>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.userDetails}>
+        <Text style={styles.userText}>{`@${userProfile.username}`}</Text>
+        <Pressable onPress={openChangePhotoSheet}>
+          {profileDetails && userProfile && userProfile.profilePhoto ? (
+            <Image
+              source={{ uri: userProfile.profilePhoto.fileUrl }}
+              style={styles.profilePhoto}
+            />
+          ) : (
+            <Ionicons name="person-circle" size={108} color={"white"} />
+          )}
+        </Pressable>
+        <Text style={styles.userText}>{userProfile.name}</Text>
       </View>
-
       <ScrollView
         contentContainerStyle={styles.scrollViewContainer}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
+        <Text style={styles.memoryBoardText}>Memoryboard</Text>
         <Animated.View
           style={styles.animatedView}
           sharedTransitionTag="MemoriesScreen"
@@ -140,21 +106,85 @@ const Profile = () => {
             <MemoriesView hangouts={memoriesData} />
           </Pressable>
         </Animated.View>
-
-        <View>
-          <Pressable
-            onPress={() => router.push("/(hangout)/CreateHangoutScreen")}
-          >
-            <Ionicons name="add-circle-outline" size={64} />
-          </Pressable>
-        </View>
-        <View>
-          <Pressable onPress={() => router.push("/(hangout)/MemoriesScreen")}>
-            <MaterialIcons name="photo" size={64} />
-          </Pressable>
-        </View>
       </ScrollView>
     </SafeAreaView>
+    // <SafeAreaView>
+    //   <View // Turn this into one component later
+    //     style={{
+    //       flexDirection: "row",
+    //       justifyContent: "space-between",
+    //       alignItems: "center",
+    //       paddingHorizontal: 18,
+    //       paddingVertical: 10,
+    //     }}
+    //   >
+    //     <View style={{ flexDirection: "row", alignItems: "center" }}>
+    //       <Pressable
+    //         onPress={openChangePhotoSheet}
+    //         style={{ paddingRight: 10 }}
+    //       >
+    //         {profileDetails && userProfile && userProfile.profilePhoto ? (
+    //           <Image
+    //             source={{ uri: userProfile.profilePhoto.fileUrl }}
+    //             style={styles.profilePhoto}
+    //           />
+    //         ) : (
+    //           <Ionicons name="person-circle" size={64} />
+    //         )}
+    //       </Pressable>
+    //       <View>
+    //         <Text style={styles.name}>{userProfile.name}</Text>
+    //         <Text style={styles.username}>{`@${userProfile.username}`}</Text>
+    //       </View>
+    //     </View>
+    //     <View style={{ flexDirection: "row", alignItems: "center" }}>
+    //       <Pressable
+    //         onPress={() => router.push("/(profile)/AddFriendsScreen")}
+    //         style={{ paddingRight: 10 }}
+    //       >
+    //         <Ionicons name="people" size={32} />
+    //       </Pressable>
+    //       <Pressable
+    //         onPress={() => router.push("/(profile)/NotificationsScreen")}
+    //         style={{ paddingRight: 10 }}
+    //       >
+    //         <Ionicons name="heart" size={32} />
+    //       </Pressable>
+    //       <Pressable onPress={() => router.push("/(profile)/SettingsScreen")}>
+    //         <Ionicons name="menu" size={32} />
+    //       </Pressable>
+    //     </View>
+    //   </View>
+
+    //   <ScrollView
+    //     contentContainerStyle={styles.scrollViewContainer}
+    //     refreshControl={
+    //       <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+    //     }
+    //   >
+    //     <Animated.View
+    //       style={styles.animatedView}
+    //       sharedTransitionTag="MemoriesScreen"
+    //     >
+    //       <Pressable onPress={() => router.push("/(hangout)/MemoriesScreen")}>
+    //         <MemoriesView hangouts={memoriesData} />
+    //       </Pressable>
+    //     </Animated.View>
+
+    //     <View>
+    //       <Pressable
+    //         onPress={() => router.push("/(hangout)/CreateHangoutScreen")}
+    //       >
+    //         <Ionicons name="add-circle-outline" size={64} />
+    //       </Pressable>
+    //     </View>
+    //     <View>
+    //       <Pressable onPress={() => router.push("/(hangout)/MemoriesScreen")}>
+    //         <MaterialIcons name="photo" size={64} />
+    //       </Pressable>
+    //     </View>
+    //   </ScrollView>
+    // </SafeAreaView>
   );
 };
 
@@ -162,11 +192,36 @@ export default Profile;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    height: hp(100),
+    backgroundColor: "#141417",
+  },
+  userDetails: {
+    display: "flex",
+    gap: hp(1),
+    alignItems: "center",
+    marginTop: hp(2),
+  },
+  userText: {
+    color: "#FFF",
+    fontFamily: "Inter",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  profilePhoto: {
+    width: 108,
+    height: 108,
+    borderRadius: 32,
   },
   scrollViewContainer: {
     flexGrow: 1,
-    height: scrollViewHeight,
+    marginTop: hp(4),
+    marginHorizontal: wp(2),
+  },
+  memoryBoardText: {
+    color: "#FFF",
+    fontFamily: "Inter",
+    fontSize: 14,
+    fontWeight: "bold",
   },
   animatedView: {
     justifyContent: "center",
@@ -177,19 +232,5 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     overflow: "hidden",
     marginVertical: 10,
-  },
-
-  profilePhoto: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-  },
-  name: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  username: {
-    fontSize: 14,
-    opacity: 0.8,
   },
 });
