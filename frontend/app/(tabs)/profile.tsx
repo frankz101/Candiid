@@ -24,6 +24,19 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
+interface Hangout {
+  hangoutName: string;
+  description: string;
+  id: string;
+  participantIds: string[];
+  participants: Participant[];
+}
+
+interface Participant {
+  userId: string;
+  profilePhoto: null | { fileUrl: string };
+}
+
 const Profile = () => {
   const router = useRouter();
   const { user } = useUser();
@@ -44,20 +57,32 @@ const Profile = () => {
       .then((res) => res.data);
   };
 
-  const [memories, profile] = useQueries({
+  const fetchUpcomingHangouts = async () => {
+    return axios
+      .get(`${process.env.EXPO_PUBLIC_API_URL}/hangout/upcoming/${user?.id}`)
+      .then((res) => res.data);
+  };
+
+  const [memories, profile, hangouts] = useQueries({
     queries: [
       { queryKey: ["memories", user?.id], queryFn: fetchMemories },
       { queryKey: ["profile", user?.id], queryFn: fetchUser },
+      {
+        queryKey: ["hangouts", user?.id],
+        queryFn: fetchUpcomingHangouts,
+      },
     ],
   });
 
   const { data: memoriesData, isPending: isPendingMemories } = memories;
   const { data: profileDetails, isPending: isPendingProfile } = profile;
+  const { data: upcomingHangouts, isPending: isPendingHangouts } = hangouts;
 
   const onRefresh = async () => {
     setRefreshing(true);
     await queryClient.invalidateQueries({ queryKey: ["memories", user?.id] });
     await queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
+    await queryClient.invalidateQueries({ queryKey: ["hangouts", user?.id] });
     setRefreshing(false);
   };
 
@@ -97,7 +122,7 @@ const Profile = () => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        <Text style={styles.memoryBoardText}>Memoryboard</Text>
+        <Text style={styles.headerText}>Memoryboard</Text>
         <Animated.View
           style={styles.animatedView}
           sharedTransitionTag="MemoriesScreen"
@@ -106,6 +131,43 @@ const Profile = () => {
             <MemoriesView hangouts={memoriesData} />
           </Pressable>
         </Animated.View>
+        <View style={styles.upcomingHangouts}>
+          <Text style={styles.headerText}>Upcoming Hangouts</Text>
+          {upcomingHangouts?.map((hangout: Hangout) => {
+            return (
+              <View key={hangout.id} style={styles.hangoutBanner}>
+                <Text style={styles.hangoutText}>{hangout.hangoutName}</Text>
+                <View style={styles.participants}>
+                  {hangout.participants.map((participant: Participant) =>
+                    participant.profilePhoto ? (
+                      <Image
+                        key={participant.userId}
+                        source={{ uri: participant.profilePhoto.fileUrl }}
+                        style={styles.participantPhoto}
+                      />
+                    ) : (
+                      <View
+                        key={participant.userId}
+                        style={styles.participantPhoto}
+                      >
+                        <Ionicons
+                          name="person-circle"
+                          size={36}
+                          color="white"
+                        />
+                      </View>
+                    )
+                  )}
+                  {hangout.participantIds.length > 2 && (
+                    <View style={styles.additionalParticipants}>
+                      <Text>+{hangout.participantIds.length - 2}</Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+            );
+          })}
+        </View>
       </ScrollView>
     </SafeAreaView>
     // <SafeAreaView>
@@ -210,14 +272,14 @@ const styles = StyleSheet.create({
   profilePhoto: {
     width: 108,
     height: 108,
-    borderRadius: 32,
+    borderRadius: 64,
   },
   scrollViewContainer: {
     flexGrow: 1,
     marginTop: hp(4),
     marginHorizontal: wp(2),
   },
-  memoryBoardText: {
+  headerText: {
     color: "#FFF",
     fontFamily: "Inter",
     fontSize: 14,
@@ -232,5 +294,47 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     overflow: "hidden",
     marginVertical: 10,
+  },
+  upcomingHangouts: {
+    paddingTop: hp(2),
+  },
+  hangoutBanner: {
+    marginTop: hp(1),
+    height: hp(8),
+    flexDirection: "row",
+    gap: wp(40),
+    backgroundColor: "#202023",
+    borderRadius: 5,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  hangoutText: {
+    color: "#FFF",
+    fontFamily: "Inter",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  participants: {
+    flexDirection: "row",
+    gap: -wp(5),
+  },
+  participantPhoto: {
+    height: 36,
+    width: 36,
+    borderRadius: 18,
+    borderColor: "white",
+    borderWidth: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  additionalParticipants: {
+    height: 36,
+    width: 36,
+    borderRadius: 18,
+    backgroundColor: "#D9D9D9",
+    borderColor: "white",
+    borderWidth: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
