@@ -80,6 +80,66 @@ const fetchRecentHangoutsFromDatabase = async (userId) => {
   }
 };
 
+const fetchUpcomingHangoutsFromDatabase = async (userId) => {
+  const hangoutsCollection = collection(db, "hangouts");
+
+  const upcomingHangoutsQuery = query(
+    hangoutsCollection,
+    where("completed", "==", false),
+    where("participantIds", "array-contains", userId),
+    orderBy("createdAt", "desc"),
+    limit(12)
+  );
+
+  try {
+    const querySnapshot = await getDocs(upcomingHangoutsQuery);
+
+    if (querySnapshot.empty) {
+      console.log("No matching documents.");
+      return [];
+    } else {
+      const hangouts = [];
+      const userIdsToFetch = [];
+
+      querySnapshot.forEach((doc) => {
+        const hangout = { id: doc.id, ...doc.data() };
+        const participantIds = hangout.participantIds.slice(0, 2); // Get first two participants
+        hangout.participantIds = participantIds; // Update the hangout object with only the first two participants
+        hangouts.push(hangout);
+
+        participantIds.forEach((userId) => userIdsToFetch.push(userId));
+      });
+
+      // Fetch user profiles in a batch
+      const userCollection = collection(db, "users");
+      const userDocs = await Promise.all(
+        userIdsToFetch.map((userId) => getDoc(doc(userCollection, userId)))
+      );
+
+      const userProfiles = {};
+      userDocs.forEach((userDoc) => {
+        if (userDoc.exists()) {
+          userProfiles[userDoc.id] = userDoc.data();
+        }
+      });
+
+      // Map the profile photos to the respective participants in the hangouts
+      hangouts.forEach((hangout) => {
+        hangout.participants = hangout.participantIds.map((userId) => ({
+          userId,
+          profilePhoto: userProfiles[userId]?.profilePhoto || null,
+        }));
+      });
+      return hangouts;
+    }
+
+    // return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error("Error fetching upcoming hangouts in service:", error);
+    throw new Error("Failed to fetch recent hangouts");
+  }
+};
+
 const fetchHangoutFromDatabase = async (hangoutId) => {
   const hangoutDocRef = doc(db, "hangouts", hangoutId);
   try {
@@ -194,6 +254,7 @@ export {
   createHangoutInDatabase,
   addPhotoToHangoutInDatabase,
   fetchRecentHangoutsFromDatabase,
+  fetchUpcomingHangoutsFromDatabase,
   fetchHangoutFromDatabase,
   createHangoutRequestsInDatabase,
   fetchHangoutRequestsInDatabase,

@@ -3,6 +3,7 @@ import {
   createHangout,
   fetchHangout,
   fetchRecentHangouts,
+  fetchUpcomingHangouts,
   fetchHangoutRequests,
   createHangoutRequests,
   handleHangoutRequest,
@@ -40,6 +41,17 @@ const getRecentHangouts = async (req, res) => {
     const userId = req.params.userId;
 
     const result = await fetchRecentHangouts(userId);
+    res.status(200).json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send({ message: err.message });
+  }
+};
+
+const getUpcomingHangouts = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const result = await fetchUpcomingHangouts(userId);
     res.status(200).json(result);
   } catch (err) {
     console.log(err);
@@ -94,6 +106,7 @@ export {
   getRecentHangouts,
   getHangout,
   getHangoutRequests,
+  getUpcomingHangouts,
   postHangoutRequests,
   putHangoutRequest,
 };

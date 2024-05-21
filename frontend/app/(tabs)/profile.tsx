@@ -131,6 +131,7 @@ const Profile = () => {
             <MemoriesView hangouts={memoriesData} />
           </Pressable>
         </Animated.View>
+        {/* DEFAULT PROFILE PIC NOT CENTERED AND SIZE IS WRONG */}
         <View style={styles.upcomingHangouts}>
           <Text style={styles.headerText}>Upcoming Hangouts</Text>
           {upcomingHangouts?.map((hangout: Hangout) => {
