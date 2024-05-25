@@ -9,6 +9,10 @@ import {
   Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 type SearchBarProps = {
   clicked: boolean;
@@ -38,13 +42,14 @@ const SearchBar: React.FC<SearchBarProps> = ({
           <Ionicons
             name="search"
             size={20}
-            color="black"
+            color="#F2F2F2"
             style={{ marginLeft: 1 }}
           />
         </Pressable>
         <TextInput
           style={styles.input}
           placeholder={placeholder}
+          placeholderTextColor="#F2F2F2"
           value={searchPhrase}
           onChangeText={setSearchPhrase}
           onFocus={() => {
@@ -63,7 +68,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
               setSearchPhrase("");
             }}
           >
-            <Text>Cancel</Text>
+            <Text style={{ color: "#FFF" }}>Cancel</Text>
           </Pressable>
         </View>
       )}
@@ -75,31 +80,32 @@ export default SearchBar;
 // styles
 const styles = StyleSheet.create({
   container: {
-    margin: 15,
+    marginTop: hp(2),
+    marginLeft: wp(2),
     justifyContent: "space-between",
     alignItems: "center",
     flexDirection: "row",
-    width: "90%",
+    width: wp("95%"),
   },
   searchBar__unclicked: {
-    padding: 10,
+    padding: 14,
     flexDirection: "row",
     width: "100%",
-    backgroundColor: "#d9dbda",
-    borderRadius: 15,
+    backgroundColor: "#252525",
+    borderRadius: 5,
     alignItems: "center",
   },
   searchBar__clicked: {
-    padding: 10,
+    padding: 14,
     flexDirection: "row",
-    width: "80%",
-    backgroundColor: "#d9dbda",
-    borderRadius: 15,
+    width: "85%",
+    backgroundColor: "#252525",
+    borderRadius: 5,
     alignItems: "center",
     justifyContent: "flex-start",
   },
   input: {
-    fontSize: 20,
+    fontSize: 14,
     marginLeft: 10,
     width: "90%",
   },

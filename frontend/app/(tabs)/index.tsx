@@ -8,8 +8,10 @@ import {
   Image,
   Dimensions,
   ScrollView,
+  RefreshControl,
 } from "react-native";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { TabView, SceneMap } from "react-native-tab-view";
 import { useRouter } from "expo-router";
 import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useUser } from "@clerk/clerk-expo";
@@ -22,6 +24,10 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import BaseScreen from "@/components/utils/BaseScreen";
+import FeedPost from "@/components/home/FeedPost";
+import CreateHangoutButton from "@/components/home/CreateHangoutButton";
+import CompletedHangouts from "@/components/home/CompletedHangouts";
+import ProfileTabBar from "@/components/home/ProfileTabBar";
 
 interface Photo {
   fileUrl: string;
@@ -29,9 +35,47 @@ interface Photo {
   takenBy: string;
 }
 
+const tempPosts = [
+  {
+    postId: "1",
+    username: "franklin",
+    caption: "Whats up",
+  },
+  {
+    postId: "2",
+    username: "andy",
+    caption: "hey",
+  },
+];
+
+const initialLayout = { width: Dimensions.get("window").width };
 const screenWidth = Dimensions.get("screen").width;
 
 const Home = () => {
+  const [refreshing, setRefreshing] = useState(false);
+  const [index, setIndex] = useState(0);
+  const [routes] = useState([
+    { key: "completedHangouts", title: "Completed Hangouts" },
+    { key: "freshHangouts", title: "Fresh Hangouts" },
+  ]);
+
+  const renderScene = SceneMap({
+    completedHangouts: () => (
+      <CompletedHangouts
+        tempPosts={tempPosts}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+      />
+    ),
+    freshHangouts: () => (
+      <CompletedHangouts
+        tempPosts={tempPosts}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+      />
+    ),
+  });
+
   const router = useRouter();
   const { user } = useUser();
   const { expoPushToken, notification } = usePushNotifications();
@@ -48,6 +92,13 @@ const Home = () => {
     queryKey: ["postsData", user?.id],
     queryFn: fetchFriendsPosts,
   });
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
+  };
 
   return (
     <BaseScreen>
@@ -69,100 +120,14 @@ const Home = () => {
         </Pressable>
       </View>
 
-      {/* TabBar */}
-      <View style={styles.tabBar}>
-        <Pressable>
-          <Text style={styles.tabTextStyle}>Completed Hangouts</Text>
-        </Pressable>
-        <Pressable>
-          <Text style={styles.tabTextStyle}>Fresh Hangouts</Text>
-        </Pressable>
-      </View>
-      <View style={styles.tabUnderline}>
-        <View style={styles.underline} />
-        <View style={styles.underline} />
-      </View>
-
-      {/* Main */}
-      <View style={styles.main}>
-        <View style={styles.createHangoutButton}>
-          <Pressable>
-            <View style={{ alignItems: "center" }}>
-              <Ionicons name="add-circle-outline" size={36} color="#AEAEB4" />
-              <Text style={{ color: "#9B9BA1" }}>Create a hangout</Text>
-            </View>
-          </Pressable>
-        </View>
-      </View>
-
-      {/* Post Header*/}
-      <View style={styles.itemContainer}>
-        <View style={styles.postHeader}>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: 8,
-            }}
-          >
-            <Ionicons name="person-circle-outline" size={40} color="white" />
-            <Text style={styles.postHeaderTextStyle}>franklinzhu26</Text>
-          </View>
-          <View />
-        </View>
-      </View>
-
-      {/* Post Content */}
-      <View style={styles.itemContainer}>
-        <View style={styles.postContainer}></View>
-      </View>
-
-      {/* Post Caption*/}
-      <View style={styles.captionContainer}>
-        <View style={styles.captionContent}>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Text style={styles.captionTextStyle}>
-              Going to the beach with friends
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      {/* <FlatList
-        data={posts}
-        keyExtractor={(item) => item.hangoutId}
-        contentContainerStyle={{ paddingBottom: screenWidth / 2 }}
-        renderItem={({ item }) => {
-          return (
-            <View style={{ flex: 1 }}>
-              <Text>{item.userId}</Text>
-              <Text>{item.caption}</Text>
-              <Carousel
-                data={item.photoUrls}
-                loop={false}
-                width={screenWidth}
-                height={screenWidth + 20}
-                renderItem={({ item }: { item: Photo }) => (
-                  <View key={item.fileUrl}>
-                    <Image
-                      style={styles.image}
-                      source={{ uri: item.fileUrl }}
-                    />
-                    <Text>{item.takenAt}</Text>
-                  </View>
-                )}
-              />
-            </View>
-          );
-        }}
-      /> */}
+      {/* TabBar Content */}
+      <TabView
+        navigationState={{ index, routes }}
+        renderScene={renderScene}
+        onIndexChange={setIndex}
+        initialLayout={initialLayout}
+        renderTabBar={(props) => <ProfileTabBar {...props} />}
+      />
     </BaseScreen>
   );
 };
@@ -187,17 +152,6 @@ const styles = StyleSheet.create({
     color: "#FFF",
     fontFamily: "Inter",
     fontSize: 14,
-  },
-  postHeaderTextStyle: {
-    color: "#FFF",
-    fontFamily: "Inter",
-    fontSize: 14,
-    paddingLeft: 8,
-  },
-  captionTextStyle: {
-    color: "#FFF",
-    fontFamily: "Inter",
-    fontSize: 16,
   },
   tabUnderline: {
     // width: wp("45%"),
@@ -231,32 +185,5 @@ const styles = StyleSheet.create({
     height: 3,
     backgroundColor: "#FFF",
     marginTop: 2,
-  },
-  itemContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  postHeader: {
-    width: wp("95"),
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  postContainer: {
-    width: wp("95"),
-    aspectRatio: 1,
-    backgroundColor: "blue",
-    alignSelf: "center",
-    borderRadius: 5,
-  },
-  captionContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  captionContent: {
-    width: wp("95"),
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
   },
 });

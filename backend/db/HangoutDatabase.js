@@ -17,14 +17,36 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase.js";
 
+// const createHangoutInDatabase = async (hangout) => {
+//   const hangoutCollection = collection(db, "hangouts");
+//   try {
+//     const { selectedFriends, ...hangoutData } = hangout;
+//     const docRef = await addDoc(hangoutCollection, {
+//       ...hangoutData,
+//       participantIds: arrayUnion(hangout.userId),
+//       pendingRequests: arrayUnion(...selectedFriends),
+//       createdAt: serverTimestamp(),
+//     });
+
+//     // const userDocRef = doc(db, "users", hangout.userId); ADD THIS IF YOU WANT TO IMPLEMENET MOST RECENT 12 HANGOUTS
+
+//     // await updateDoc(userDocRef, {
+//     //   recentHangouts: arrayUnion(docRef.id),
+//     // });
+
+//     return docRef.id;
+//   } catch (error) {
+//     console.error("Error adding hangout to database: ", error);
+//     throw new Error("Failed to add hangout");
+//   }
+// };
+
 const createHangoutInDatabase = async (hangout) => {
   const hangoutCollection = collection(db, "hangouts");
   try {
-    const { selectedFriends, ...hangoutData } = hangout;
     const docRef = await addDoc(hangoutCollection, {
-      ...hangoutData,
+      ...hangout,
       participantIds: arrayUnion(hangout.userId),
-      pendingRequests: arrayUnion(...selectedFriends),
       createdAt: serverTimestamp(),
     });
 

@@ -31,6 +31,7 @@ const MemoriesScreen = () => {
   const [isPlacementMode, setIsPlacementMode] = useState(false);
   const hangoutDetails = useStore((state) => state.hangoutDetails) || {
     hangoutName: "",
+    hangoutDescription: "",
     selectedFriends: [],
   };
   const setHangoutDetails = useStore((state) => state.setHangoutDetails);
@@ -223,7 +224,11 @@ const MemoriesScreen = () => {
       router.push({
         pathname: "/(tabs)/profile",
       });
-      setHangoutDetails({ hangoutName: "", selectedFriends: [] });
+      setHangoutDetails({
+        hangoutName: "",
+        hangoutDescription: "",
+        selectedFriends: [],
+      });
     } catch (error) {
       console.error("Error creating memories or hangout requests:", error);
     }
