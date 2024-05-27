@@ -8,7 +8,7 @@ const BackButton = () => {
 
   return (
     <Pressable onPress={() => router.back()}>
-      <Ionicons name="chevron-back" size={32} />
+      <Ionicons name="chevron-back" size={32} color="#FFF" />
     </Pressable>
   );
 };

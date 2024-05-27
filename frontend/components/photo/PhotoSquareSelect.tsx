@@ -9,12 +9,33 @@ const imageWidth = (screenWidth - padding * 6) / 3; // Subtract total padding an
 
 interface PhotoSquareSelectProps {
   imageUrl: string;
+  onPhotoSelect: (isSelected: boolean) => void;
+  isSelected: boolean;
 }
 
-const PhotoSquareSelect: React.FC<PhotoSquareSelectProps> = ({ imageUrl }) => {
+const PhotoSquareSelect: React.FC<PhotoSquareSelectProps> = ({
+  imageUrl,
+  onPhotoSelect,
+  isSelected,
+}) => {
+  const handlePhotoPress = () => {
+    onPhotoSelect(!isSelected);
+  };
+
   return (
     <View style={styles.imageContainer}>
       <Image source={{ uri: imageUrl }} style={styles.image} />
+      <Pressable style={styles.icon} onPress={handlePhotoPress}>
+        {isSelected ? (
+          <Ionicons name="checkmark-circle-outline" size={28} color="green" />
+        ) : (
+          <Ionicons
+            name="add-circle"
+            size={28}
+            color="rgba(100, 100, 100, 0.6)"
+          />
+        )}
+      </Pressable>
     </View>
   );
 };
@@ -31,5 +52,10 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     aspectRatio: 1,
+  },
+  icon: {
+    position: "absolute",
+    top: 2,
+    right: 2,
   },
 });

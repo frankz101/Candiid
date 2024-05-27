@@ -6,7 +6,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import axios, { AxiosResponse } from "axios";
 import { useUser } from "@clerk/clerk-expo";
-import PhotoSquare from "@/components/photo/PhotoSquare";
+import PhotoSquare from "@/components/photo/PhotoSquareSelect";
 import PostCarousel from "@/components/photo/PostCarousel";
 import BackButton from "@/components/utils/BackButton";
 import { TextInput } from "react-native-gesture-handler";
