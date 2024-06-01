@@ -6,7 +6,6 @@ export interface HangoutDetails {
   postPositionX?: number;
   postPositionY?: number;
   selectedFriends: string[];
-  // Add more like friends, locations, etc
 }
 
 export interface HangoutSlice {

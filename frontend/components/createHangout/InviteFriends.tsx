@@ -70,7 +70,8 @@ const InviteFriends = () => {
   const [searchPhrase, setSearchPhrase] = useState("");
   const { user } = useUser();
   const router = useRouter();
-  const { hangoutId } = useLocalSearchParams();
+  // const { hangoutId } = useLocalSearchParams();
+  const hangoutId = "Y4OaFGCFPAdUBnLVorEu";
 
   const fetchFriends = async () => {
     return axios
@@ -85,18 +86,24 @@ const InviteFriends = () => {
 
   useEffect(() => {
     return () => {
+      console.log("Use effect");
+      console.log(invitedFriends);
       sendInvites();
     };
   }, []);
 
   const sendInvites = async () => {
+    console.log("send invite");
+
     if (invitedFriends.length > 0) {
+      console.log("Greater than 1");
       try {
         console.log("Sending invites to:", invitedFriends);
         const hangoutRequestsResponse = await axios.post(
           `${process.env.EXPO_PUBLIC_API_URL}/hangout/${hangoutId}/requests`,
           {
             selectedFriends: invitedFriends,
+            hangoutName: "TEST HANGOUT",
           }
         );
         console.log(hangoutRequestsResponse.data);
@@ -115,6 +122,27 @@ const InviteFriends = () => {
 
   const onSubmit = () => {}; // TODO: Implement search functionality
 
+  interface Friend {
+    firstName: string;
+    id: string;
+    profilePhoto: string;
+  }
+
+  const renderFriendBanner = ({
+    item,
+    index,
+  }: {
+    item: Friend;
+    index: number;
+  }) => (
+    <FriendInviteBanner
+      username={item.firstName} // FIX THIS WITH USERNAME NOT FIRSTNAME
+      profilePhoto={item.profilePhoto}
+      onInvite={() => handleInvite(item.id)}
+      onUninvite={() => handleUninvite(item.id)}
+    />
+  );
+
   return (
     <View>
       <SearchBar
@@ -130,12 +158,15 @@ const InviteFriends = () => {
       <View style={styles.mainContainer}>
         <View>
           <Text style={styles.listHeaderText}>Recommended Friends</Text>
-          {/* <FlatList data={tempFriendData}/> */}
-          <FriendInviteBanner
-            username="franklinzhu26"
-            onInvite={() => handleInvite("franklinzhu26")}
-            onUninvite={() => handleUninvite("franklinzhu26")}
-          />
+          {isPending ? (
+            <Text>Loading friends...</Text>
+          ) : (
+            <FlatList
+              data={friendsData.result}
+              keyExtractor={(item) => item.id}
+              renderItem={renderFriendBanner}
+            />
+          )}
         </View>
         <View>
           <Text style={styles.listHeaderText}>

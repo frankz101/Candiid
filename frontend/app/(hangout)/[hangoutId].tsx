@@ -24,6 +24,7 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import ParticipantsList from "@/components/hangoutDetail/ParticipantsList";
+import CompleteHangoutButton from "@/components/hangoutDetail/CompleteHangoutButton";
 
 const participants = [
   {
@@ -97,10 +98,6 @@ const scrollViewHeight = screenHeight - headerHeight - bottomPadding;
 const Hangout = () => {
   const { hangoutId, memoryId } = useLocalSearchParams();
   console.log("Memory ID Hangout: " + memoryId);
-  const [selectedPhotos, setSelectedPhotos] = useState<number[]>([]);
-  const [refreshing, setRefreshing] = useState(false);
-  const router = useRouter();
-  const queryClient = useQueryClient();
 
   const fetchHangout = async () => {
     return axios
@@ -117,36 +114,7 @@ const Hangout = () => {
     return <Text>LOADING...</Text>;
   }
 
-  const handleImageSelect = async (index: number) => {
-    setSelectedPhotos((currentSelected: any) => {
-      if (currentSelected.includes(index)) {
-        return currentSelected.filter((num: number) => num !== index);
-      } else if (currentSelected.length < 10) {
-        return [...currentSelected, index];
-      }
-      return currentSelected;
-    });
-  };
-
-  interface Photo {
-    fileUrl: string;
-  }
-
-  const renderPhoto = ({ item, index }: { item: Photo; index: number }) => (
-    <PhotoSquare
-      imageUrl={item.fileUrl}
-      onPhotoSelect={() => handleImageSelect(index)}
-      isSelected={selectedPhotos.includes(index)}
-    />
-  );
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await queryClient.invalidateQueries({
-      queryKey: ["hangoutPhotos", hangoutId],
-    });
-    setRefreshing(false);
-  };
+  console.log(hangoutData);
 
   const latestPhotos = hangoutData.sharedAlbum?.slice(-6) || [];
 
@@ -178,7 +146,14 @@ const Hangout = () => {
         <Text style={styles.sectionTwoText}>Participants</Text>
       </View>
       <View>
-        <ParticipantsList participants={participants} />
+        <ParticipantsList participants={hangoutData.participantIds} />
+      </View>
+      <View
+        style={{
+          alignSelf: "center",
+        }}
+      >
+        <CompleteHangoutButton hangoutId={hangoutId as string} />
       </View>
     </BaseScreen>
   );

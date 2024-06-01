@@ -5,15 +5,19 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import { Image } from "expo-image";
+import PlaceholderProfilePicture from "../photo/PlaceholderProfilePicture";
 
 interface FriendInviteBannerProps {
   username: string;
+  profilePhoto?: string;
   onInvite: () => void;
   onUninvite: () => void;
 }
 
 const FriendInviteBanner: React.FC<FriendInviteBannerProps> = ({
   username,
+  profilePhoto,
   onInvite,
   onUninvite,
 }) => {
@@ -32,7 +36,12 @@ const FriendInviteBanner: React.FC<FriendInviteBannerProps> = ({
   return (
     <View style={styles.container}>
       <View style={{ flexDirection: "row" }}>
-        <Ionicons name="person-circle-outline" size={40} color="white" />
+        {profilePhoto ? (
+          <Image source={{ uri: profilePhoto }} style={styles.profilePhoto} />
+        ) : (
+          <PlaceholderProfilePicture name={username} />
+        )}
+
         <Text style={styles.username}>{username}</Text>
       </View>
 
@@ -48,13 +57,15 @@ const FriendInviteBanner: React.FC<FriendInviteBannerProps> = ({
 export default FriendInviteBanner;
 
 const styles = StyleSheet.create({
+  profilePhoto: { width: 40, height: 40, borderRadius: 20 },
   container: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: hp(1),
   },
   username: {
-    paddingLeft: wp(1),
+    paddingLeft: wp(2),
     alignSelf: "center",
     fontFamily: "inter",
     fontSize: 14,

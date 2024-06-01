@@ -10,6 +10,8 @@ const Layout = () => {
       <Stack.Screen name="PreviewPost" />
       <Stack.Screen name="MemoriesScreen" />
       <Stack.Screen name="FullScreenImage" />
+      <Stack.Screen name="SharedAlbumScreen" />
+      <Stack.Screen name="SelectPhotosScreen" />
     </Stack>
   );
 };

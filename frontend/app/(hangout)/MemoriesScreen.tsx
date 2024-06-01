@@ -1,4 +1,5 @@
 import AnimatedPost from "@/components/photo/AnimatedPost";
+import AnimatedMemory from "@/components/photo/AnimatedMemory";
 import useStore from "@/store/useStore";
 import { useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
@@ -14,18 +15,23 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import { runOnJS } from "react-native-reanimated";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
-// const postWidth = screenWidth / 2 - 15;
-// const postHeight = (postWidth * 5) / 4;
 
 const padding = 20;
-const imageWidth = (screenWidth - padding * 6) / 3; // Subtract total padding and divide by 3
+const imageWidth = (screenWidth - padding * 6) / 3 + wp(4);
+const imageHeight = (screenWidth - padding * 6) / 3 + hp(6);
+
+console.log(imageHeight);
 
 const MemoriesScreen = () => {
   const { user } = useUser();
-  const { userId, newPost } = useLocalSearchParams();
+  const { userId, newPost, frameColor } = useLocalSearchParams();
   let hangoutId = useLocalSearchParams().hangoutId;
   const isNewPost = newPost === "true";
   const [isPlacementMode, setIsPlacementMode] = useState(false);
@@ -35,6 +41,8 @@ const MemoriesScreen = () => {
     selectedFriends: [],
   };
   const setHangoutDetails = useStore((state) => state.setHangoutDetails);
+
+  const postDetails = useStore((state) => state.postDetails);
 
   useEffect(() => {
     if (isNewPost) {
@@ -132,7 +140,7 @@ const MemoriesScreen = () => {
       // const halfPostHeight = postHeight / 2;
 
       const halfPostWidth = imageWidth / 2;
-      const halfPostHeight = imageWidth / 2;
+      const halfPostHeight = imageHeight / 2;
 
       const minX = -screenWidth / 2 + halfPostWidth;
       const maxX = screenWidth / 2 - halfPostWidth;
@@ -176,58 +184,58 @@ const MemoriesScreen = () => {
   });
 
   const handleHangoutSubmit = async () => {
-    if (!hangoutId) {
-      const hangoutData = {
-        userId: user?.id,
-        completed: false,
-        ...hangoutDetails,
-      };
-
-      try {
-        const hangoutResponse = await axios.post(
-          `${process.env.EXPO_PUBLIC_API_URL}/hangout`,
-          hangoutData
-        );
-        hangoutId = hangoutResponse.data.result;
-        console.log(hangoutResponse.data);
-      } catch (error) {
-        console.error("Error creating hangout:", error);
-        return;
-      }
-    }
-
     try {
       const memoriesData = {
         userId: user?.id,
         hangoutId: hangoutId,
         postX: postX.value,
         postY: postY.value,
+        color: frameColor,
       };
 
       const memoriesResponse = await axios.post(
         `${process.env.EXPO_PUBLIC_API_URL}/memories`,
         memoriesData
       );
-      console.log(memoriesResponse.data);
+      const memoryId = memoriesResponse.data.result;
 
-      if (hangoutDetails.selectedFriends.length > 0) {
-        const hangoutRequestsResponse = await axios.post(
-          `${process.env.EXPO_PUBLIC_API_URL}/hangout/${hangoutId}/requests`,
-          {
-            selectedFriends: hangoutDetails.selectedFriends,
-            hangoutName: hangoutDetails.hangoutName,
-          }
-        );
-        console.log(hangoutRequestsResponse.data);
-      }
+      console.log("Memory created:", memoriesResponse.data);
 
-      router.push({
-        pathname: "/(tabs)/profile",
-      });
+      // Create the post
+      const postData = {
+        userId: user?.id,
+        hangoutId: hangoutId,
+        photoUrls: postDetails.photos,
+        caption: postDetails.caption,
+      };
+
+      const postResponse = await axios.post(
+        `${process.env.EXPO_PUBLIC_API_URL}/posts`,
+        postData
+      );
+      const postId = postResponse.data.result;
+
+      console.log("Post created:", postResponse.data);
+
+      const updateData = {
+        postId: postId,
+      };
+      await axios.put(
+        `${process.env.EXPO_PUBLIC_API_URL}/memories/${memoryId}`,
+        updateData
+      );
+
+      console.log("Memory updated successfully");
+
+      // Clear the hangout details and navigate to profile
       setHangoutDetails({
         hangoutName: "",
         hangoutDescription: "",
         selectedFriends: [],
+      });
+
+      router.push({
+        pathname: "/(tabs)/profile",
       });
     } catch (error) {
       console.error("Error creating memories or hangout requests:", error);
@@ -237,31 +245,39 @@ const MemoriesScreen = () => {
   return isPending ? (
     <Text>Loading...</Text>
   ) : (
-    <Animated.View style={{ flex: 1 }} sharedTransitionTag="MemoriesScreen">
+    <Animated.View
+      style={styles.background}
+      sharedTransitionTag="MemoriesScreen"
+    >
       <GestureDetector gesture={combinedGesture}>
         <Animated.View style={[styles.container, containerStyle]}>
           {hangouts?.map((hangout: any, index: number) => (
-            <AnimatedPost
+            <AnimatedMemory
               key={index + hangout.hangoutId}
               postId={hangout.postId}
               hangoutId={hangout.hangoutId}
               memoryId={hangout.id}
               positionX={hangout.postX}
               positionY={hangout.postY}
+              color={hangout.color}
             />
           ))}
           {isPlacementMode && (
             <GestureDetector gesture={postPan}>
               <Animated.View
                 style={[
-                  styles.post,
                   postStyle,
                   {
                     position: "absolute",
                     zIndex: 1,
                   },
                 ]}
-              />
+              >
+                <AnimatedPost
+                  thumbnail={postDetails.photos[0].fileUrl}
+                  color={frameColor as string}
+                />
+              </Animated.View>
             </GestureDetector>
           )}
         </Animated.View>
@@ -281,11 +297,15 @@ const MemoriesScreen = () => {
 export default MemoriesScreen;
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    backgroundColor: "rgba(44, 44, 48, 0.50)",
+  },
   container: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "grey",
+    backgroundColor: "rgba(44, 44, 48, 0.50)",
   },
   post: {
     // width: postWidth,

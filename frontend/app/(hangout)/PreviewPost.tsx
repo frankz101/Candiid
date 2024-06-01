@@ -1,5 +1,12 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import React, { useState } from "react";
+import {
+  Dimensions,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import React, { useEffect, useState } from "react";
 import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -10,11 +17,22 @@ import PhotoSquare from "@/components/photo/PhotoSquareSelect";
 import PostCarousel from "@/components/photo/PostCarousel";
 import BackButton from "@/components/utils/BackButton";
 import { TextInput } from "react-native-gesture-handler";
+import BaseScreen from "@/components/utils/BaseScreen";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+import useStore from "@/store/useStore";
+
+const { width: screenWidth } = Dimensions.get("window");
+const postWidth = screenWidth;
 
 const PreviewPost = () => {
   const { user } = useUser();
   const { hangoutId, memoryId, photoIndexes } = useLocalSearchParams();
   const [caption, setCaption] = useState("");
+  const [frameColor, setFrameColor] = useState("#FFF");
+  const setPostDetails = useStore((state) => state.setPostDetails);
   console.log("Memory Id Preview Post: " + memoryId);
   const router = useRouter();
 
@@ -70,8 +88,36 @@ const PreviewPost = () => {
     }
   };
 
+  const colors = ["#FFF", "#BA6B55", "#9E6480", "#74BCFF"];
+
+  const renderItem = ({ item }: { item: string }) => (
+    <Pressable
+      onPress={() => setFrameColor(item)}
+      style={[styles.colorButton, { backgroundColor: item }]}
+    />
+  );
+
+  const handleNextPress = () => {
+    setPostDetails({
+      hangoutId: hangoutId as string,
+      photos: selectedPhotos,
+      caption: caption,
+    });
+
+    router.navigate({
+      pathname: "/(hangout)/MemoriesScreen",
+      params: {
+        newPost: "true",
+        frameColor: frameColor,
+        hangoutId: hangoutId,
+      },
+    });
+  };
+
+  const polaroidWidth = screenWidth - wp(8); // Adjust this based on your padding
+
   return (
-    <SafeAreaView style={styles.container}>
+    <BaseScreen>
       <View
         style={{
           flexDirection: "row",
@@ -80,9 +126,16 @@ const PreviewPost = () => {
           paddingBottom: 28,
         }}
       >
-        <BackButton />
-        <Text style={{ fontSize: 24 }}>Preview Post</Text>
-        <View style={{ width: 32 }} />
+        <View style={{ width: 64 }}>
+          <BackButton />
+        </View>
+
+        <Text style={styles.headerText}>Select Photos</Text>
+        <Pressable onPress={handleNextPress}>
+          <View style={{ width: 64 }}>
+            <Text style={styles.nextButton}>Next</Text>
+          </View>
+        </Pressable>
       </View>
       <View
         style={{
@@ -91,37 +144,104 @@ const PreviewPost = () => {
           alignItems: "center",
         }}
       >
-        <PostCarousel images={selectedPhotos} />
+        <View style={[styles.polaroidFrame, { backgroundColor: frameColor }]}>
+          <PostCarousel
+            images={selectedPhotos}
+            width={polaroidWidth}
+            height={polaroidWidth}
+          />
+        </View>
       </View>
-      <View style={{ padding: 8, alignSelf: "center" }}>
+      <View
+        style={{
+          height: wp(12),
+          marginTop: hp(2),
+          alignSelf: "center",
+        }}
+      >
+        <FlatList
+          data={colors}
+          renderItem={renderItem}
+          keyExtractor={(item) => item}
+          horizontal={true}
+          showsHorizontalScrollIndicator={false}
+          scrollEnabled={false}
+        />
+      </View>
+      <View style={styles.captionContainer}>
         <TextInput
-          placeholder="Caption"
+          placeholder="caption"
+          placeholderTextColor="#3F3F3F"
+          cursorColor="white"
           onChangeText={(input) => setCaption(input)}
           maxLength={90}
           value={caption}
+          style={styles.captionInput}
         />
       </View>
-
-      {/* {selectedPhotos.length > 0 &&
-        selectedPhotos.map((photo: any, index: number) => {
-          return photo && <PhotoSquare key={index} imageUrl={photo.fileUrl} />;
-        })} */}
-      <Pressable
-        onPress={handlePost}
-        style={{ position: "absolute", alignSelf: "center", bottom: 120 }}
-      >
-        <Text>Post Photo</Text>
-      </Pressable>
-    </SafeAreaView>
+    </BaseScreen>
   );
 };
 
 export default PreviewPost;
 
 const styles = StyleSheet.create({
+  headerText: {
+    fontSize: 20,
+    fontFamily: "inter",
+    fontWeight: "700",
+    color: "#FFF",
+  },
   container: {
     flex: 1,
     // justifyContent: "center",
     // alignItems: "center",
+  },
+  nextButton: {
+    fontSize: 18,
+    fontFamily: "inter",
+    fontWeight: "700",
+    paddingRight: 20,
+    color: "#0A84FF",
+  },
+  nextButtonDeactivated: {
+    fontSize: 18,
+    fontFamily: "inter",
+    fontWeight: "700",
+    paddingRight: 20,
+    color: "#636366",
+  },
+  polaroidFrame: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    width: postWidth + wp(4),
+    height: postWidth + hp(8),
+    paddingBottom: hp(6),
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+  },
+  colorButton: {
+    width: wp(12),
+    height: wp(12),
+    borderWidth: 3,
+    borderColor: "#FFF",
+    borderRadius: wp(20),
+    marginHorizontal: 5,
+  },
+  captionContainer: {
+    height: hp("10%"),
+    borderRadius: 5,
+    marginTop: hp(2),
+    backgroundColor: "rgba(44, 44, 48, 0.50)",
+  },
+  captionInput: {
+    padding: 10,
+    fontFamily: "inter",
+    fontSize: 24,
+    fontWeight: "500",
+    color: "#FFF",
   },
 });

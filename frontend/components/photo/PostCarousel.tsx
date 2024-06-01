@@ -3,24 +3,26 @@ import { View, StyleSheet, Dimensions } from "react-native";
 import Carousel from "react-native-reanimated-carousel";
 import PhotoPost from "./PhotoPost";
 
-const { width: screenWidth } = Dimensions.get("window");
-const postWidth = screenWidth;
-const postHeight = postWidth * (5 / 4);
-
 interface ImageData {
   fileUrl: string;
 }
 
 interface PostCarouselProps {
   images: ImageData[];
+  width: number;
+  height: number;
 }
 
-const PostCarousel: React.FC<PostCarouselProps> = ({ images }) => {
+const PostCarousel: React.FC<PostCarouselProps> = ({
+  images,
+  width,
+  height,
+}) => {
   return (
-    <View style={styles.carouselContainer}>
+    <View style={[styles.carouselContainer, { width, height }]}>
       <Carousel
-        width={screenWidth}
-        height={postHeight}
+        width={width}
+        height={height}
         data={images}
         renderItem={({ item }: { item: ImageData }) => (
           <PhotoPost imageUrl={item.fileUrl} />
@@ -36,7 +38,6 @@ export default PostCarousel;
 
 const styles = StyleSheet.create({
   carouselContainer: {
-    flex: 1,
     alignItems: "center",
     justifyContent: "center",
   },

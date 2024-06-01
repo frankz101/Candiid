@@ -7,7 +7,7 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import AnimatedPost from "@/components/photo/AnimatedPost";
+import AnimatedPost from "@/components/photo/AnimatedMemory";
 import { Ionicons } from "@expo/vector-icons";
 
 const screenWidth = Dimensions.get("window").width;
