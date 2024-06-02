@@ -132,14 +132,14 @@ const Profile = () => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        <Animated.View
+        {/* <Animated.View
           style={styles.animatedView}
           sharedTransitionTag="MemoriesScreen"
         >
           <Pressable onPress={() => router.push("/(hangout)/MemoriesScreen")}>
             <MemoriesView hangouts={memoriesData} />
           </Pressable>
-        </Animated.View>
+        </Animated.View> */}
 
         <View>
           <Pressable

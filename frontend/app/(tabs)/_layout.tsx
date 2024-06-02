@@ -6,6 +6,7 @@ const Layout = () => {
   return (
     <Tabs screenOptions={{ headerShown: false }}>
       <Tabs.Screen name="index" options={{ tabBarLabel: "Home" }} />
+      <Tabs.Screen name="camera" options={{ tabBarLabel: "Camera" }} />
       <Tabs.Screen name="profile" options={{ tabBarLabel: "Profile" }} />
     </Tabs>
   );
