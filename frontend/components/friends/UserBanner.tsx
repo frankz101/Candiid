@@ -5,6 +5,10 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 interface User {
   id: number;
@@ -160,27 +164,23 @@ const UserBanner: React.FC<UserBannerProps> = ({
     >
       <View
         style={[
-          { padding: 10, flexDirection: "row", alignItems: "flex-start" },
+          {
+            padding: wp(3),
+            flexDirection: "row",
+            alignItems: "flex-start",
+          },
         ]}
       >
-        <View
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-          }}
-        >
-          {user.profilePhoto && user.profilePhoto.fileUrl ? (
-            <Image
-              source={{ uri: user.profilePhoto.fileUrl }}
-              style={styles.profilePhoto}
-            />
-          ) : (
-            <Ionicons name="person-circle" size={40} />
-          )}
-        </View>
-        <View style={{ marginLeft: 10, flex: 1 }}>
-          <Text style={{ fontSize: 16 }}>{user.name}</Text>
+        {user.profilePhoto && user.profilePhoto.fileUrl ? (
+          <Image
+            source={{ uri: user.profilePhoto.fileUrl }}
+            style={styles.profilePhoto}
+          />
+        ) : (
+          <Ionicons name="person-circle" color="white" size={40} />
+        )}
+        <View style={{ marginLeft: wp(3), flex: 1 }}>
+          <Text style={{ fontSize: 16, color: "white" }}>{user.name}</Text>
           <Text style={{ color: "#777" }}>{"@" + user.username}</Text>
         </View>
         {type === "searchResults" && (

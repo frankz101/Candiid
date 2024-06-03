@@ -23,6 +23,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import BaseScreen from "@/components/utils/BaseScreen";
 
 interface Hangout {
   hangoutName: string;
@@ -101,15 +102,17 @@ const Profile = () => {
     profilePhoto: null,
   };
 
-  const handleLogOut = () => {
-    signOut();
-  };
-
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.settings}>
+    <BaseScreen style={styles.container}>
+      <View style={styles.navOptions}>
         <Ionicons
-          onPress={handleLogOut}
+          onPress={() => router.push("/(profile)/AddFriendsScreen")}
+          name="people-outline"
+          size={32}
+          color={"white"}
+        />
+        <Ionicons
+          onPress={() => signOut()}
           name="reorder-three-outline"
           size={32}
           color={"white"}
@@ -184,7 +187,8 @@ const Profile = () => {
           })}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </BaseScreen>
+
     // <SafeAreaView>
     //   <View // Turn this into one component later
     //     style={{
@@ -272,9 +276,10 @@ const styles = StyleSheet.create({
     height: hp(100),
     backgroundColor: "#141417",
   },
-  settings: {
-    alignItems: "flex-end",
-    paddingRight: wp(4),
+  navOptions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: wp(4),
   },
   userDetails: {
     display: "flex",
