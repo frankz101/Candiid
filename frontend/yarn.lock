@@ -8367,6 +8367,11 @@ react-native-image-crop-picker@^0.40.3:
   resolved "https://registry.npmjs.org/react-native-image-crop-picker/-/react-native-image-crop-picker-0.40.3.tgz"
   integrity sha512-45PKcTnsnLS+E36YwoXutllQdRSOuOsMN0IRcAcwsFXOuAQIOtugXlAuGGL28JHKb/ATaSSPvqCSrdG65Jv3GA==
 
+react-native-otp-entry@^1.7.0:
+  version "1.7.0"
+  resolved "https://registry.yarnpkg.com/react-native-otp-entry/-/react-native-otp-entry-1.7.0.tgz#93ce969dddd629faded8e974a3b9f55330a463c7"
+  integrity sha512-ENUahempFIrvE92QusUUcZlAynT6hSyFWpLLbiOTGKkHPVWQNHFJDOAX7+eyi4/3+V4bHZLPVizY7eEEtwPslA==
+
 react-native-pager-view@6.2.3:
   version "6.2.3"
   resolved "https://registry.npmjs.org/react-native-pager-view/-/react-native-pager-view-6.2.3.tgz"
