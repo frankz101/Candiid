@@ -12,9 +12,10 @@ import {
 
 const SettingsScreen = () => {
   const router = useRouter();
+  const { signOut } = useClerk();
   const toEditProfile = () => {
     router.push("/EditProfileScreen");
-  }
+  };
   return (
     <BaseScreen>
       <View style={styles.header}>
@@ -24,9 +25,16 @@ const SettingsScreen = () => {
         <Text style={styles.headerText}>Settings</Text>
         <View style={{ width: wp(14) }} />
       </View>
-      <SettingsTab title={"Edit Profile"} icon={"pencil-outline"} onTabPress={toEditProfile}/>
-      <SettingsTab title={"test"} icon={"chevron-back"} onTabPress={toEditProfile}/>
-
+      <SettingsTab
+        title={"Edit Profile"}
+        icon={"pencil-outline"}
+        onTabPress={toEditProfile}
+      />
+      <SettingsTab
+        title={"Log Out"}
+        icon={"log-out-outline"}
+        onTabPress={() => signOut()}
+      />
     </BaseScreen>
   );
 };
@@ -34,7 +42,7 @@ const SettingsScreen = () => {
 export default SettingsScreen;
 
 const styles = StyleSheet.create({
-  header:{
+  header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",

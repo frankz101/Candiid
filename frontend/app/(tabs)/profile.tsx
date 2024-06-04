@@ -14,7 +14,7 @@ import { useRouter } from "expo-router";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import axios from "axios";
 import { SheetManager } from "react-native-actions-sheet";
-import { useClerk, useUser } from "@clerk/clerk-expo";
+import { useUser } from "@clerk/clerk-expo";
 import { Image } from "expo-image";
 import MemoriesView from "@/components/profile/MemoriesView";
 import Animated from "react-native-reanimated";
@@ -43,7 +43,6 @@ const Profile = () => {
   const { user } = useUser();
   const [refreshing, setRefreshing] = useState(false);
   const queryClient = useQueryClient();
-  const { signOut } = useClerk();
 
   const fetchMemories = async () => {
     console.log("Fetching Memories");
