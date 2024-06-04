@@ -23,6 +23,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import BaseScreen from "@/components/utils/BaseScreen";
 
 interface Hangout {
   hangoutName: string;
@@ -101,90 +102,89 @@ const Profile = () => {
     profilePhoto: null,
   };
 
-  const handleLogOut = () => {
-    signOut();
-  };
-
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.settings}>
-        <Ionicons
-          onPress={handleLogOut}
-          name="reorder-three-outline"
-          size={32}
-          color={"white"}
-        />
-      </View>
-      <View style={styles.userDetails}>
-        <Text style={styles.userText}>{`@${userProfile.username}`}</Text>
-
-        <Pressable onPress={openChangePhotoSheet}>
-          {profileDetails && userProfile && userProfile.profilePhoto ? (
-            <Image
-              source={{ uri: userProfile.profilePhoto.fileUrl }}
-              style={styles.profilePhoto}
+    <BaseScreen>
+        <View style={styles.settings}>
+          <Pressable
+            onPress={() => router.push("/(profile)/SettingsScreen")}>
+            <Ionicons
+              name="reorder-three-outline"
+              size={32}
+              color={"white"}
             />
-          ) : (
-            <Ionicons name="person-circle" size={108} color={"white"} />
-          )}
-        </Pressable>
-        <Text style={styles.userText}>{userProfile.name}</Text>
-      </View>
-      <ScrollView
-        contentContainerStyle={styles.scrollViewContainer}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
-        <Text style={styles.headerText}>Memoryboard</Text>
-        <Animated.View
-          style={styles.animatedView}
-          sharedTransitionTag="MemoriesScreen"
-        >
-          <Pressable onPress={() => router.push("/(hangout)/MemoriesScreen")}>
-            <MemoriesView hangouts={memoriesData} />
           </Pressable>
-        </Animated.View>
-        {/* DEFAULT PROFILE PIC NOT CENTERED AND SIZE IS WRONG */}
-        <View style={styles.upcomingHangouts}>
-          <Text style={styles.headerText}>Upcoming Hangouts</Text>
-          {upcomingHangouts?.map((hangout: Hangout) => {
-            return (
-              <View key={hangout.id} style={styles.hangoutBanner}>
-                <Text style={styles.hangoutText}>{hangout.hangoutName}</Text>
-                <View style={styles.participants}>
-                  {hangout.participants.map((participant: Participant) =>
-                    participant.profilePhoto ? (
-                      <Image
-                        key={participant.userId}
-                        source={{ uri: participant.profilePhoto.fileUrl }}
-                        style={styles.participantPhoto}
-                      />
-                    ) : (
-                      <View
-                        key={participant.userId}
-                        style={styles.participantPhoto}
-                      >
-                        <Ionicons
-                          name="person-circle"
-                          size={36}
-                          color="white"
-                        />
-                      </View>
-                    )
-                  )}
-                  {hangout.participantIds.length > 2 && (
-                    <View style={styles.additionalParticipants}>
-                      <Text>+{hangout.participantIds.length - 2}</Text>
-                    </View>
-                  )}
-                </View>
-              </View>
-            );
-          })}
         </View>
-      </ScrollView>
-    </SafeAreaView>
+        <View style={styles.userDetails}>
+          <Text style={styles.userText}>{`@${userProfile.username}`}</Text>
+
+          <Pressable onPress={openChangePhotoSheet}>
+            {profileDetails && userProfile && userProfile.profilePhoto ? (
+              <Image
+                source={{ uri: userProfile.profilePhoto.fileUrl }}
+                style={styles.profilePhoto}
+              />
+            ) : (
+              <Ionicons name="person-circle" size={108} color={"white"} />
+            )}
+          </Pressable>
+          <Text style={styles.userText}>{userProfile.name}</Text>
+        </View>
+        <ScrollView
+          contentContainerStyle={styles.scrollViewContainer}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        >
+          <Text style={styles.headerText}>Memoryboard</Text>
+          <Animated.View
+            style={styles.animatedView}
+            sharedTransitionTag="MemoriesScreen"
+          >
+            <Pressable onPress={() => router.push("/(hangout)/MemoriesScreen")}>
+              <MemoriesView hangouts={memoriesData} />
+            </Pressable>
+          </Animated.View>
+          {/* DEFAULT PROFILE PIC NOT CENTERED AND SIZE IS WRONG */}
+          <View style={styles.upcomingHangouts}>
+            <Text style={styles.headerText}>Upcoming Hangouts</Text>
+            {upcomingHangouts?.map((hangout: Hangout) => {
+              return (
+                <View key={hangout.id} style={styles.hangoutBanner}>
+                  <Text style={styles.hangoutText}>{hangout.hangoutName}</Text>
+                  <View style={styles.participants}>
+                    {hangout.participants.map((participant: Participant) =>
+                      participant.profilePhoto ? (
+                        <Image
+                          key={participant.userId}
+                          source={{ uri: participant.profilePhoto.fileUrl }}
+                          style={styles.participantPhoto}
+                        />
+                      ) : (
+                        <View
+                          key={participant.userId}
+                          style={styles.participantPhoto}
+                        >
+                          <Ionicons
+                            name="person-circle"
+                            size={36}
+                            color="white"
+                          />
+                        </View>
+                      )
+                    )}
+                    {hangout.participantIds.length > 2 && (
+                      <View style={styles.additionalParticipants}>
+                        <Text>+{hangout.participantIds.length - 2}</Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        </ScrollView>
+    </BaseScreen>
+
     // <SafeAreaView>
     //   <View // Turn this into one component later
     //     style={{

@@ -3,51 +3,48 @@ import React from "react";
 import { useClerk } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import BackButton from "@/components/utils/BackButton";
+import BaseScreen from "@/components/utils/BaseScreen";
+import SettingsTab from "@/components/profile/SettingsTab";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 const SettingsScreen = () => {
-  const { signOut } = useClerk();
   const router = useRouter();
-
+  const toEditProfile = () => {
+    router.push("/EditProfileScreen");
+  }
   return (
-    <SafeAreaView>
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <BackButton />
-        <Text style={{ fontSize: 24 }}>Settings</Text>
-        <View style={{ width: 32 }} />
+    <BaseScreen>
+      <View style={styles.header}>
+        <View style={{ width: wp(14) }}>
+          <BackButton />
+        </View>
+        <Text style={styles.headerText}>Settings</Text>
+        <View style={{ width: wp(14) }} />
       </View>
-      <Pressable
-        onPress={() => {
-          router.push("/(profile)/EditProfileScreen");
-        }}
-        style={styles.listItem}
-      >
-        <Text>Edit Profile</Text>
-      </Pressable>
-      <Pressable
-        onPress={() => {
-          signOut();
-        }}
-        style={styles.listItem}
-      >
-        <Text>Logout</Text>
-      </Pressable>
-    </SafeAreaView>
+      <SettingsTab title={"Edit Profile"} icon={"pencil-outline"} onTabPress={toEditProfile}/>
+      <SettingsTab title={"test"} icon={"chevron-back"} onTabPress={toEditProfile}/>
+
+    </BaseScreen>
   );
 };
 
 export default SettingsScreen;
 
 const styles = StyleSheet.create({
-  listItem: {
+  header:{
     flexDirection: "row",
-    justifyContent: "center",
     alignItems: "center",
-    margin: 8,
+    justifyContent: "space-between",
+    alignSelf: "center",
+    width: wp(95),
+    marginBottom: hp(5),
+  },
+  headerText: {
+    color: "white",
+    fontFamily: "Inter",
+    fontSize: 26,
   },
 });
