@@ -24,6 +24,7 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import BaseScreen from "@/components/utils/BaseScreen";
+import BaseScreen from "@/components/utils/BaseScreen";
 
 interface Hangout {
   hangoutName: string;
@@ -112,7 +113,7 @@ const Profile = () => {
           color={"white"}
         />
         <Ionicons
-          onPress={() => signOut()}
+          onPress={() => router.push("/(profile)/SettingsScreen")}
           name="reorder-three-outline"
           size={32}
           color={"white"}
