@@ -24,7 +24,6 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import BaseScreen from "@/components/utils/BaseScreen";
-import BaseScreen from "@/components/utils/BaseScreen";
 
 interface Hangout {
   hangoutName: string;
