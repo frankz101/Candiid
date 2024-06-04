@@ -11,6 +11,7 @@ const Layout = () => {
       <Stack.Screen name="LoginScreen" />
       <Stack.Screen name="CodeVerificationScreen" />
       <Stack.Screen name="UsernameScreen" />
+      <Stack.Screen name="LoginVerificationScreen" />
     </Stack>
   );
 };
