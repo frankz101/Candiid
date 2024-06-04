@@ -25,8 +25,6 @@ const SettingsScreen = () => {
         <View style={{ width: wp(14) }} />
       </View>
       <SettingsTab title={"Edit Profile"} icon={"pencil-outline"} onTabPress={toEditProfile}/>
-      <SettingsTab title={"test"} icon={"chevron-back"} onTabPress={toEditProfile}/>
-
     </BaseScreen>
   );
 };
