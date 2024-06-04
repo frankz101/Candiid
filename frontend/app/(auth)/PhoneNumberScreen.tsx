@@ -21,6 +21,7 @@ const PhoneNumberScreen = () => {
         <TextInput
           style={styles.input}
           value={phoneNumber}
+          keyboardType="numeric"
           onChangeText={setPhoneNumber}
           placeholder="Enter your phone number"
           placeholderTextColor="#555555"

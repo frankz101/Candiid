@@ -52,6 +52,7 @@ const UsernameScreen = () => {
           style={styles.input}
           value={username}
           onChangeText={setUsername}
+          autoCapitalize="none"
           placeholder="Enter a username"
           placeholderTextColor="#555555"
         />

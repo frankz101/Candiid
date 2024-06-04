@@ -31,6 +31,7 @@ const FirstNameScreen = () => {
           style={styles.input}
           value={firstName}
           onChangeText={setFirstName}
+          autoCapitalize="none"
           placeholder="Enter your first name"
           placeholderTextColor="#555555"
         />
