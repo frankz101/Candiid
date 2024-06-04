@@ -1,15 +1,14 @@
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  SafeAreaView,
-} from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import React, { useEffect, useState } from "react";
 import { useWarmUpBrowser } from "@/hooks/useWarmUpBrowser";
 import { useOAuth, useUser } from "@clerk/clerk-expo";
 import axios from "axios";
 import { useRouter } from "expo-router";
+import BaseScreen from "@/components/utils/BaseScreen";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 enum Strategy {
   Google = "oauth_google",
@@ -43,25 +42,42 @@ const Login = () => {
   // };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <BaseScreen style={styles.container}>
       {/* <Pressable onPress={() => onSelectAuth(Strategy.Google)}>
         <Text>Login with Google</Text>
       </Pressable> */}
+      <View style={styles.logo}></View>
       <Pressable
+        style={({ pressed }) => [
+          styles.button,
+          {
+            backgroundColor: pressed
+              ? "rgba(85, 85, 85, 0.7)"
+              : "rgba(85, 85, 85, 0.5)",
+          },
+        ]}
         onPress={() => {
           router.push("/PhoneNumberScreen");
         }}
       >
-        <Text>Sign up with phone</Text>
+        <Text style={styles.text}>Get started</Text>
       </Pressable>
       <Pressable
+        style={({ pressed }) => [
+          styles.button,
+          {
+            backgroundColor: pressed
+              ? "rgba(85, 85, 85, 0.7)"
+              : "rgba(85, 85, 85, 0.5)",
+          },
+        ]}
         onPress={() => {
           router.push("/LoginScreen");
         }}
       >
-        <Text>Login with phone</Text>
+        <Text style={styles.text}>I already have an account</Text>
       </Pressable>
-    </SafeAreaView>
+    </BaseScreen>
   );
 };
 
@@ -72,6 +88,28 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    gap: hp(4),
+  },
+  logo: {
+    height: hp(15),
+    width: hp(15),
+    backgroundColor: "white",
+    marginBottom: hp(25),
+  },
+  button: {
+    borderColor: "white",
+    borderWidth: 1,
+    borderRadius: 5,
+    height: hp(6),
+    width: hp(30),
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  text: {
+    color: "white",
+    fontFamily: "Inter",
+    fontWeight: "bold",
   },
 });
 

@@ -3,6 +3,7 @@ import multer from "multer";
 import {
   getHangout,
   getRecentHangouts,
+  getUpcomingHangouts,
   postHangout,
   postHangoutRequests,
   postPhotoToHangout,
@@ -18,6 +19,7 @@ const upload = multer({ storage: storage });
 router.post("/hangout", postHangout);
 router.post("/hangout/:id/photo", upload.single("file"), postPhotoToHangout);
 router.get("/hangouts/users/:userId", getRecentHangouts);
+router.get("/hangout/upcoming/:userId", getUpcomingHangouts);
 router.get("/hangout/:hangoutId", getHangout);
 router.put("/hangout/:hangoutId/post-position");
 router.get("/hangout/requests/users/:userId", getHangoutRequests);

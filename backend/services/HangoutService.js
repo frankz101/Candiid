@@ -5,6 +5,7 @@ import {
   fetchHangoutFromDatabase,
   fetchRecentHangoutsFromDatabase,
   fetchHangoutRequestsInDatabase,
+  fetchUpcomingHangoutsFromDatabase,
   createHangoutRequestsInDatabase,
   handleHangoutRequestInDatabase,
 } from "../db/HangoutDatabase.js";
@@ -49,6 +50,10 @@ const fetchRecentHangouts = async (userId) => {
   const result = await fetchRecentHangoutsFromDatabase(userId);
   return result;
 };
+const fetchUpcomingHangouts = async (userId) => {
+  const result = await fetchUpcomingHangoutsFromDatabase(userId);
+  return result;
+};
 
 const fetchHangout = async (hangoutId) => {
   console.log(hangoutId);
@@ -86,6 +91,7 @@ export {
   fetchRecentHangouts,
   fetchHangout,
   fetchHangoutRequests,
+  fetchUpcomingHangouts,
   createHangoutRequests,
   handleHangoutRequest,
 };
