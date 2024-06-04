@@ -39,11 +39,13 @@ const tempPosts = [
   {
     postId: "1",
     username: "franklin",
+    profilePhoto: "...",
     caption: "Whats up",
   },
   {
     postId: "2",
     username: "andy",
+    profilePhoto: "...",
     caption: "hey",
   },
 ];
@@ -61,18 +63,10 @@ const Home = () => {
 
   const renderScene = SceneMap({
     completedHangouts: () => (
-      <CompletedHangouts
-        tempPosts={tempPosts}
-        refreshing={refreshing}
-        onRefresh={onRefresh}
-      />
+      <CompletedHangouts refreshing={refreshing} onRefresh={onRefresh} />
     ),
     freshHangouts: () => (
-      <CompletedHangouts
-        tempPosts={tempPosts}
-        refreshing={refreshing}
-        onRefresh={onRefresh}
-      />
+      <CompletedHangouts refreshing={refreshing} onRefresh={onRefresh} />
     ),
   });
 
@@ -81,17 +75,6 @@ const Home = () => {
   const { expoPushToken, notification } = usePushNotifications();
   const data = JSON.stringify(notification, undefined, 2);
   console.log(expoPushToken?.data ?? "");
-
-  const fetchFriendsPosts = async () => {
-    return axios
-      .get(`${process.env.EXPO_PUBLIC_API_URL}/user/${user?.id}/feed`)
-      .then((res) => res.data.result);
-  };
-
-  const { data: posts, isPending } = useQuery({
-    queryKey: ["postsData", user?.id],
-    queryFn: fetchFriendsPosts,
-  });
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -115,7 +98,12 @@ const Home = () => {
         >
           candiid
         </Text>
-        <Pressable style={{ alignSelf: "flex-start" }}>
+        <Pressable
+          onPress={() => {
+            router.push("/(profile)/NotificationsScreen");
+          }}
+          style={{ alignSelf: "flex-start" }}
+        >
           <Feather name="bell" size={32} color="#84848B" />
         </Pressable>
       </View>

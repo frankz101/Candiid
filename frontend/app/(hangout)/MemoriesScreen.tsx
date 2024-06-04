@@ -201,7 +201,6 @@ const MemoriesScreen = () => {
 
       console.log("Memory created:", memoriesResponse.data);
 
-      // Create the post
       const postData = {
         userId: user?.id,
         hangoutId: hangoutId,

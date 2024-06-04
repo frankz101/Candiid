@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -8,13 +8,21 @@ import React from "react";
 interface HangoutSelectProps {
   name: string;
   hangoutId: string;
+  onSelect: (name: string, id: string) => void;
 }
 
-const HangoutSelect: React.FC<HangoutSelectProps> = ({ name, hangoutId }) => {
+const HangoutSelect: React.FC<HangoutSelectProps> = ({
+  name,
+  hangoutId,
+  onSelect,
+}) => {
   return (
-    <View style={styles.hangoutSelectContainer}>
+    <Pressable
+      style={styles.hangoutSelectContainer}
+      onPress={() => onSelect(name, hangoutId)}
+    >
       <Text style={styles.hangoutSelectText}>{name}</Text>
-    </View>
+    </Pressable>
   );
 };
 

@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   Dimensions,
   Pressable,
   RefreshControl,
@@ -16,6 +17,7 @@ import UserBanner from "@/components/friends/UserBanner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import HangoutRequestBanner from "@/components/friends/HangoutRequestBanner";
 import { useRouter } from "expo-router";
+import BaseScreen from "@/components/utils/BaseScreen";
 
 interface User {
   id: number;
@@ -58,14 +60,6 @@ const NotificationsScreen = () => {
       currentRequests.filter((request: any) => request.hangoutId !== hangoutId)
     );
     console.log(status);
-    if (status === "accept")
-      router.push({
-        pathname: "/(hangout)/MemoriesScreen",
-        params: {
-          newPost: "true",
-          hangoutId: hangoutId,
-        },
-      });
   };
 
   useEffect(() => {
@@ -100,8 +94,27 @@ const NotificationsScreen = () => {
     }
   }, [hangoutRequestsData]);
 
+  if (isPending) {
+    return (
+      <BaseScreen>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <BackButton />
+          <Text style={styles.headerText}>Notifications</Text>
+          <View style={{ width: 32 }} />
+        </View>
+        <ActivityIndicator size="large" color="#FFF" />
+      </BaseScreen>
+    );
+  }
+
   return (
-    <SafeAreaView>
+    <BaseScreen>
       <View
         style={{
           flexDirection: "row",
@@ -110,7 +123,7 @@ const NotificationsScreen = () => {
         }}
       >
         <BackButton />
-        <Text style={{ fontSize: 24 }}>Notifications</Text>
+        <Text style={styles.headerText}>Notifications</Text>
         <View style={{ width: 32 }} />
       </View>
       <ScrollView
@@ -130,6 +143,9 @@ const NotificationsScreen = () => {
         {hangoutRequests?.map((item: any, index: number) => (
           <HangoutRequestBanner
             key={"Hangout Request" + index}
+            senderName={item.userInfo.username}
+            senderId={item.userInfo.userId}
+            senderProfilePhoto={item.userInfo.profilePhoto.fileUrl}
             hangoutId={item.hangoutId}
             hangoutName={item.hangoutName}
             onHandleRequest={(hangoutId: string, status: string) =>
@@ -138,7 +154,7 @@ const NotificationsScreen = () => {
           />
         ))}
       </ScrollView>
-    </SafeAreaView>
+    </BaseScreen>
   );
 };
 
@@ -147,6 +163,12 @@ export default NotificationsScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  headerText: {
+    fontSize: 20,
+    fontFamily: "inter",
+    fontWeight: "700",
+    color: "#FFF",
   },
   scrollViewContainer: {
     flexGrow: 1,

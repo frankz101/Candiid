@@ -225,7 +225,7 @@ const fetchFriendsPostsFromDatabase = async (userId) => {
       const oneWeekAgo = new Date();
       oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
-      for (const friendId of friends) {
+      const postsPromises = friends.map(async (friendId) => {
         const q = query(
           collection(db, "posts"),
           where("userId", "==", friendId),
@@ -234,10 +234,19 @@ const fetchFriendsPostsFromDatabase = async (userId) => {
         );
 
         const querySnapshot = await getDocs(q);
-        querySnapshot.forEach((doc) => {
-          friendsPosts.push(doc.data());
-        });
-      }
+        const posts = await Promise.all(
+          querySnapshot.docs.map(async (doc) => {
+            const postData = doc.data();
+            const userInfo = await searchUserInDatabase(postData.userId);
+            return { ...postData, userInfo };
+          })
+        );
+
+        return posts;
+      });
+
+      const allFriendsPosts = await Promise.all(postsPromises);
+      allFriendsPosts.forEach((posts) => friendsPosts.push(...posts));
 
       return friendsPosts;
     } else {

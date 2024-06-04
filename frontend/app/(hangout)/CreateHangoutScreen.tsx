@@ -68,13 +68,15 @@ const CreateHangoutScreen = () => {
           <Feather name="bell" size={32} color="#84848B" />
         </Pressable>
       </View>
-      <TabView
+      <CreateHangout />
+
+      {/* <TabView
         navigationState={{ index, routes }}
         renderScene={renderScene}
         onIndexChange={setIndex}
         initialLayout={initialLayout}
         renderTabBar={(props) => <ProfileTabBar {...props} />}
-      />
+      /> */}
     </BaseScreen>
   );
 };

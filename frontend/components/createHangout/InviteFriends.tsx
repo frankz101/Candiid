@@ -1,4 +1,4 @@
-import { FlatList, StyleSheet, Text, View } from "react-native";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import React, { useEffect, useState } from "react";
 import SearchBar from "../utils/SearchBar";
 import axios from "axios";
@@ -70,8 +70,7 @@ const InviteFriends = () => {
   const [searchPhrase, setSearchPhrase] = useState("");
   const { user } = useUser();
   const router = useRouter();
-  // const { hangoutId } = useLocalSearchParams();
-  const hangoutId = "Y4OaFGCFPAdUBnLVorEu";
+  const { hangoutId, hangoutName } = useLocalSearchParams();
 
   const fetchFriends = async () => {
     return axios
@@ -84,13 +83,13 @@ const InviteFriends = () => {
     queryFn: fetchFriends,
   });
 
-  useEffect(() => {
-    return () => {
-      console.log("Use effect");
-      console.log(invitedFriends);
-      sendInvites();
-    };
-  }, []);
+  // useEffect(() => {
+  //   return () => {
+  //     console.log("Use effect");
+  //     console.log(invitedFriends);
+  //     sendInvites();
+  //   };
+  // }, []);
 
   const sendInvites = async () => {
     console.log("send invite");
@@ -99,14 +98,19 @@ const InviteFriends = () => {
       console.log("Greater than 1");
       try {
         console.log("Sending invites to:", invitedFriends);
+        console.log("User Id: " + user?.id);
         const hangoutRequestsResponse = await axios.post(
           `${process.env.EXPO_PUBLIC_API_URL}/hangout/${hangoutId}/requests`,
           {
             selectedFriends: invitedFriends,
-            hangoutName: "TEST HANGOUT",
+            hangoutName: hangoutName,
+            userId: user?.id,
           }
         );
         console.log(hangoutRequestsResponse.data);
+        router.push({
+          pathname: "/(tabs)/profile",
+        });
       } catch (error) {
         console.error("Error sending invites:", error);
       }
@@ -144,7 +148,7 @@ const InviteFriends = () => {
   );
 
   return (
-    <View>
+    <View style={{ flex: 1 }}>
       <SearchBar
         clicked={clicked}
         searchPhrase={searchPhrase}
@@ -174,6 +178,11 @@ const InviteFriends = () => {
           </Text>
         </View>
       </View>
+      <View style={styles.submitButton}>
+        <Pressable onPress={sendInvites}>
+          <Text style={styles.submitText}>Finish Inviting</Text>
+        </Pressable>
+      </View>
     </View>
   );
 };
@@ -188,6 +197,26 @@ const styles = StyleSheet.create({
     paddingVertical: hp(2),
     fontSize: 14,
     fontFamily: "inter",
+    fontWeight: "700",
+    color: "#FFF",
+  },
+  submitButton: {
+    alignSelf: "center",
+    position: "absolute",
+    bottom: hp(2),
+    backgroundColor: "rgba(85, 85, 85, 0.50)",
+    borderWidth: 1,
+    borderColor: "#FFF",
+    borderRadius: 5,
+    width: wp("40%"),
+    aspectRatio: 4,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: wp(4),
+  },
+  submitText: {
+    fontFamily: "inter",
+    fontSize: 14,
     fontWeight: "700",
     color: "#FFF",
   },

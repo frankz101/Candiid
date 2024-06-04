@@ -3,7 +3,7 @@ import { View, StyleSheet, Dimensions } from "react-native";
 import Carousel from "react-native-reanimated-carousel";
 import PhotoPost from "./PhotoPost";
 
-interface ImageData {
+export interface ImageData {
   fileUrl: string;
 }
 
@@ -18,6 +18,7 @@ const PostCarousel: React.FC<PostCarouselProps> = ({
   width,
   height,
 }) => {
+  console.log(images);
   return (
     <View style={[styles.carouselContainer, { width, height }]}>
       <Carousel

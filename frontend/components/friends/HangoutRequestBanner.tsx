@@ -1,15 +1,26 @@
 import { useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
+import { Image } from "expo-image";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 interface HangoutRequestBannerProps {
+  senderName: string;
+  senderId: string;
+  senderProfilePhoto: string;
   hangoutId: string;
   hangoutName: string;
   onHandleRequest?: (hangoutId: string, status: string) => void;
 }
 
 const HangoutRequestBanner: React.FC<HangoutRequestBannerProps> = ({
+  senderName,
+  senderId,
+  senderProfilePhoto,
   hangoutId,
   hangoutName,
   onHandleRequest,
@@ -31,20 +42,20 @@ const HangoutRequestBanner: React.FC<HangoutRequestBannerProps> = ({
     }
   };
   return (
-    <View
-      style={[{ padding: 10, flexDirection: "row", alignItems: "flex-start" }]}
-    >
-      <View
-        style={{
-          width: 40,
-          height: 40,
-          borderRadius: 20,
-        }}
-      >
+    <View style={styles.container}>
+      {senderProfilePhoto ? (
+        <Image
+          source={{ uri: senderProfilePhoto }}
+          style={styles.profilePhoto}
+        />
+      ) : (
         <Ionicons name="person-circle-outline" size={40} color="black" />
-      </View>
-      <View style={{ marginLeft: 10, flex: 1 }}>
-        <Text style={{ fontSize: 16 }}>{hangoutName}</Text>
+      )}
+      <View style={styles.textContainer}>
+        <Text style={styles.inviteText}>
+          <Text style={styles.boldText}>{senderName}</Text> has invited you to{" "}
+          <Text style={styles.boldText}>{hangoutName}</Text>
+        </Text>
       </View>
       <View style={{ flexDirection: "row" }}>
         <Pressable
@@ -81,9 +92,37 @@ const HangoutRequestBanner: React.FC<HangoutRequestBannerProps> = ({
 export default HangoutRequestBanner;
 
 const styles = StyleSheet.create({
+  container: {
+    padding: 10,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  profilePhoto: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  nameText: {
+    fontFamily: "inter",
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#FFF",
+  },
   centerRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+  },
+  textContainer: {
+    marginLeft: 10,
+    flex: 1,
+  },
+  inviteText: {
+    fontFamily: "inter",
+    fontSize: 14,
+    color: "#FFF",
+  },
+  boldText: {
+    fontWeight: "700",
   },
 });

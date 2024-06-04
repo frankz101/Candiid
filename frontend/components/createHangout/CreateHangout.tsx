@@ -35,14 +35,6 @@ const CreateHangout = () => {
   const { user } = useUser();
   const router = useRouter();
 
-  const dummyFriendsData = {
-    result: Array.from({ length: 20 }, (_, index) => ({
-      id: `user_${index + 1}`,
-      profilePhoto: null,
-      firstName: "Rex",
-    })),
-  };
-
   const fetchFriends = async () => {
     return axios
       .get(`${process.env.EXPO_PUBLIC_API_URL}/user/${user?.id}/friends`)
@@ -68,45 +60,29 @@ const CreateHangout = () => {
       hangoutName: hangoutName,
       hangoutDescription: hangoutDescription,
     };
-
-    setHangoutName("");
-    setHangoutDescription("");
-
     try {
       const hangoutResponse = await axios.post(
         `${process.env.EXPO_PUBLIC_API_URL}/hangout`,
         hangoutData
       );
       console.log(hangoutResponse.data);
+      router.push({
+        pathname: "/(hangout)/InviteFriendsScreen",
+        params: {
+          hangoutId: hangoutResponse.data.result,
+          hangoutName: hangoutName,
+        },
+      });
+      setHangoutName("");
+      setHangoutDescription("");
     } catch (error) {
       console.error("Error creating hangout:", error);
       return;
     }
   };
 
-  // const handleHangoutSubmit = async () => {
-  //   const newHangoutDetails: HangoutDetails = {
-  //     hangoutName: hangoutName,
-  //     hangoutDescription: hangoutDescription,
-  //     selectedFriends: hangoutDetails?.selectedFriends || [],
-  //   };
-
-  //   console.log(hangoutName);
-  //   console.log("First " + hangoutDetails);
-
-  //   setHangoutDetails(newHangoutDetails);
-
-  //   console.log("Second: " + hangoutDetails);
-
-  //   router.navigate({
-  //     pathname: "/(hangout)/MemoriesScreen",
-  //     params: {
-  //       newPost: "true",
-  //     },
-  //   });
-  // };
-
   const onSubmit = () => {}; // TODO: Implement search functionality
+  const isSubmitDisabled = !hangoutName || !hangoutDescription;
 
   return (
     <BaseScreen>
@@ -136,78 +112,17 @@ const CreateHangout = () => {
         <View style={styles.submitContainer}>
           <Pressable
             onPress={handleHangoutSubmit}
-            style={styles.submitButton}
+            style={[
+              styles.submitButton,
+              { opacity: isSubmitDisabled ? 0.5 : 1 },
+            ]}
             accessibilityRole="button"
+            disabled={isSubmitDisabled}
           >
             <Text style={{ color: "white" }}>Create your hangout</Text>
             <Ionicons name="arrow-forward" size={32} color="white" />
           </Pressable>
         </View>
-        {/* <View>
-          <Text style={styles.inviteText}>Invite your Friends</Text>
-          <SearchBar
-            clicked={clicked}
-            searchPhrase={searchPhrase}
-            placeholder="Search Friends"
-            setSearchPhrase={setSearchPhrase}
-            setClicked={setClicked}
-            onSubmit={onSubmit}
-          />
-          {isPending ? (
-            <Text>Loading friends...</Text>
-          ) : (
-            <ScrollView
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-              directionalLockEnabled={true}
-              alwaysBounceVertical={false}
-              automaticallyAdjustContentInsets={false}
-            >
-              <FlatList
-                data={friendsData.result}
-                renderItem={({ item, index }) => (
-                  <View>
-                    <Pressable
-                      accessibilityRole="button"
-                      key={index}
-                      style={styles.friendItem}
-                      onPress={() => {
-                        if (hangoutDetails?.selectedFriends.includes(item.id)) {
-                          removeFriend(item.id);
-                        } else {
-                          addFriend(item.id);
-                        }
-                      }}
-                    >
-                      {item.profilePhoto ? (
-                        <Image
-                          source={{ uri: item.profilePhoto }}
-                          style={styles.profilePhoto}
-                        />
-                      ) : (
-                        <Ionicons name="person-circle" size={64} />
-                      )}
-                    </Pressable>
-                    {hangoutDetails?.selectedFriends.includes(item.id) && (
-                      <Ionicons
-                        name="checkmark-circle-outline"
-                        size={24}
-                        style={styles.checkmarkIcon}
-                      />
-                    )}
-                    <Text style={{ alignSelf: "center" }}>
-                      {item.firstName}
-                    </Text>
-                  </View>
-                )}
-                keyExtractor={(item, index) => index.toString()}
-                numColumns={Math.ceil(dummyFriendsData.result.length / 2)}
-                showsVerticalScrollIndicator={false}
-                showsHorizontalScrollIndicator={false}
-              />
-            </ScrollView>
-          )}
-        </View> */}
       </View>
     </BaseScreen>
   );

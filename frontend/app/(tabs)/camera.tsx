@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import BaseScreen from "@/components/utils/BaseScreen";
 import {
@@ -12,52 +12,16 @@ import {
 } from "react-native-responsive-screen";
 import HangoutSelect from "@/components/camera/HangoutSelect";
 import CameraComponent from "@/components/camera/CameraComponent";
-
-const tempHangoutData = [
-  {
-    id: "hangout_1",
-    name: "Weekend BBQ",
-  },
-  {
-    id: "hangout_2",
-    name: "Beach Party",
-  },
-  {
-    id: "hangout_3",
-    name: "Mountain Hike",
-  },
-  {
-    id: "hangout_4",
-    name: "City Tour",
-  },
-  {
-    id: "hangout_5",
-    name: "Concert Night",
-  },
-  {
-    id: "hangout_6",
-    name: "Movie Marathon",
-  },
-  {
-    id: "hangout_7",
-    name: "Picnic Day",
-  },
-  {
-    id: "hangout_8",
-    name: "Sports Event",
-  },
-  {
-    id: "hangout_9",
-    name: "Art Exhibition",
-  },
-  {
-    id: "hangout_10",
-    name: "Food Festival",
-  },
-];
+import { useUser } from "@clerk/clerk-expo";
+import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
 
 const Camera = () => {
-  const [selectedHangout, setSelectedHangout] = useState("");
+  const [selectedHangout, setSelectedHangout] = useState("Select Hangout");
+  const [selectedHangoutId, setSelectedHangoutId] = useState("");
+  const { user } = useUser();
+  const router = useRouter();
 
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
@@ -70,13 +34,33 @@ const Camera = () => {
     console.log("handleSheetChanges", index);
   }, []);
 
-  // renders
+  const fetchHangouts = async () => {
+    console.log("Fetching Hangouts");
+    return axios
+      .get(`${process.env.EXPO_PUBLIC_API_URL}/hangouts/users/${user?.id}`)
+      .then((res) => res.data);
+  };
+
+  const { data: hangoutData, isPending } = useQuery({
+    queryKey: ["hangouts"],
+    queryFn: fetchHangouts,
+  });
+
+  const handleHangoutSelect = (name: string, id: string) => {
+    setSelectedHangout(name);
+    setSelectedHangoutId(id);
+    bottomSheetModalRef.current?.dismiss();
+  };
+
+  if (!isPending) {
+    console.log(hangoutData);
+  }
   return (
     <BottomSheetModalProvider>
-      <CameraComponent hangoutId={"1"} />
+      {/* <CameraComponent hangoutId={selectedHangoutId} /> */}
       <View style={styles.header}>
         <Pressable onPress={handlePresentModalPress}>
-          <Text style={styles.hangoutName}>Hangout Name</Text>
+          <Text style={styles.hangoutName}>{selectedHangout}</Text>
         </Pressable>
       </View>
       <BottomSheetModal
@@ -88,7 +72,26 @@ const Camera = () => {
         enableHandlePanningGesture={true}
       >
         <BottomSheetView style={styles.contentContainer}>
-          <HangoutSelect name={"Hangout Name"} hangoutId={"1"} />
+          <FlatList
+            data={hangoutData}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <HangoutSelect
+                name={item.hangoutName}
+                hangoutId={item.id}
+                onSelect={handleHangoutSelect}
+              />
+            )}
+            ListEmptyComponent={
+              <View>
+                <Pressable
+                  onPress={() => router.push("/(hangout)/CreateHangoutScreen")}
+                >
+                  <Text>Create a hangout</Text>
+                </Pressable>
+              </View>
+            }
+          />
         </BottomSheetView>
       </BottomSheetModal>
     </BottomSheetModalProvider>

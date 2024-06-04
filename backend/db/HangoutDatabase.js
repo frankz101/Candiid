@@ -16,6 +16,7 @@ import {
   arrayRemove,
 } from "firebase/firestore";
 import { db } from "../firebase.js";
+import { searchUserInDatabase } from "./UserDatabase.js";
 
 // const createHangoutInDatabase = async (hangout) => {
 //   const hangoutCollection = collection(db, "hangouts");
@@ -122,7 +123,8 @@ const fetchHangoutFromDatabase = async (hangoutId) => {
 const createHangoutRequestsInDatabase = async (
   hangoutId,
   selectedFriends,
-  hangoutName
+  hangoutName,
+  userId
 ) => {
   try {
     const hangoutRequestRef = collection(db, "hangoutRequests");
@@ -132,6 +134,7 @@ const createHangoutRequestsInDatabase = async (
       const hangoutRequestDoc = {
         hangoutId: hangoutId,
         hangoutName: hangoutName,
+        userId: userId,
         receiverId: friendId,
         status: "pending",
         createdAt: serverTimestamp(),
@@ -140,6 +143,7 @@ const createHangoutRequestsInDatabase = async (
       const docRef = await addDoc(hangoutRequestRef, hangoutRequestDoc);
       messages.push({
         hangoutRequestId: docRef.id,
+        senderId: userId,
         receiverId: friendId,
         message: "Hangout invite sent",
       });
@@ -159,11 +163,15 @@ const fetchHangoutRequestsInDatabase = async (userId) => {
     const querySnapshot = await getDocs(q);
     const hangoutRequests = [];
 
-    querySnapshot.forEach((doc) => {
-      hangoutRequests.push({ id: doc.id, ...doc.data() });
+    const promises = querySnapshot.docs.map(async (doc) => {
+      const hangoutRequest = { id: doc.id, ...doc.data() };
+      const userInfo = await searchUserInDatabase(hangoutRequest.userId);
+      return { ...hangoutRequest, userInfo };
     });
 
-    return hangoutRequests;
+    const results = await Promise.all(promises);
+
+    return results;
   } catch (error) {
     console.error("Error fetching hangout requests:", error);
     throw error;
