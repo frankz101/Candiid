@@ -77,7 +77,6 @@ const SearchBar: React.FC<SearchBarProps> = ({
 };
 export default SearchBar;
 
-// styles
 const styles = StyleSheet.create({
   container: {
     marginTop: hp(2),
@@ -85,12 +84,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     flexDirection: "row",
-    width: wp("95%"),
+    width: wp(95),
   },
   searchBar__unclicked: {
     padding: 14,
     flexDirection: "row",
-    width: "100%",
+    width: wp(95),
     backgroundColor: "#252525",
     borderRadius: 5,
     alignItems: "center",
@@ -98,7 +97,7 @@ const styles = StyleSheet.create({
   searchBar__clicked: {
     padding: 14,
     flexDirection: "row",
-    width: "85%",
+    width: wp(80),
     backgroundColor: "#252525",
     borderRadius: 5,
     alignItems: "center",
@@ -106,7 +105,8 @@ const styles = StyleSheet.create({
   },
   input: {
     fontSize: 14,
-    marginLeft: 10,
-    width: "90%",
+    color: "white",
+    marginLeft: wp(3),
+    width: wp(90),
   },
 });

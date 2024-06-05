@@ -3,7 +3,13 @@ import BaseScreen from "@/components/utils/BaseScreen";
 import { useSignIn, useUser } from "@clerk/clerk-expo";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, TextInput, Text, StyleSheet, SafeAreaView } from "react-native";
+import {
+  Pressable,
+  TextInput,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+} from "react-native";
 import { OtpInput } from "react-native-otp-entry";
 import {
   widthPercentageToDP as wp,
@@ -13,18 +19,12 @@ import {
 const LoginVerificationScreen = () => {
   const { signIn, setActive } = useSignIn();
   const { phoneNumberId, phoneNumber } = useLocalSearchParams();
-  const [code, setCode] = useState("");
-  const router = useRouter();
 
-  const handleFilled = (text: any) => {
-    setCode(text);
-    handleVerifyCode();
-  }
-  const handleVerifyCode = async () => {
+  const verifyCode = async (text: string) => {
     if (phoneNumberId && signIn) {
       const result = await signIn.attemptFirstFactor({
         strategy: "phone_code",
-        code: code,
+        code: text,
       });
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
@@ -46,7 +46,7 @@ const LoginVerificationScreen = () => {
           numberOfDigits={6}
           focusColor="green"
           focusStickBlinkingDuration={500}
-          onFilled={(text) => handleFilled(text)}
+          onFilled={(text) => verifyCode(text)}
           theme={{
             pinCodeTextStyle: styles.pinCodeText,
           }}
@@ -59,10 +59,10 @@ const LoginVerificationScreen = () => {
 export default LoginVerificationScreen;
 
 const styles = StyleSheet.create({
-  container:{
+  container: {
     marginHorizontal: wp(5),
   },
-  header:{
+  header: {
     color: "white",
     fontFamily: "Inter",
     fontSize: 26,
@@ -98,4 +98,4 @@ const styles = StyleSheet.create({
   pinCodeText: {
     color: "white",
   },
-})
+});

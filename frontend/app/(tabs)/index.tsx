@@ -87,17 +87,10 @@ const Home = () => {
     <BaseScreen>
       {/* Header */}
       <View style={styles.header}>
-        <Text
-          style={{
-            fontSize: 40,
-            color: "#FFF",
-            fontFamily: "Inter",
-            fontStyle: "italic",
-            fontWeight: "700",
-          }}
-        >
-          candiid
-        </Text>
+        <Image
+          source={require("../../assets/images/logo-white.png")}
+          style={styles.logo}
+        ></Image>
         <Pressable
           onPress={() => {
             router.push("/(profile)/NotificationsScreen");
@@ -127,9 +120,12 @@ const styles = StyleSheet.create({
     height: hp("5%"),
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
     marginHorizontal: wp(4),
     marginVertical: hp(1),
+  },
+  logo: {
+    height: hp(4),
+    width: wp(44),
   },
   tabBar: {
     height: hp("2%"),

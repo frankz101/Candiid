@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import React, { useEffect, useState } from "react";
 import { useWarmUpBrowser } from "@/hooks/useWarmUpBrowser";
 import { useOAuth, useUser } from "@clerk/clerk-expo";
@@ -46,7 +46,10 @@ const Login = () => {
       {/* <Pressable onPress={() => onSelectAuth(Strategy.Google)}>
         <Text>Login with Google</Text>
       </Pressable> */}
-      <View style={styles.logo}></View>
+      <Image
+        source={require("../../assets/images/icon.png")}
+        style={styles.logo}
+      ></Image>
       <Pressable
         style={({ pressed }) => [
           styles.button,
@@ -91,10 +94,10 @@ const styles = StyleSheet.create({
     gap: hp(4),
   },
   logo: {
-    height: hp(15),
-    width: hp(15),
-    backgroundColor: "white",
-    marginBottom: hp(25),
+    height: hp(18),
+    width: hp(18),
+    backgroundColor: "#141417",
+    marginBottom: hp(20),
   },
   button: {
     borderColor: "white",

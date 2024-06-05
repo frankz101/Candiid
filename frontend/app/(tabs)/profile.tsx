@@ -14,7 +14,7 @@ import { useRouter } from "expo-router";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import axios from "axios";
 import { SheetManager } from "react-native-actions-sheet";
-import { useClerk, useUser } from "@clerk/clerk-expo";
+import { useUser } from "@clerk/clerk-expo";
 import { Image } from "expo-image";
 import MemoriesView from "@/components/profile/MemoriesView";
 import Animated from "react-native-reanimated";
@@ -23,6 +23,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import BaseScreen from "@/components/utils/BaseScreen";
 import MemoriesScreen from "../(hangout)/MemoriesScreen";
 
 interface Hangout {
@@ -43,7 +44,6 @@ const Profile = () => {
   const { user } = useUser();
   const [refreshing, setRefreshing] = useState(false);
   const queryClient = useQueryClient();
-  const { signOut } = useClerk();
 
   const fetchMemories = async () => {
     console.log("Fetching Memories");
@@ -102,16 +102,21 @@ const Profile = () => {
     profilePhoto: null,
   };
 
-  const handleLogOut = () => {
-    signOut();
-  };
-
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.settings}>
-        <Pressable onPress={() => router.push("/(profile)/SettingsScreen")}>
-          <Ionicons name="reorder-three-outline" size={32} color={"white"} />
-        </Pressable>
+    <BaseScreen style={styles.container}>
+      <View style={styles.navOptions}>
+        <Ionicons
+          onPress={() => router.push("/(profile)/AddFriendsScreen")}
+          name="people-outline"
+          size={32}
+          color={"white"}
+        />
+        <Ionicons
+          onPress={() => router.push("/(profile)/SettingsScreen")}
+          name="reorder-three-outline"
+          size={32}
+          color={"white"}
+        />
       </View>
       <View style={styles.userDetails}>
         <Text style={styles.userText}>{`@${userProfile.username}`}</Text>
@@ -184,7 +189,8 @@ const Profile = () => {
           })}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </BaseScreen>
+
     // <SafeAreaView>
     //   <View // Turn this into one component later
     //     style={{
@@ -272,9 +278,10 @@ const styles = StyleSheet.create({
     height: hp(100),
     backgroundColor: "#141417",
   },
-  settings: {
-    alignItems: "flex-end",
-    paddingRight: wp(4),
+  navOptions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: wp(4),
   },
   userDetails: {
     display: "flex",
