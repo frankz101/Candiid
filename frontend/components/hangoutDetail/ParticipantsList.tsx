@@ -15,11 +15,12 @@ import {
 const MAX_VISIBLE_PARTICIPANTS = 6;
 
 interface ParticipantsListProps {
-  participants: {
-    id: string;
-    name: string;
-    iconUrl: string;
-  }[];
+  // participants: {
+  //   id: string;
+  //   name: string;
+  //   iconUrl: string;
+  // }[];
+  participants: string[];
 }
 const ParticipantsList: React.FC<ParticipantsListProps> = ({
   participants,
@@ -50,7 +51,7 @@ const ParticipantsList: React.FC<ParticipantsListProps> = ({
       <FlatList
         data={participants.slice(0, MAX_VISIBLE_PARTICIPANTS + 1)}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item}
         horizontal={true}
         showsHorizontalScrollIndicator={false}
         scrollEnabled={false}

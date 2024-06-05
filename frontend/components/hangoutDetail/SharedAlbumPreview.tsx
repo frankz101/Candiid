@@ -29,11 +29,13 @@ interface Photo {
 interface SharedAlbumPreviewProps {
   sharedAlbum: Photo[];
   hangoutId: string;
+  hangoutName: string;
 }
 
 const SharedAlbumPreview: React.FC<SharedAlbumPreviewProps> = ({
   sharedAlbum,
   hangoutId,
+  hangoutName,
 }) => {
   const router = useRouter();
 
@@ -58,7 +60,7 @@ const SharedAlbumPreview: React.FC<SharedAlbumPreviewProps> = ({
                 onPress={() => {
                   router.push({
                     pathname: "/(camera)/CameraScreen",
-                    params: { id: hangoutId },
+                    params: { id: hangoutId, hangoutName: hangoutName },
                   });
                 }}
               >

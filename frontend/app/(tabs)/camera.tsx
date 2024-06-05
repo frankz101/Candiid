@@ -42,7 +42,7 @@ const Camera = () => {
   };
 
   const { data: hangoutData, isPending } = useQuery({
-    queryKey: ["hangouts"],
+    queryKey: ["hangouts-1"],
     queryFn: fetchHangouts,
   });
 
@@ -57,7 +57,7 @@ const Camera = () => {
   }
   return (
     <BottomSheetModalProvider>
-      {/* <CameraComponent hangoutId={selectedHangoutId} /> */}
+      <CameraComponent hangoutId={selectedHangoutId} />
       <View style={styles.header}>
         <Pressable onPress={handlePresentModalPress}>
           <Text style={styles.hangoutName}>{selectedHangout}</Text>

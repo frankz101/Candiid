@@ -27,14 +27,14 @@ const FullScreenImage = () => {
   console.log("Encoded Image URL: " + fullUrl);
 
   return (
-    <Animated.View style={{ flex: 1 }} sharedTransitionTag={postId}>
+    <Animated.View style={{ flex: 1 }}>
       <Animated.Image
         // source={placeholderImage}
         source={{
           uri: "https://firebasestorage.googleapis.com/v0/b/memories-app-fa831.appspot.com/o/photos%2FvD6bHopMV1GvTqO9n0KF%2F1709686840466-42B3F6F8-4E3E-4058-9ED5-D1870BB1FE87.jpeg?alt=media&token=2f976fc1-c9e9-4f9f-99d4-47bb7a4fccd4",
         }}
         style={{ width: screenWidth, height: screenHeight }}
-        sharedTransitionTag={postId + "1"}
+        // sharedTransitionTag={postId + "1"}
       />
     </Animated.View>
   );

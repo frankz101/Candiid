@@ -39,13 +39,13 @@ const AnimatedPost = ({ thumbnail, color = "#FFF" }: AnimatedPostProps) => {
   const [isImagePrefetched, setIsImagePrefetched] = useState(false);
 
   return (
-    <Animated.View sharedTransitionTag={thumbnail}>
+    <Animated.View>
       <View style={[styles.polaroid, { backgroundColor: color }]}>
         {thumbnail ? (
           <Animated.Image
             source={{ uri: thumbnail }}
             style={styles.post}
-            sharedTransitionTag={thumbnail + "1"}
+            // sharedTransitionTag={thumbnail + "1"}
             resizeMode="cover"
           />
         ) : null}

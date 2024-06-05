@@ -9,6 +9,7 @@ import Animated, {
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import AnimatedPost from "@/components/photo/AnimatedMemory";
 import { Ionicons } from "@expo/vector-icons";
+import AnimatedMemory from "@/components/photo/AnimatedMemory";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
@@ -21,6 +22,7 @@ interface Hangout {
   id: string;
   postX: number;
   postY: number;
+  color: string;
 }
 
 interface MemoriesViewProps {
@@ -66,9 +68,9 @@ const MemoriesView: React.FC<MemoriesViewProps> = ({ hangouts }) => {
       const minX = -maxX;
       const minY = -maxY;
 
-      if (newX >= maxX || newY >= maxY || newX <= minX || newY <= minY) {
-        runOnJS(springBorder)();
-      }
+      // if (newX >= maxX || newY >= maxY || newX <= minX || newY <= minY) {
+      //   runOnJS(springBorder)();
+      // }
 
       screenX.value = Math.min(Math.max(newX, minX), maxX);
       screenY.value = Math.min(Math.max(newY, minY), maxY);
@@ -111,6 +113,7 @@ const MemoriesView: React.FC<MemoriesViewProps> = ({ hangouts }) => {
                 memoryId={hangout.id}
                 positionX={hangout.postX}
                 positionY={hangout.postY}
+                color={hangout.color}
               />
             ))}
         </Animated.View>

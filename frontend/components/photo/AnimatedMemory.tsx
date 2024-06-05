@@ -52,19 +52,6 @@ const AnimatedMemory = ({
   }));
   const router = useRouter();
   const { user } = useUser();
-  const [isImagePrefetched, setIsImagePrefetched] = useState(false);
-  // const imageUrl =
-  //   "https://firebasestorage.googleapis.com/v0/b/memories-app-fa831.appspot.com/o/photos%2FvD6bHopMV1GvTqO9n0KF%2F1709686840466-42B3F6F8-4E3E-4058-9ED5-D1870BB1FE87.jpeg?alt=media&token=2f976fc1-c9e9-4f9f-99d4-47bb7a4fccd4"; //FOR TESTING
-  // useEffect(() => {
-  //   Image.prefetch(imageUrl)
-  //     .then(() => {
-  //       setIsImagePrefetched(true);
-  //       console.log("PREFETCHED");
-  //     })
-  //     .catch((error) => {
-  //       console.error("Image prefetch failed:", error);
-  //     });
-  // }, [imageUrl]);
 
   const fetchHangout = async () => {
     return axios
@@ -86,28 +73,16 @@ const AnimatedMemory = ({
   // }
 
   const handlePress = () => {
-    if (postId && photoData && isImagePrefetched) {
-      setIsEnlarged(!isEnlarged);
-      router.push({
-        pathname: "/(hangout)/FullScreenImage",
-        params: {
-          imageUrl: photoData.result.photoUrls[0].fileUrl,
-          postId: postId,
-        },
-      });
-    } else {
-      console.log("MEMORY ID: " + memoryId);
-      router.push({
-        pathname: `/(hangout)/${hangoutId}`,
-        params: {
-          memoryId: memoryId,
-        },
-      });
-    }
+    router.push({
+      pathname: `/(hangout)/${hangoutId}`,
+      params: {
+        memoryId: memoryId,
+      },
+    });
   };
 
   return (
-    <Animated.View style={postStyle} sharedTransitionTag={postId}>
+    <Animated.View style={postStyle}>
       <View style={[styles.polaroid, { backgroundColor: color }]}>
         {postId && photoData ? (
           <Animated.Image
@@ -117,10 +92,12 @@ const AnimatedMemory = ({
             // }} FOR TESTING PURPOSES
             style={styles.post}
             // style={{ width: "100%", height: "100%" }}
-            sharedTransitionTag={postId + "1"}
+            // sharedTransitionTag={postId + "1"}
             resizeMode="cover"
           />
-        ) : null}
+        ) : (
+          <Animated.View />
+        )}
         <Pressable
           onPress={handlePress}
           style={{ position: "absolute", width: "100%", height: "100%" }}

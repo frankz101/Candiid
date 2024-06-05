@@ -2,20 +2,13 @@ import {
   StyleSheet,
   Text,
   View,
-  Pressable,
-  FlatList,
-  ScrollView,
+  ActivityIndicator,
   Dimensions,
-  RefreshControl,
 } from "react-native";
-import { Image } from "expo-image";
-import React, { useState } from "react";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import React from "react";
+import { useLocalSearchParams } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { AntDesign, Feather, Ionicons } from "@expo/vector-icons";
-import PhotoSquare from "@/components/photo/PhotoSquareSelect";
 import BackButton from "@/components/utils/BackButton";
 import SharedAlbumPreview from "@/components/hangoutDetail/SharedAlbumPreview";
 import BaseScreen from "@/components/utils/BaseScreen";
@@ -25,69 +18,6 @@ import {
 } from "react-native-responsive-screen";
 import ParticipantsList from "@/components/hangoutDetail/ParticipantsList";
 import CompleteHangoutButton from "@/components/hangoutDetail/CompleteHangoutButton";
-
-const participants = [
-  {
-    id: "1",
-    name: "Alice",
-    iconUrl: "https://via.placeholder.com/150/FF0000/FFFFFF?text=Alice",
-  },
-  {
-    id: "2",
-    name: "Bob",
-    iconUrl: "https://via.placeholder.com/150/00FF00/FFFFFF?text=Bob",
-  },
-  {
-    id: "3",
-    name: "Charlie",
-    iconUrl: "https://via.placeholder.com/150/0000FF/FFFFFF?text=Charlie",
-  },
-  {
-    id: "4",
-    name: "Diana",
-    iconUrl: "https://via.placeholder.com/150/F0F000/FFFFFF?text=Diana",
-  },
-  {
-    id: "5",
-    name: "Edward",
-    iconUrl: "https://via.placeholder.com/150/0F0F00/FFFFFF?text=Edward",
-  },
-  {
-    id: "6",
-    name: "Fiona",
-    iconUrl: "https://via.placeholder.com/150/00F0F0/FFFFFF?text=Fiona",
-  },
-  {
-    id: "7",
-    name: "George",
-    iconUrl: "https://via.placeholder.com/150/F000F0/FFFFFF?text=George",
-  },
-  {
-    id: "8",
-    name: "Hannah",
-    iconUrl: "https://via.placeholder.com/150/FF00FF/FFFFFF?text=Hannah",
-  },
-  {
-    id: "9",
-    name: "Ian",
-    iconUrl: "https://via.placeholder.com/150/FFFF00/FFFFFF?text=Ian",
-  },
-  {
-    id: "10",
-    name: "Jenny",
-    iconUrl: "https://via.placeholder.com/150/000000/FFFFFF?text=Jenny",
-  },
-  {
-    id: "11",
-    name: "Kyle",
-    iconUrl: "https://via.placeholder.com/150/FFFFFF/000000?text=Kyle",
-  },
-  {
-    id: "12",
-    name: "Laura",
-    iconUrl: "https://via.placeholder.com/150/CCCCCC/000000?text=Laura",
-  },
-];
 
 const screenHeight = Dimensions.get("window").height;
 const headerHeight = 140;
@@ -111,7 +41,23 @@ const Hangout = () => {
   });
 
   if (isPending) {
-    return <Text>LOADING...</Text>;
+    return (
+      <BaseScreen>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingBottom: 28,
+          }}
+        >
+          <BackButton />
+          <Text style={styles.headerText}>Loading...</Text>
+          <View style={{ width: 32 }} />
+        </View>
+        <ActivityIndicator size="large" color="#FFF" />
+      </BaseScreen>
+    );
   }
 
   console.log(hangoutData);
@@ -140,14 +86,17 @@ const Hangout = () => {
         <SharedAlbumPreview
           sharedAlbum={latestPhotos}
           hangoutId={hangoutId as string}
+          hangoutName={hangoutData.hangoutName}
         />
       </View>
       <View>
         <Text style={styles.sectionTwoText}>Participants</Text>
       </View>
-      <View>
-        <ParticipantsList participants={hangoutData.participantIds} />
-      </View>
+      {hangoutData && hangoutData.participantIds ? (
+        <View>
+          <ParticipantsList participants={hangoutData.participantIds} />
+        </View>
+      ) : null}
       <View
         style={{
           alignSelf: "center",
@@ -196,7 +145,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 10,
   },
-
   scrollViewContainer: {
     flexGrow: 1,
     height: scrollViewHeight,

@@ -124,7 +124,7 @@ const ProfileScreen = () => {
       >
         <Animated.View
           style={styles.animatedView}
-          sharedTransitionTag="MemoriesScreen"
+          // sharedTransitionTag="MemoriesScreen"
         >
           <Pressable onPress={() => router.push("/(hangout)/MemoriesScreen")}>
             <MemoriesView hangouts={memoriesData} />

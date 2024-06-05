@@ -23,6 +23,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import MemoriesScreen from "../(hangout)/MemoriesScreen";
 
 interface Hangout {
   hangoutName: string;
@@ -108,12 +109,9 @@ const Profile = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.settings}>
-        <Ionicons
-          onPress={handleLogOut}
-          name="reorder-three-outline"
-          size={32}
-          color={"white"}
-        />
+        <Pressable onPress={() => router.push("/(profile)/SettingsScreen")}>
+          <Ionicons name="reorder-three-outline" size={32} color={"white"} />
+        </Pressable>
       </View>
       <View style={styles.userDetails}>
         <Text style={styles.userText}>{`@${userProfile.username}`}</Text>
@@ -137,10 +135,7 @@ const Profile = () => {
         }
       >
         <Text style={styles.headerText}>Memoryboard</Text>
-        <Animated.View
-          style={styles.animatedView}
-          sharedTransitionTag="MemoriesScreen"
-        >
+        <Animated.View style={styles.animatedView}>
           <Pressable onPress={() => router.push("/(hangout)/MemoriesScreen")}>
             <MemoriesView hangouts={memoriesData} />
           </Pressable>
@@ -150,36 +145,41 @@ const Profile = () => {
           <Text style={styles.headerText}>Upcoming Hangouts</Text>
           {upcomingHangouts?.map((hangout: Hangout) => {
             return (
-              <View key={hangout.id} style={styles.hangoutBanner}>
-                <Text style={styles.hangoutText}>{hangout.hangoutName}</Text>
-                <View style={styles.participants}>
-                  {hangout.participants.map((participant: Participant) =>
-                    participant.profilePhoto ? (
-                      <Image
-                        key={participant.userId}
-                        source={{ uri: participant.profilePhoto.fileUrl }}
-                        style={styles.participantPhoto}
-                      />
-                    ) : (
-                      <View
-                        key={participant.userId}
-                        style={styles.participantPhoto}
-                      >
-                        <Ionicons
-                          name="person-circle"
-                          size={36}
-                          color="white"
+              <Pressable
+                key={hangout.id}
+                onPress={() => router.push(`/(hangout)/${hangout.id}`)}
+              >
+                <View style={styles.hangoutBanner}>
+                  <Text style={styles.hangoutText}>{hangout.hangoutName}</Text>
+                  <View style={styles.participants}>
+                    {hangout.participants.map((participant: Participant) =>
+                      participant.profilePhoto ? (
+                        <Image
+                          key={participant.userId}
+                          source={{ uri: participant.profilePhoto.fileUrl }}
+                          style={styles.participantPhoto}
                         />
+                      ) : (
+                        <View
+                          key={participant.userId}
+                          style={styles.participantPhoto}
+                        >
+                          <Ionicons
+                            name="person-circle"
+                            size={36}
+                            color="white"
+                          />
+                        </View>
+                      )
+                    )}
+                    {hangout.participantIds.length > 2 && (
+                      <View style={styles.additionalParticipants}>
+                        <Text>+{hangout.participantIds.length - 2}</Text>
                       </View>
-                    )
-                  )}
-                  {hangout.participantIds.length > 2 && (
-                    <View style={styles.additionalParticipants}>
-                      <Text>+{hangout.participantIds.length - 2}</Text>
-                    </View>
-                  )}
+                    )}
+                  </View>
                 </View>
-              </View>
+              </Pressable>
             );
           })}
         </View>

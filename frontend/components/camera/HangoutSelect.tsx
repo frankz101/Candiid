@@ -35,6 +35,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#202023",
     borderRadius: 5,
     justifyContent: "center",
+    marginVertical: hp(0.5),
   },
   hangoutSelectText: {
     fontSize: 16,

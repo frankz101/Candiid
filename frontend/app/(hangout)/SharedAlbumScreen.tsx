@@ -102,7 +102,10 @@ const SharedAlbumScreen = () => {
                 onPress={() => {
                   router.push({
                     pathname: "/(camera)/CameraScreen",
-                    params: { id: hangoutId },
+                    params: {
+                      id: hangoutId,
+                      hangoutName: hangoutData.hangoutName,
+                    },
                   });
                 }}
               >
@@ -124,7 +127,7 @@ const SharedAlbumScreen = () => {
         onPress={() =>
           router.push({
             pathname: "/(camera)/CameraScreen",
-            params: { id: hangoutId },
+            params: { id: hangoutId, hangoutName: hangoutData.hangoutName },
           })
         }
         style={{ position: "absolute", alignSelf: "center", bottom: 75 }}

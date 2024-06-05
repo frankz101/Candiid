@@ -27,19 +27,11 @@ const padding = 20;
 const imageWidth = (screenWidth - padding * 6) / 3 + wp(4);
 const imageHeight = (screenWidth - padding * 6) / 3 + hp(6);
 
-console.log(imageHeight);
-
 const MemoriesScreen = () => {
   const { user } = useUser();
-  const { userId, newPost, frameColor } = useLocalSearchParams();
-  let hangoutId = useLocalSearchParams().hangoutId;
+  const { newPost, frameColor, hangoutId } = useLocalSearchParams();
   const isNewPost = newPost === "true";
   const [isPlacementMode, setIsPlacementMode] = useState(false);
-  const hangoutDetails = useStore((state) => state.hangoutDetails) || {
-    hangoutName: "",
-    hangoutDescription: "",
-    selectedFriends: [],
-  };
   const setHangoutDetails = useStore((state) => state.setHangoutDetails);
 
   const postDetails = useStore((state) => state.postDetails);
@@ -52,14 +44,13 @@ const MemoriesScreen = () => {
 
   const fetchHangouts = async () => {
     console.log("Fetching Memories");
-    console.log(`${process.env.EXPO_PUBLIC_API_URL}/memories/${user?.id}`);
     return axios
       .get(`${process.env.EXPO_PUBLIC_API_URL}/memories/${user?.id}`)
       .then((res) => res.data);
   };
 
   const { data: hangouts, isPending } = useQuery({
-    queryKey: ["hangouts"],
+    queryKey: ["hangouts-2"],
     queryFn: fetchHangouts,
   });
 
@@ -241,26 +232,32 @@ const MemoriesScreen = () => {
     }
   };
 
+  console.log(hangouts);
+
   return isPending ? (
     <Text>Loading...</Text>
   ) : (
     <Animated.View
       style={styles.background}
-      sharedTransitionTag="MemoriesScreen"
+      // sharedTransitionTag="MemoriesScreen"
     >
       <GestureDetector gesture={combinedGesture}>
         <Animated.View style={[styles.container, containerStyle]}>
-          {hangouts?.map((hangout: any, index: number) => (
-            <AnimatedMemory
-              key={index + hangout.hangoutId}
-              postId={hangout.postId}
-              hangoutId={hangout.hangoutId}
-              memoryId={hangout.id}
-              positionX={hangout.postX}
-              positionY={hangout.postY}
-              color={hangout.color}
-            />
-          ))}
+          {hangouts && hangouts.length > 0 ? (
+            hangouts.map((hangout: any, index: number) => (
+              <AnimatedMemory
+                key={index + (hangout.postId || "")}
+                postId={hangout.postId}
+                hangoutId={hangout.hangoutId}
+                memoryId={hangout.id}
+                positionX={hangout.postX}
+                positionY={hangout.postY}
+                color={hangout.color}
+              />
+            ))
+          ) : (
+            <Text>No hangouts available.</Text>
+          )}
           {isPlacementMode && (
             <GestureDetector gesture={postPan}>
               <Animated.View
@@ -284,9 +281,9 @@ const MemoriesScreen = () => {
       {isPlacementMode && (
         <Pressable
           onPress={handleHangoutSubmit}
-          style={{ position: "absolute", right: 14, bottom: 75 }}
+          style={{ position: "absolute", right: 16, bottom: 75 }}
         >
-          <Ionicons name="checkmark-circle" size={64} />
+          <Ionicons name="checkmark-circle" size={64} color="#FFF" />
         </Pressable>
       )}
     </Animated.View>
@@ -298,7 +295,7 @@ export default MemoriesScreen;
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    backgroundColor: "rgba(44, 44, 48, 0.50)",
+    backgroundColor: "#141417",
   },
   container: {
     flex: 1,
