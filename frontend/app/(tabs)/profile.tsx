@@ -171,7 +171,7 @@ const Profile = () => {
                         >
                           <Ionicons
                             name="person-circle"
-                            size={36}
+                            size={40}
                             color="white"
                           />
                         </View>
@@ -190,84 +190,6 @@ const Profile = () => {
         </View>
       </ScrollView>
     </BaseScreen>
-
-    // <SafeAreaView>
-    //   <View // Turn this into one component later
-    //     style={{
-    //       flexDirection: "row",
-    //       justifyContent: "space-between",
-    //       alignItems: "center",
-    //       paddingHorizontal: 18,
-    //       paddingVertical: 10,
-    //     }}
-    //   >
-    //     <View style={{ flexDirection: "row", alignItems: "center" }}>
-    //       <Pressable
-    //         onPress={openChangePhotoSheet}
-    //         style={{ paddingRight: 10 }}
-    //       >
-    //         {profileDetails && userProfile && userProfile.profilePhoto ? (
-    //           <Image
-    //             source={{ uri: userProfile.profilePhoto.fileUrl }}
-    //             style={styles.profilePhoto}
-    //           />
-    //         ) : (
-    //           <Ionicons name="person-circle" size={64} />
-    //         )}
-    //       </Pressable>
-    //       <View>
-    //         <Text style={styles.name}>{userProfile.name}</Text>
-    //         <Text style={styles.username}>{`@${userProfile.username}`}</Text>
-    //       </View>
-    //     </View>
-    //     <View style={{ flexDirection: "row", alignItems: "center" }}>
-    //       <Pressable
-    //         onPress={() => router.push("/(profile)/AddFriendsScreen")}
-    //         style={{ paddingRight: 10 }}
-    //       >
-    //         <Ionicons name="people" size={32} />
-    //       </Pressable>
-    //       <Pressable
-    //         onPress={() => router.push("/(profile)/NotificationsScreen")}
-    //         style={{ paddingRight: 10 }}
-    //       >
-    //         <Ionicons name="heart" size={32} />
-    //       </Pressable>
-    //       <Pressable onPress={() => router.push("/(profile)/SettingsScreen")}>
-    //         <Ionicons name="menu" size={32} />
-    //       </Pressable>
-    //     </View>
-    //   </View>
-
-    //   <ScrollView
-    //     contentContainerStyle={styles.scrollViewContainer}
-    //     refreshControl={
-    //       <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-    //     }
-    //   >
-    //     <Animated.View
-    //       style={styles.animatedView}
-    //       sharedTransitionTag="MemoriesScreen"
-    //     >
-    //       <Pressable onPress={() => router.push("/(hangout)/MemoriesScreen")}>
-    //         <MemoriesView hangouts={memoriesData} />
-    //       </Pressable>
-    //     </Animated.View>
-
-    //     <View>
-    //       <Pressable
-    //         onPress={() => router.push("/(hangout)/CreateHangoutScreen")}
-    //       >
-    //         <Ionicons name="add-circle-outline" size={64} />
-    //       </Pressable>
-    //     </View>
-    //     <View>
-    //       <Pressable onPress={() => router.push("/(hangout)/MemoriesScreen")}>
-    //         <MaterialIcons name="photo" size={64} />
-    //       </Pressable>
-    //     </View>
-    //   </ScrollView>
-    // </SafeAreaView>
   );
 };
 
@@ -287,7 +209,7 @@ const styles = StyleSheet.create({
     display: "flex",
     gap: hp(1),
     alignItems: "center",
-    marginTop: hp(2),
+    marginVertical: hp(2),
   },
   userText: {
     color: "#FFF",
@@ -331,10 +253,11 @@ const styles = StyleSheet.create({
     gap: wp(40),
     backgroundColor: "#202023",
     borderRadius: 5,
-    justifyContent: "center",
+    justifyContent: "space-between",
     alignItems: "center",
   },
   hangoutText: {
+    paddingLeft: wp(4),
     color: "#FFF",
     fontFamily: "Inter",
     fontSize: 18,
@@ -342,6 +265,7 @@ const styles = StyleSheet.create({
   },
   participants: {
     flexDirection: "row",
+    marginRight: wp(4),
     gap: -wp(5),
   },
   participantPhoto: {

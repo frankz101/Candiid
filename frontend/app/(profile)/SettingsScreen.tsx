@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignSelf: "center",
     width: wp(95),
-    marginBottom: hp(5),
+    marginBottom: hp(2),
   },
   headerText: {
     color: "white",

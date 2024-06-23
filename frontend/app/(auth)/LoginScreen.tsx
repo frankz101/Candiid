@@ -3,7 +3,14 @@ import BackButton from "@/components/utils/BackButton";
 import BaseScreen from "@/components/utils/BaseScreen";
 import { useState } from "react";
 import { useRouter } from "expo-router";
-import { Pressable, TextInput, Text, View, StyleSheet, SafeAreaView } from "react-native";
+import {
+  Pressable,
+  TextInput,
+  Text,
+  View,
+  StyleSheet,
+  SafeAreaView,
+} from "react-native";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -26,11 +33,6 @@ const LoginScreen = () => {
 
       const { phoneNumberId } = firstPhoneFactor;
 
-      await signIn.prepareFirstFactor({
-        strategy: "phone_code",
-        phoneNumberId,
-      });
-
       if (firstPhoneFactor) {
         setPhoneNumberId(firstPhoneFactor.phoneNumberId);
         await signIn.prepareFirstFactor({
@@ -41,9 +43,9 @@ const LoginScreen = () => {
           pathname: "/LoginVerificationScreen",
           params: {
             phoneNumberId,
-            phoneNumber
-          }
-        })
+            phoneNumber,
+          },
+        });
       }
     }
   };
@@ -61,14 +63,15 @@ const LoginScreen = () => {
           placeholder="Enter your phone number"
           placeholderTextColor="#555555"
         />
-        <Pressable 
+        <Pressable
           style={({ pressed }) => [
             styles.button,
             pressed
               ? { backgroundColor: "rgba(85, 85, 85, 0.7)" }
               : { backgroundColor: "rgba(85, 85, 85, 0.5)" },
           ]}
-          onPress={handleSendCode}>
+          onPress={handleSendCode}
+        >
           <Text style={styles.text}>Send Code</Text>
         </Pressable>
       </SafeAreaView>
@@ -79,10 +82,10 @@ const LoginScreen = () => {
 export default LoginScreen;
 
 const styles = StyleSheet.create({
-  container:{
+  container: {
     marginHorizontal: wp(5),
   },
-  header:{
+  header: {
     color: "white",
     fontFamily: "Inter",
     fontSize: 26,
@@ -115,4 +118,4 @@ const styles = StyleSheet.create({
     fontFamily: "Inter",
     fontWeight: "bold",
   },
-})
+});

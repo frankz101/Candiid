@@ -95,7 +95,7 @@ const Home = () => {
           onPress={() => {
             router.push("/(profile)/NotificationsScreen");
           }}
-          style={{ alignSelf: "flex-start" }}
+          style={{ alignSelf: "center" }}
         >
           <Feather name="bell" size={32} color="#84848B" />
         </Pressable>

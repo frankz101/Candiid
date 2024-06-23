@@ -25,7 +25,7 @@ const FeedPost: React.FC<FeedPostProps> = ({
 }) => {
   const polaroidWidth = screenWidth - wp(4);
   return (
-    <View style={{ marginVertical: hp(2) }}>
+    <View style={{ marginTop: hp(1), marginBottom: hp(2) }}>
       {/* Post Header*/}
       <View style={styles.itemContainer}>
         <View style={styles.postHeader}>

@@ -2,14 +2,29 @@ import AnimatedPost from "@/components/photo/AnimatedPost";
 import AnimatedMemory from "@/components/photo/AnimatedMemory";
 import useStore from "@/store/useStore";
 import { useUser } from "@clerk/clerk-expo";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import axios, { AxiosResponse } from "axios";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState } from "react";
-import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  Dimensions,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
+  SharedValue,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -19,6 +34,21 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import DotGrid from "@/components/utils/DotGrid";
+import {
+  BottomSheetModal,
+  BottomSheetModalProvider,
+  BottomSheetView,
+} from "@gorhom/bottom-sheet";
+import {
+  GiphyContent,
+  GiphyGridView,
+  GiphyMedia,
+  GiphyMediaType,
+  GiphyMediaView,
+  GiphySDK,
+} from "@giphy/react-native-sdk";
+import MediaComponent from "@/components/photo/MediaComponent";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
@@ -27,20 +57,45 @@ const padding = 20;
 const imageWidth = (screenWidth - padding * 6) / 3 + wp(4);
 const imageHeight = (screenWidth - padding * 6) / 3 + hp(6);
 
+const mediaWidth = wp(20);
+
+GiphySDK.configure({ apiKey: "QDW5PFQZJ8MYnbeJ6mjQhPrRC5v9UI1b" });
+
+interface Sticker {
+  media: GiphyMedia;
+  positionX: SharedValue<number>;
+  positionY: SharedValue<number>;
+  mediaType: string;
+}
+
 const MemoriesScreen = () => {
   const { user } = useUser();
   const { newPost, frameColor, hangoutId } = useLocalSearchParams();
   const isNewPost = newPost === "true";
-  const [isPlacementMode, setIsPlacementMode] = useState(false);
+  const [isPostPlacementMode, setIsPostPlacementMode] = useState(false);
+  const [isMediaPlacementMode, setIsMediaPlacementMode] = useState(false);
   const setHangoutDetails = useStore((state) => state.setHangoutDetails);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [media, setMedia] = useState<GiphyMedia | null>(null);
+  const [stickers, setStickers] = useState<Sticker[]>([]);
+
+  const [activeStickerIndex, setActiveStickerIndex] = useState<number | null>(
+    null
+  );
 
   const postDetails = useStore((state) => state.postDetails);
 
   useEffect(() => {
     if (isNewPost) {
-      setIsPlacementMode(true);
+      setIsPostPlacementMode(true);
     }
   }, [isNewPost]);
+
+  useEffect(() => {
+    if (media) {
+      setIsMediaPlacementMode(true);
+    }
+  }, [media]);
 
   const fetchHangouts = async () => {
     console.log("Fetching Memories");
@@ -60,12 +115,19 @@ const MemoriesScreen = () => {
   const postX = useSharedValue<number>(0);
   const postY = useSharedValue<number>(0);
 
+  const mediaX = useSharedValue<number>(0);
+  const mediaY = useSharedValue<number>(0);
+
   const scale = useSharedValue<number>(1);
 
   const scaleContext = useSharedValue({ scale: 1 });
   const screenContext = useSharedValue({ x: 0, y: 0 });
+
   const postContext = useSharedValue({ x: 0, y: 0 });
+  const mediaContext = useSharedValue({ x: 0, y: 0 });
+
   const isPostActive = useSharedValue<boolean>(false);
+  const isMediaActive = useSharedValue<boolean>(false);
 
   const springBorder = () => {
     screenX.value = withSpring(0, {
@@ -84,7 +146,7 @@ const MemoriesScreen = () => {
       };
     })
     .onUpdate((e) => {
-      if (!isPostActive.value) {
+      if (!isPostActive.value && !isMediaActive.value) {
         let newX = (e.translationX + screenContext.value.x) / scale.value;
         let newY = (e.translationY + screenContext.value.y) / scale.value;
 
@@ -147,6 +209,50 @@ const MemoriesScreen = () => {
       isPostActive.value = false;
     });
 
+  // console.log("Stickers: " + stickers[1].positionX);
+  const mediaPan = Gesture.Pan()
+    .onStart(() => {
+      isMediaActive.value = true;
+
+      if (activeStickerIndex) {
+        mediaContext.value = {
+          x: stickers[activeStickerIndex].positionX.value * scale.value,
+          y: stickers[activeStickerIndex].positionY.value * scale.value,
+        };
+      }
+    })
+    .onUpdate((e) => {
+      if (activeStickerIndex !== null) {
+        console.log("Selected: " + activeStickerIndex);
+        const sticker = stickers[activeStickerIndex];
+        let newMediaX = (e.translationX + mediaContext.value.x) / scale.value;
+        let newMediaY = (e.translationY + mediaContext.value.y) / scale.value;
+
+        const halfMediaWidth = mediaWidth / 2;
+
+        const minX = -screenWidth / 2 + halfMediaWidth;
+        const maxX = screenWidth / 2 - halfMediaWidth;
+        const minY = -screenHeight / 2 + halfMediaWidth;
+        const maxY = screenHeight / 2 - halfMediaWidth;
+
+        console.log("ZIPPY: " + sticker);
+        console.log(
+          "NEW STICKER: " +
+            JSON.stringify({
+              positionX: sticker.positionX.value,
+              positionY: sticker.positionY.value,
+              mediaType: sticker.mediaType,
+            })
+        );
+
+        sticker.positionX.value = Math.min(Math.max(newMediaX, minX), maxX);
+        sticker.positionY.value = Math.min(Math.max(newMediaY, minY), maxY);
+      }
+    })
+    .onEnd(() => {
+      isMediaActive.value = false;
+    });
+
   const pinch = Gesture.Pinch()
     .onStart((e) => {
       scaleContext.value = { scale: scale.value };
@@ -171,6 +277,12 @@ const MemoriesScreen = () => {
   const postStyle = useAnimatedStyle(() => {
     return {
       transform: [{ translateX: postX.value }, { translateY: postY.value }],
+    };
+  });
+
+  const mediaStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateX: mediaX.value }, { translateY: mediaY.value }],
     };
   });
 
@@ -232,61 +344,196 @@ const MemoriesScreen = () => {
     }
   };
 
-  console.log(hangouts);
+  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+
+  const snapPoints = useMemo(() => ["25%", "50%", "90%"], []);
+
+  const handlePresentModalPress = useCallback(() => {
+    bottomSheetModalRef.current?.present();
+  }, []);
+  const handleSheetChanges = useCallback((index: number) => {
+    console.log("handleSheetChanges", index);
+  }, []);
+
+  const handleStickerSelect = (e: any) => {
+    const newMedia = e.nativeEvent.media;
+
+    const newSticker: Sticker = {
+      media: newMedia,
+      positionX: mediaX,
+      positionY: mediaY,
+      mediaType: "sticker",
+    };
+
+    setActiveStickerIndex(stickers.length);
+
+    setStickers((prevStickers) => [...prevStickers, newSticker]);
+  };
 
   return isPending ? (
     <Text>Loading...</Text>
   ) : (
-    <Animated.View
-      style={styles.background}
-      // sharedTransitionTag="MemoriesScreen"
-    >
-      <GestureDetector gesture={combinedGesture}>
-        <Animated.View style={[styles.container, containerStyle]}>
-          {hangouts && hangouts.length > 0 ? (
-            hangouts.map((hangout: any, index: number) => (
-              <AnimatedMemory
-                key={index + (hangout.postId || "")}
-                postId={hangout.postId}
-                hangoutId={hangout.hangoutId}
-                memoryId={hangout.id}
-                positionX={hangout.postX}
-                positionY={hangout.postY}
-                color={hangout.color}
-              />
-            ))
-          ) : (
-            <Text>No hangouts available.</Text>
-          )}
-          {isPlacementMode && (
-            <GestureDetector gesture={postPan}>
-              <Animated.View
-                style={[
-                  postStyle,
-                  {
-                    position: "absolute",
-                    zIndex: 1,
-                  },
-                ]}
-              >
-                <AnimatedPost
-                  thumbnail={postDetails.photos[0].fileUrl}
-                  color={frameColor as string}
-                />
-              </Animated.View>
-            </GestureDetector>
-          )}
-        </Animated.View>
-      </GestureDetector>
-      {isPlacementMode && (
+    <BottomSheetModalProvider>
+      <Animated.View
+        style={styles.background}
+        // sharedTransitionTag="MemoriesScreen"
+      >
         <Pressable
-          onPress={handleHangoutSubmit}
-          style={{ position: "absolute", right: 16, bottom: 75 }}
+          style={styles.topRightButton}
+          onPress={handlePresentModalPress}
         >
-          <Ionicons name="checkmark-circle" size={64} color="#FFF" />
+          <MaterialCommunityIcons
+            name="sticker-emoji"
+            size={32}
+            color="white"
+          />
         </Pressable>
-      )}
-    </Animated.View>
+        <GestureDetector gesture={combinedGesture}>
+          <Animated.View style={[styles.container, containerStyle]}>
+            <DotGrid width={screenWidth} height={screenHeight} />
+            {hangouts && hangouts.length > 0 ? (
+              hangouts.map((hangout: any, index: number) => (
+                <AnimatedMemory
+                  key={index + (hangout.postId || "")}
+                  postId={hangout.postId}
+                  hangoutId={hangout.hangoutId}
+                  memoryId={hangout.id}
+                  positionX={hangout.postX}
+                  positionY={hangout.postY}
+                  color={hangout.color}
+                />
+              ))
+            ) : (
+              <View />
+            )}
+            {stickers.length > 0 ? (
+              stickers.map((sticker, index: number) => (
+                // <GestureDetector gesture={mediaPan} key={index}>
+                //   <Animated.View
+                //     style={[
+                //       mediaStyle,
+                //       {
+                //         position: "absolute",
+                //         zIndex: 1,
+                //       },
+                //     ]}
+                //   >
+                //     <MediaComponent
+                //       key={index}
+                //       media={sticker.media}
+                //       positionX={sticker.positionX}
+                //       positionY={sticker.positionY}
+                //       mediaType={sticker.mediaType}
+                //     />
+                //   </Animated.View>
+                // </GestureDetector>
+                <MediaComponent
+                  key={index}
+                  media={sticker.media}
+                  mediaType={sticker.mediaType}
+                />
+              ))
+            ) : (
+              <Text>No stickers available</Text>
+            )}
+            {isPostPlacementMode && (
+              <GestureDetector gesture={postPan}>
+                <Animated.View
+                  style={[
+                    postStyle,
+                    {
+                      position: "absolute",
+                      zIndex: 1,
+                    },
+                  ]}
+                >
+                  <AnimatedPost
+                    thumbnail={postDetails.photos[0].fileUrl}
+                    color={frameColor as string}
+                  />
+                </Animated.View>
+              </GestureDetector>
+            )}
+            {/* {isMediaPlacementMode && media && (
+              <GestureDetector gesture={mediaPan}>
+                <Animated.View
+                  style={[
+                    mediaStyle,
+                    {
+                      position: "absolute",
+                      zIndex: 1,
+                    },
+                  ]}
+                >
+                  <MediaComponent
+                    media={media}
+                    positionX={mediaX}
+                    positionY={mediaY}
+                    mediaType="sticker"
+                  />
+                </Animated.View>
+              </GestureDetector>
+            )} */}
+          </Animated.View>
+        </GestureDetector>
+        {isPostPlacementMode && (
+          <Pressable
+            onPress={handleHangoutSubmit}
+            style={{ position: "absolute", right: 16, bottom: 75 }}
+          >
+            <Ionicons name="checkmark-circle" size={64} color="#FFF" />
+          </Pressable>
+        )}
+      </Animated.View>
+      <BottomSheetModal
+        ref={bottomSheetModalRef}
+        index={1}
+        snapPoints={snapPoints}
+        onChange={handleSheetChanges}
+        enablePanDownToClose={true}
+        enableHandlePanningGesture={true}
+        // backgroundStyle={styles.modalBackground}
+        // handleStyle={styles.handleStyle}
+        // handleIndicatorStyle={{ backgroundColor: "#FFF" }}
+      >
+        <BottomSheetView>
+          <TextInput
+            autoFocus
+            onChangeText={setSearchQuery}
+            placeholder="Search..."
+            value={searchQuery}
+          />
+          <GiphyGridView
+            content={
+              searchQuery
+                ? GiphyContent.search({
+                    searchQuery: searchQuery,
+                    mediaType: GiphyMediaType.Sticker,
+                  })
+                : GiphyContent.trendingStickers()
+            }
+            cellPadding={3}
+            style={{ height: 300, marginTop: 24 }}
+            onMediaSelect={handleStickerSelect}
+          />
+          {media && (
+            <ScrollView
+              style={{
+                aspectRatio: media.aspectRatio,
+                maxHeight: 400,
+                padding: 24,
+                width: "100%",
+              }}
+            >
+              <GiphyMediaView
+                media={media}
+                style={{ aspectRatio: media.aspectRatio }}
+              />
+            </ScrollView>
+          )}
+        </BottomSheetView>
+      </BottomSheetModal>
+    </BottomSheetModalProvider>
   );
 };
 
@@ -303,6 +550,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "rgba(44, 44, 48, 0.50)",
   },
+  topRightButton: {
+    position: "absolute",
+    zIndex: 2,
+    top: hp(6),
+    right: wp(6),
+  },
   post: {
     // width: postWidth,
     // height: postHeight,
@@ -311,4 +564,16 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: "blue",
   },
+  // modalContainer: {
+  //   flex: 1,
+  //   alignItems: "center",
+  //   backgroundColor: "#202023",
+  // },
+  // handleStyle: {
+  //   borderRadius: 5,
+  //   backgroundColor: "#202023",
+  // },
+  // modalBackground: {
+  //   backgroundColor: "#202023",
+  // },
 });

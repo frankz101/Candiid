@@ -23,7 +23,7 @@ const CodeVerificationScreen = () => {
       };
 
       axios
-        .post("http://localhost:3001/users", userData)
+        .post(`${process.env.EXPO_PUBLIC_API_URL}/users`, userData)
         .then((response) => {
           console.log(response.data.message);
         })

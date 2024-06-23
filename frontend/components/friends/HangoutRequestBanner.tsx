@@ -28,7 +28,7 @@ const HangoutRequestBanner: React.FC<HangoutRequestBannerProps> = ({
   const { user: currentUser } = useUser();
   const handleRequest = async (status: string) => {
     const res = await axios.put(
-      `http://localhost:3001/hangout/${hangoutId}/requests`,
+      `${process.env.EXPO_PUBLIC_API_URL}/hangout/${hangoutId}/requests`,
       {
         receiverId: currentUser?.id,
         status,
