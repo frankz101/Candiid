@@ -64,6 +64,8 @@ const mediaWidth = wp(20);
 
 GiphySDK.configure({ apiKey: "QDW5PFQZJ8MYnbeJ6mjQhPrRC5v9UI1b" });
 
+export type ViewStyleKey = "square" | "rectangle" | "polaroid";
+
 interface Sticker {
   media: GiphyMedia;
   positionX: SharedValue<number>;
@@ -86,6 +88,7 @@ const MemoriesScreen = () => {
     null
   );
   const [modalContent, setModalContent] = useState("");
+  const [viewStyle, setViewStyle] = useState<ViewStyleKey>("polaroid");
 
   const selectedColor = useSharedValue("#FFF");
   const backgroundColorStyle = useAnimatedStyle(() => ({
@@ -361,6 +364,7 @@ const MemoriesScreen = () => {
         hangoutId: hangoutId,
         postX: postX.value,
         postY: postY.value,
+        frame: viewStyle,
         color: frameColor,
       };
 
@@ -485,6 +489,7 @@ const MemoriesScreen = () => {
                   memoryId={hangout.id}
                   positionX={hangout.postX}
                   positionY={hangout.postY}
+                  frame={hangout.frame}
                   color={hangout.color}
                 />
               ))
@@ -552,6 +557,8 @@ const MemoriesScreen = () => {
                   <AnimatedPost
                     thumbnail={postDetails.photos[0].fileUrl}
                     color={frameColor as string}
+                    viewStyle={viewStyle}
+                    setViewStyle={setViewStyle}
                   />
                 </Animated.View>
               </GestureDetector>
@@ -586,12 +593,12 @@ const MemoriesScreen = () => {
             <Ionicons name="checkmark-circle" size={64} color="#FFF" />
           </Pressable>
         )}
-        <Pressable
+        {/* <Pressable
           onPress={handleStickerSubmit}
           style={{ position: "absolute", right: 16, bottom: 75 }}
         >
           <Ionicons name="checkmark-circle" size={64} color="#FFF" />
-        </Pressable>
+        </Pressable> */}
       </Animated.View>
       <BottomSheetModal
         ref={bottomSheetModalRef}
