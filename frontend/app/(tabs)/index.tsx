@@ -29,6 +29,8 @@ import CreateHangoutButton from "@/components/home/CreateHangoutButton";
 import CompletedHangouts from "@/components/home/CompletedHangouts";
 import ProfileTabBar from "@/components/home/ProfileTabBar";
 
+import uuid from "react-native-uuid";
+
 interface Photo {
   fileUrl: string;
   takenAt: string;

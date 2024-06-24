@@ -1958,12 +1958,12 @@
 
 "@giphy/js-types@^4.4.0":
   version "4.4.0"
-  resolved "https://registry.yarnpkg.com/@giphy/js-types/-/js-types-4.4.0.tgz#4f491a408293e52d77aa4d6b38d20f6b2828723a"
+  resolved "https://registry.npmjs.org/@giphy/js-types/-/js-types-4.4.0.tgz"
   integrity sha512-W9G6crS2oqTn7g0RpvYu1l/sna4LnivRTk25jmxdzujOFb9kvQ+VFM/v9RPYV2GIBnzT/maW/EwjFIba9jkflA==
 
 "@giphy/react-native-sdk@^3.2.6":
   version "3.2.6"
-  resolved "https://registry.yarnpkg.com/@giphy/react-native-sdk/-/react-native-sdk-3.2.6.tgz#b2bf1865302b34ffe21a83e380535eb975c99eee"
+  resolved "https://registry.npmjs.org/@giphy/react-native-sdk/-/react-native-sdk-3.2.6.tgz"
   integrity sha512-sihK0MyUz1GfLWvWjdPrFC10VWfIVLEGo0aSZK4looeVeEf8Pq0WJtbZSnfpzjalOndrLNgxk+DRGD2rf7IaDw==
   dependencies:
     "@giphy/js-types" "^4.4.0"
@@ -3130,6 +3130,11 @@
   version "4.0.5"
   resolved "https://registry.npmjs.org/@types/tough-cookie/-/tough-cookie-4.0.5.tgz"
   integrity sha512-/Ad8+nIOV7Rl++6f1BdKxFSMgmoqEoYbHRpPcx3JEfv8VRsQe9Z4mCXeJBzxs7mbHY/XOZZuXlRNfhpVPbs6ZA==
+
+"@types/uuid@^10.0.0":
+  version "10.0.0"
+  resolved "https://registry.npmjs.org/@types/uuid/-/uuid-10.0.0.tgz"
+  integrity sha512-7gqG38EyHgyP1S+7+xomFtL+ZNHcKv6DwNaCZmJmo1vgMugyF3TCnXVg4t1uk89mLNwnLtnY3TpOpCOyp1/xHQ==
 
 "@types/yargs-parser@*":
   version "21.0.3"
@@ -8382,7 +8387,7 @@ react-native-image-crop-picker@^0.40.3:
 
 react-native-otp-entry@^1.7.0:
   version "1.7.0"
-  resolved "https://registry.yarnpkg.com/react-native-otp-entry/-/react-native-otp-entry-1.7.0.tgz#93ce969dddd629faded8e974a3b9f55330a463c7"
+  resolved "https://registry.npmjs.org/react-native-otp-entry/-/react-native-otp-entry-1.7.0.tgz"
   integrity sha512-ENUahempFIrvE92QusUUcZlAynT6hSyFWpLLbiOTGKkHPVWQNHFJDOAX7+eyi4/3+V4bHZLPVizY7eEEtwPslA==
 
 react-native-pager-view@6.2.3:
@@ -8449,6 +8454,11 @@ react-native-url-polyfill@2.0.0:
   integrity sha512-My330Do7/DvKnEvwQc0WdcBnFPploYKp9CYlefDXzIdEaA+PAhDYllkvGeEroEzvc4Kzzj2O4yVdz8v6fjRvhA==
   dependencies:
     whatwg-url-without-unicode "8.0.0-3"
+
+react-native-uuid@^2.0.2:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/react-native-uuid/-/react-native-uuid-2.0.2.tgz#3da192e342ef35ee95a7def676ab41c1256dfd66"
+  integrity sha512-5ypj/hV58P+6VREdjkW0EudSibsH3WdqDERoHKnD9syFWjF+NfRWWrJb2sa3LIwI5zpzMvUiabs+DX40WHpEMw==
 
 react-native-vision-camera@^3.9.0-beta.3:
   version "3.9.2"
@@ -9675,7 +9685,7 @@ type-fest@^0.7.1:
 
 type-fest@^4.5.0:
   version "4.20.1"
-  resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-4.20.1.tgz#d97bb1e923bf524e5b4b43421d586760fb2ee8be"
+  resolved "https://registry.npmjs.org/type-fest/-/type-fest-4.20.1.tgz"
   integrity sha512-R6wDsVsoS9xYOpy8vgeBlqpdOyzJ12HNfQhC/aAKWM3YoCV9TtunJzh/QpkMgeDhkoynDcw5f1y+qF9yc/HHyg==
 
 typescript@^5.1.3:

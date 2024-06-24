@@ -1,6 +1,7 @@
 import { Image } from "expo-image";
 import Animated, {
   SharedValue,
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -12,25 +13,51 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import useStore from "@/store/useStore";
+import { useEffect, useState } from "react";
+import uuid from "react-native-uuid";
 
 interface MediaComponentProps {
-  key: number;
+  id?: string;
   media: GiphyMedia;
   scale?: SharedValue<number>;
   mediaType: string;
 }
 
 const MediaComponent: React.FC<MediaComponentProps> = ({
+  id,
   media,
   scale,
   mediaType,
 }) => {
   const mediaContext = useSharedValue({ x: 0, y: 0 });
+  const [stickerId, setStickerId] = useState<string>();
 
   const positionX = useSharedValue<number>(0);
   const positionY = useSharedValue<number>(0);
 
   const isMediaActive = useSharedValue<boolean>(false);
+
+  const { addSticker, updateSticker } = useStore((state) => ({
+    addSticker: state.addSticker,
+    updateSticker: state.updateSticker,
+  }));
+
+  useEffect(() => {
+    console.log(id);
+    const stickerTempId = id || uuid.v4();
+    console.log("Sticker Temp: " + stickerTempId);
+    setStickerId(stickerTempId as string);
+    console.log("Sticker Id: " + stickerId);
+    addSticker({
+      id: stickerTempId as string,
+      x: 0,
+      y: 0,
+      media: media,
+      scale: 1,
+      rotation: 0,
+    });
+  }, []);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -78,6 +105,14 @@ const MediaComponent: React.FC<MediaComponentProps> = ({
     })
     .onEnd(() => {
       isMediaActive.value = false;
+      if (stickerId) {
+        runOnJS(updateSticker)(stickerId, {
+          x: positionX.value,
+          y: positionY.value,
+        });
+      } else {
+        console.log("Sticker id is undefined, cannot update.");
+      }
     });
 
   return (

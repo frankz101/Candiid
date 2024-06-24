@@ -49,6 +49,7 @@ import {
   GiphySDK,
 } from "@giphy/react-native-sdk";
 import MediaComponent from "@/components/photo/MediaComponent";
+import { StickerDetails } from "@/store/createStickerSlice";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
@@ -78,7 +79,7 @@ const MemoriesScreen = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [media, setMedia] = useState<GiphyMedia | null>(null);
   const [stickers, setStickers] = useState<Sticker[]>([]);
-
+  const stickerArray = useStore((state) => state.stickers);
   const [activeStickerIndex, setActiveStickerIndex] = useState<number | null>(
     null
   );
@@ -108,6 +109,46 @@ const MemoriesScreen = () => {
     queryKey: ["hangouts-2"],
     queryFn: fetchHangouts,
   });
+
+  const createSticker = () => {
+    console.log("Creating Sticker");
+
+    try {
+    } catch {}
+  };
+
+  function isUuid(id: string) {
+    const regex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return regex.test(id);
+  }
+
+  const handleStickerSubmit = async () => {
+    const newStickers: StickerDetails[] = [];
+    console.log("New Stickers: " + newStickers);
+    const existingStickers = [];
+    console.log("Sticker Array: " + stickerArray);
+
+    stickerArray.forEach((sticker) => {
+      if (sticker.id && sticker.id.length > 20) {
+        newStickers.push(sticker);
+      } else if (sticker.id) {
+        existingStickers.push(sticker);
+      } else {
+        console.error("Sticker has no ID: ", sticker);
+      }
+    });
+
+    try {
+      const stickersResponse = await axios.post(
+        `${process.env.EXPO_PUBLIC_API_URL}/stickers`,
+        { newStickers }
+      );
+
+      console.log(stickersResponse);
+    } catch {}
+    console.log("All operations done");
+  };
 
   const screenX = useSharedValue<number>(0);
   const screenY = useSharedValue<number>(0);
@@ -484,6 +525,12 @@ const MemoriesScreen = () => {
             <Ionicons name="checkmark-circle" size={64} color="#FFF" />
           </Pressable>
         )}
+        <Pressable
+          onPress={handleStickerSubmit}
+          style={{ position: "absolute", right: 16, bottom: 75 }}
+        >
+          <Ionicons name="checkmark-circle" size={64} color="#FFF" />
+        </Pressable>
       </Animated.View>
       <BottomSheetModal
         ref={bottomSheetModalRef}
