@@ -14,11 +14,8 @@ const fetchStickers = async (userId) => {
   return result;
 };
 
-const updateStickers = async (memoryId, memoryData) => {
-  const { postId } = memoryData;
-  const result = await updateStickersInDatabase(memoryId, {
-    postId,
-  });
+const updateStickers = async (stickerData) => {
+  const result = await updateStickersInDatabase(stickerData);
   return result;
 };
 

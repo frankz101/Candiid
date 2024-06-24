@@ -124,9 +124,9 @@ const MemoriesScreen = () => {
 
   const handleStickerSubmit = async () => {
     const newStickers: StickerDetails[] = [];
-    console.log("New Stickers: " + newStickers);
-    const existingStickers = [];
-    console.log("Sticker Array: " + stickerArray);
+    // console.log("New Stickers: " + newStickers);
+    const existingStickers: StickerDetails[] = [];
+    // console.log("Sticker Array: " + stickerArray);
 
     stickerArray.forEach((sticker) => {
       if (sticker.id && sticker.id.length > 20) {
@@ -138,18 +138,28 @@ const MemoriesScreen = () => {
       }
     });
 
-    const requestBody = {
+    const newStickerRequestBody = {
       userId: user?.id,
       newStickers,
     };
 
-    try {
-      const stickersResponse = await axios.post(
-        `${process.env.EXPO_PUBLIC_API_URL}/stickers`,
-        requestBody
-      );
+    const existingStickerRequestBody = {
+      userId: user?.id,
+      existingStickers,
+    };
 
-      console.log(stickersResponse);
+    try {
+      const newStickersResponse = await axios.post(
+        `${process.env.EXPO_PUBLIC_API_URL}/stickers`,
+        newStickerRequestBody
+      );
+      console.log(newStickersResponse);
+
+      const existingStickersResponse = await axios.put(
+        `${process.env.EXPO_PUBLIC_API_URL}/stickers`,
+        existingStickerRequestBody
+      );
+      console.log(existingStickersResponse);
     } catch {}
     console.log("All operations done");
   };
@@ -415,9 +425,9 @@ const MemoriesScreen = () => {
     setStickers((prevStickers) => [...prevStickers, newSticker]);
   };
 
-  if (!isPendingStickers) {
-    console.log(stickersData);
-  }
+  // if (!isPendingStickers) {
+  //   console.log(stickersData);
+  // }
 
   return isPendingHangouts && isPendingStickers ? (
     <Text>Loading...</Text>

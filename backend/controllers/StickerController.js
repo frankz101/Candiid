@@ -27,15 +27,7 @@ const getStickers = async (req, res) => {
 
 const putStickers = async (req, res) => {
   try {
-    const memoryId = req.params.memoryId;
-
-    const memoryData = {
-      ...req.body,
-    };
-
-    console.log(memoryData);
-
-    const result = await updateMemory(memoryId, memoryData);
+    const result = await updateStickers(req.body);
     res.status(200).json(result);
   } catch (err) {
     console.log(err);

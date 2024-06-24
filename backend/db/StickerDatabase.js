@@ -57,17 +57,29 @@ const fetchStickersFromDatabase = async (userId) => {
   }
 };
 
-const updateStickersInDatabase = async (memoryId, memoryData) => {
-  console.log("Memory ID" + memoryId);
-  console.log("MemoryData: " + memoryData);
+const updateStickersInDatabase = async (stickerData) => {
   try {
-    const memoryDocRef = doc(db, "memories", memoryId);
-    console.log(memoryData);
-    await updateDoc(memoryDocRef, memoryData);
-    console.log("Memory updated successfully");
+    if (
+      !Array.isArray(stickerData.existingStickers) ||
+      stickerData.existingStickers.length === 0
+    ) {
+      throw new Error("No stickers provided for update.");
+    }
+
+    for (const sticker of stickerData.existingStickers) {
+      if (!sticker.id) {
+        throw new Error("Sticker missing an id, cannot update.");
+      }
+
+      const stickerDocRef = doc(db, "stickers", sticker.id);
+      const { id, ...updateFields } = sticker;
+
+      await updateDoc(stickerDocRef, updateFields);
+      console.log(`Sticker ${sticker.id} updated successfully.`);
+    }
   } catch (error) {
-    console.error("Error updating memory:", error);
-    throw new Error("Failed to update memory");
+    console.error("Error updating stickers:", error);
+    throw new Error("Failed to update stickers");
   }
 };
 

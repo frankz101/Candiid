@@ -9,6 +9,6 @@ var router = express.Router();
 
 router.post("/stickers", postStickers);
 router.get("/stickers/:userId", getStickers);
-router.put("/stickers/:memoryId", putStickers);
+router.put("/stickers/", putStickers);
 
 export default router;
