@@ -50,6 +50,8 @@ import {
 } from "@giphy/react-native-sdk";
 import MediaComponent from "@/components/photo/MediaComponent";
 import { StickerDetails } from "@/store/createStickerSlice";
+import ColorPicker, { Panel5 } from "reanimated-color-picker";
+import type { returnedResults } from "reanimated-color-picker";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
@@ -83,6 +85,17 @@ const MemoriesScreen = () => {
   const [activeStickerIndex, setActiveStickerIndex] = useState<number | null>(
     null
   );
+  const [modalContent, setModalContent] = useState("");
+
+  const selectedColor = useSharedValue("#FFF");
+  const backgroundColorStyle = useAnimatedStyle(() => ({
+    backgroundColor: selectedColor.value,
+  }));
+
+  const onColorSelect = (color: returnedResults) => {
+    "worklet";
+    selectedColor.value = color.hex;
+  };
 
   const postDetails = useStore((state) => state.postDetails);
 
@@ -403,9 +416,16 @@ const MemoriesScreen = () => {
 
   const snapPoints = useMemo(() => ["25%", "50%", "90%"], []);
 
-  const handlePresentModalPress = useCallback(() => {
+  const handleOpenStickerModal = useCallback(() => {
+    setModalContent("stickers");
     bottomSheetModalRef.current?.present();
   }, []);
+
+  const handleOpenColorPickerModal = useCallback(() => {
+    setModalContent("colorPicker");
+    bottomSheetModalRef.current?.present();
+  }, []);
+
   const handleSheetChanges = useCallback((index: number) => {
     console.log("handleSheetChanges", index);
   }, []);
@@ -434,18 +454,24 @@ const MemoriesScreen = () => {
   ) : (
     <BottomSheetModalProvider>
       <Animated.View
-        style={styles.background}
+        style={[styles.background, backgroundColorStyle]}
         // sharedTransitionTag="MemoriesScreen"
       >
         <Pressable
-          style={styles.topRightButton}
-          onPress={handlePresentModalPress}
+          style={styles.stickerButton}
+          onPress={handleOpenStickerModal}
         >
           <MaterialCommunityIcons
             name="sticker-emoji"
             size={32}
             color="white"
           />
+        </Pressable>
+        <Pressable
+          style={styles.colorPickerButton}
+          onPress={handleOpenColorPickerModal}
+        >
+          <Ionicons name="color-palette-outline" size={32} color="white" />
         </Pressable>
         <GestureDetector gesture={combinedGesture}>
           <Animated.View style={[styles.container, containerStyle]}>
@@ -578,42 +604,48 @@ const MemoriesScreen = () => {
         // handleStyle={styles.handleStyle}
         // handleIndicatorStyle={{ backgroundColor: "#FFF" }}
       >
-        <BottomSheetView>
-          <TextInput
-            autoFocus
-            onChangeText={setSearchQuery}
-            placeholder="Search..."
-            value={searchQuery}
-          />
-          <GiphyGridView
-            content={
-              searchQuery
-                ? GiphyContent.search({
-                    searchQuery: searchQuery,
-                    mediaType: GiphyMediaType.Sticker,
-                  })
-                : GiphyContent.trendingStickers()
-            }
-            cellPadding={3}
-            style={{ height: 300, marginTop: 24 }}
-            onMediaSelect={handleStickerSelect}
-          />
-          {media && (
-            <ScrollView
-              style={{
-                aspectRatio: media.aspectRatio,
-                maxHeight: 400,
-                padding: 24,
-                width: "100%",
-              }}
-            >
-              <GiphyMediaView
-                media={media}
-                style={{ aspectRatio: media.aspectRatio }}
-              />
-            </ScrollView>
-          )}
-        </BottomSheetView>
+        {modalContent === "stickers" ? (
+          <BottomSheetView>
+            <TextInput
+              autoFocus
+              onChangeText={setSearchQuery}
+              placeholder="Search..."
+              value={searchQuery}
+            />
+            <GiphyGridView
+              content={
+                searchQuery
+                  ? GiphyContent.search({
+                      searchQuery: searchQuery,
+                      mediaType: GiphyMediaType.Sticker,
+                    })
+                  : GiphyContent.trendingStickers()
+              }
+              cellPadding={3}
+              style={{ height: 300, marginTop: 24 }}
+              onMediaSelect={handleStickerSelect}
+            />
+            {media && (
+              <ScrollView
+                style={{
+                  aspectRatio: media.aspectRatio,
+                  maxHeight: 400,
+                  padding: 24,
+                  width: "100%",
+                }}
+              >
+                <GiphyMediaView
+                  media={media}
+                  style={{ aspectRatio: media.aspectRatio }}
+                />
+              </ScrollView>
+            )}
+          </BottomSheetView>
+        ) : (
+          <ColorPicker onChange={onColorSelect}>
+            <Panel5 />
+          </ColorPicker>
+        )}
       </BottomSheetModal>
     </BottomSheetModalProvider>
   );
@@ -624,7 +656,7 @@ export default MemoriesScreen;
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    backgroundColor: "#141417",
+    // backgroundColor: "#141417",
   },
   container: {
     flex: 1,
@@ -632,11 +664,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "rgba(44, 44, 48, 0.50)",
   },
-  topRightButton: {
+  stickerButton: {
     position: "absolute",
     zIndex: 2,
     top: hp(6),
     right: wp(6),
+  },
+  colorPickerButton: {
+    position: "absolute",
+    zIndex: 2,
+    top: hp(6),
+    right: wp(15),
   },
   post: {
     // width: postWidth,
