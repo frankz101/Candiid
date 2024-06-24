@@ -3,7 +3,7 @@ import AnimatedMemory from "@/components/photo/AnimatedMemory";
 import useStore from "@/store/useStore";
 import { useUser } from "@clerk/clerk-expo";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import axios, { AxiosResponse } from "axios";
 import { router, useLocalSearchParams } from "expo-router";
 import React, {
@@ -105,23 +105,22 @@ const MemoriesScreen = () => {
       .then((res) => res.data);
   };
 
-  const { data: hangouts, isPending } = useQuery({
-    queryKey: ["hangouts-2"],
-    queryFn: fetchHangouts,
-  });
-
-  const createSticker = () => {
-    console.log("Creating Sticker");
-
-    try {
-    } catch {}
+  const fetchStickers = async () => {
+    console.log("Fetching Stickers");
+    return axios
+      .get(`${process.env.EXPO_PUBLIC_API_URL}/stickers/${user?.id}`)
+      .then((res) => res.data);
   };
 
-  function isUuid(id: string) {
-    const regex =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    return regex.test(id);
-  }
+  const [hangouts, fetchedStickers] = useQueries({
+    queries: [
+      { queryKey: ["hangouts-2"], queryFn: fetchHangouts },
+      { queryKey: ["stickers", user?.id], queryFn: fetchStickers },
+    ],
+  });
+
+  const { data: hangoutsData, isPending: isPendingHangouts } = hangouts;
+  const { data: stickersData, isPending: isPendingStickers } = fetchedStickers;
 
   const handleStickerSubmit = async () => {
     const newStickers: StickerDetails[] = [];
@@ -139,10 +138,15 @@ const MemoriesScreen = () => {
       }
     });
 
+    const requestBody = {
+      userId: user?.id,
+      newStickers,
+    };
+
     try {
       const stickersResponse = await axios.post(
         `${process.env.EXPO_PUBLIC_API_URL}/stickers`,
-        { newStickers }
+        requestBody
       );
 
       console.log(stickersResponse);
@@ -411,7 +415,11 @@ const MemoriesScreen = () => {
     setStickers((prevStickers) => [...prevStickers, newSticker]);
   };
 
-  return isPending ? (
+  if (!isPendingStickers) {
+    console.log(stickersData);
+  }
+
+  return isPendingHangouts && isPendingStickers ? (
     <Text>Loading...</Text>
   ) : (
     <BottomSheetModalProvider>
@@ -432,8 +440,8 @@ const MemoriesScreen = () => {
         <GestureDetector gesture={combinedGesture}>
           <Animated.View style={[styles.container, containerStyle]}>
             <DotGrid width={screenWidth} height={screenHeight} />
-            {hangouts && hangouts.length > 0 ? (
-              hangouts.map((hangout: any, index: number) => (
+            {hangoutsData && hangoutsData.length > 0 ? (
+              hangoutsData.map((hangout: any, index: number) => (
                 <AnimatedMemory
                   key={index + (hangout.postId || "")}
                   postId={hangout.postId}
@@ -447,6 +455,23 @@ const MemoriesScreen = () => {
             ) : (
               <View />
             )}
+
+            {stickersData && stickersData.length > 0 ? (
+              stickersData.map((sticker: any, index: number) => (
+                <MediaComponent
+                  key={index}
+                  id={sticker.id}
+                  media={sticker.media}
+                  positionX={sticker.x}
+                  positionY={sticker.y}
+                  mediaType={"sticker"} // change this later
+                />
+              ))
+            ) : (
+              <View />
+            )}
+
+            {/* TEMPORARY STICKERS */}
             {stickers.length > 0 ? (
               stickers.map((sticker, index: number) => (
                 // <GestureDetector gesture={mediaPan} key={index}>
@@ -475,7 +500,7 @@ const MemoriesScreen = () => {
                 />
               ))
             ) : (
-              <Text>No stickers available</Text>
+              <View />
             )}
             {isPostPlacementMode && (
               <GestureDetector gesture={postPan}>
