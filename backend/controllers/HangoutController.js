@@ -8,6 +8,7 @@ import {
   createHangoutRequests,
   handleHangoutRequest,
   fetchFreshHangouts,
+  createJoinHangoutRequest,
 } from "../services/HangoutService.js";
 
 const postHangout = async (req, res) => {
@@ -111,6 +112,21 @@ const getFreshHangouts = async (req, res) => {
   }
 };
 
+const postJoinHangoutRequest = async (req, res) => {
+  try {
+    const { userId, recipientId, hangoutName, hangoutId } = req.body;
+    const result = await createJoinHangoutRequest(
+      userId,
+      recipientId,
+      hangoutName,
+      hangoutId
+    );
+    res.status(201).send({ result });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export {
   postHangout,
   postPhotoToHangout,
@@ -121,4 +137,5 @@ export {
   postHangoutRequests,
   putHangoutRequest,
   getFreshHangouts,
+  postJoinHangoutRequest,
 };

@@ -28,7 +28,6 @@ const FreshCard: React.FC<hangoutCardProps> = ({
 }) => {
   const { user } = useUser();
   const users = participantIds.slice(0, 3);
-  console.log(users);
   const getProfilePics = async () => {
     return axios
       .post(`${process.env.EXPO_PUBLIC_API_URL}/user/profile-pics`, {
@@ -42,48 +41,74 @@ const FreshCard: React.FC<hangoutCardProps> = ({
     queryFn: getProfilePics,
   });
 
+  const askToJoin = async () => {
+    try {
+      axios.post(
+        `${process.env.EXPO_PUBLIC_API_URL}/hangout/join-hangout-requests`,
+        {
+          userId: user?.id,
+          recipientId: users[0],
+          hangoutName: name,
+          hangoutId,
+        }
+      );
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <View style={styles.people}>
-        <View
-          style={{ flexDirection: "row", alignItems: "center", gap: wp(2) }}
-        >
-          {profilePics[0].profilePhoto ? (
-            <Image
-              source={{ uri: profilePics[0].profilePhoto }}
-              style={styles.hostPhoto}
-            />
-          ) : (
-            <Ionicons name="person-circle" size={40} color="white" />
-          )}
-          <Text style={styles.hostName}>{profilePics[0].name}</Text>
+      {profilePics && (
+        <View style={styles.people}>
+          <View
+            style={{ flexDirection: "row", alignItems: "center", gap: wp(2) }}
+          >
+            {profilePics[0].profilePhoto ? (
+              <Image
+                source={{ uri: profilePics[0]?.profilePhoto }}
+                style={styles.hostPhoto}
+              />
+            ) : (
+              <Ionicons name="person-circle" size={46} color="white" />
+            )}
+            <Text style={styles.hostName}>{profilePics[0]?.name}</Text>
+          </View>
+          <View style={styles.participants}>
+            {profilePics?.slice(1).map((profilePic: profilePicProps) => (
+              <View>
+                {profilePic.profilePhoto ? (
+                  <Image
+                    key={profilePic.id}
+                    source={{ uri: profilePic.profilePhoto }}
+                    style={styles.participantPhoto}
+                  />
+                ) : (
+                  <Ionicons name="person-circle" size={40} color="white" />
+                )}
+              </View>
+            ))}
+            {participantIds.length > 3 && (
+              <View style={styles.additionalParticipants}>
+                <Text>+{participantIds.length - 3}</Text>
+              </View>
+            )}
+          </View>
         </View>
-        <View style={styles.participants}>
-          {profilePics?.slice(1).map((profilePic: profilePicProps) => (
-            <View>
-              {profilePic.profilePhoto ? (
-                <Image
-                  key={profilePic.id}
-                  source={{ uri: profilePic.profilePhoto }}
-                  style={styles.participantPhoto}
-                />
-              ) : (
-                <Ionicons name="person-circle" size={40} color="white" />
-              )}
-            </View>
-          ))}
-          {participantIds.length > 3 && (
-            <View style={styles.additionalParticipants}>
-              <Text>+{participantIds.length - 3}</Text>
-            </View>
-          )}
-        </View>
-      </View>
+      )}
 
       <Text style={styles.name}>{name}</Text>
       <Text style={styles.description}>{description}</Text>
 
-      <Pressable style={styles.button}>
+      <Pressable
+        style={({ pressed }) => [
+          styles.button,
+          pressed
+            ? { backgroundColor: "rgba(85, 85, 85, 1)" }
+            : { backgroundColor: "rgba(85, 85, 85, .7)" },
+        ]}
+        onPress={() => askToJoin()}
+      >
         <Text style={styles.buttonText}>Ask to Join</Text>
       </Pressable>
     </View>
@@ -154,7 +179,6 @@ const styles = StyleSheet.create({
   },
   button: {
     alignSelf: "flex-end",
-    backgroundColor: "#555555",
     borderColor: "white",
     borderWidth: 1,
     borderRadius: 5,

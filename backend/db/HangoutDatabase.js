@@ -318,6 +318,40 @@ const fetchFreshHangoutsInDatabase = async (userId) => {
     return hangouts;
   } catch (error) {
     console.error("Error fetching fresh hangouts: ", error);
+    throw error;
+  }
+};
+
+const createJoinHangoutRequestInDatabase = async (
+  userId,
+  recipientId,
+  hangoutName,
+  hangoutId
+) => {
+  try {
+    const joinHangoutRequestsRef = collection(db, "joinHangoutRequests");
+
+    const hangoutRequestDoc = {
+      hangoutId: hangoutId,
+      hangoutName: hangoutName,
+      userId: userId,
+      receiverId: recipientId,
+      status: "pending",
+      createdAt: serverTimestamp(),
+    };
+
+    const docRef = await addDoc(joinHangoutRequestsRef, hangoutRequestDoc);
+    const notif = {
+      hangoutRequestId: docRef.id,
+      senderId: userId,
+      receiverId: recipientId,
+      message: "Hangout invite sent",
+    };
+
+    return notif;
+  } catch (error) {
+    console.error("Error creating join hangout request: ", error);
+    throw error;
   }
 };
 
@@ -331,4 +365,5 @@ export {
   fetchHangoutRequestsInDatabase,
   handleHangoutRequestInDatabase,
   fetchFreshHangoutsInDatabase,
+  createJoinHangoutRequestInDatabase,
 };
