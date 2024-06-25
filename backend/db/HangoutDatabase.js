@@ -303,10 +303,12 @@ const fetchFreshHangoutsInDatabase = async (userId) => {
             friendProfile.upcomingHangouts.map(async (hangout) => {
               const hangoutDocSnap = await getDoc(doc(db, "hangouts", hangout));
               if (hangoutDocSnap.exists()) {
-                hangouts.push({
-                  id: hangoutDocSnap.id,
-                  ...hangoutDocSnap.data(),
-                });
+                if (!hangoutDocSnap.data().participantIds.includes(userId)) {
+                  hangouts.push({
+                    id: hangoutDocSnap.id,
+                    ...hangoutDocSnap.data(),
+                  });
+                }
               }
             })
           );
