@@ -259,6 +259,22 @@ const fetchFriendsPostsFromDatabase = async (userId) => {
   }
 };
 
+const updateBackgroundFromDatabase = async (userId, backgroundDetails) => {
+  try {
+    const userDocRef = doc(db, "users", userId);
+
+    await updateDoc(userDocRef, {
+      backgroundDetails,
+    });
+
+    return userId;
+    console.log("Background details updated successfully.");
+  } catch (error) {
+    console.error("Error updating background details:", error);
+    throw new Error("Failed to update background details");
+  }
+};
+
 export {
   createUserInDatabase,
   changeProfilePhotoInDatabase,
@@ -270,4 +286,5 @@ export {
   searchUserInDatabase,
   editUserDetailsInDatabase,
   fetchFriendsPostsFromDatabase,
+  updateBackgroundFromDatabase,
 };

@@ -3,7 +3,7 @@ import AnimatedMemory from "@/components/photo/AnimatedMemory";
 import useStore from "@/store/useStore";
 import { useUser } from "@clerk/clerk-expo";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useQueries, useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios, { AxiosResponse } from "axios";
 import { router, useLocalSearchParams } from "expo-router";
 import React, {
@@ -87,20 +87,18 @@ const MemoriesScreen = () => {
   const [activeStickerIndex, setActiveStickerIndex] = useState<number | null>(
     null
   );
+  const [isEditMode, setIsEditMode] = useState<boolean>(false);
+  const [isEditBackgroundMode, setIsEditBackgroundMode] =
+    useState<boolean>(false);
   const [modalContent, setModalContent] = useState("");
   const [viewStyle, setViewStyle] = useState<ViewStyleKey>("polaroid");
 
-  const selectedColor = useSharedValue("#FFF");
-  const backgroundColorStyle = useAnimatedStyle(() => ({
-    backgroundColor: selectedColor.value,
-  }));
-
-  const onColorSelect = (color: returnedResults) => {
-    "worklet";
-    selectedColor.value = color.hex;
-  };
-
   const postDetails = useStore((state) => state.postDetails);
+
+  const [color, setColor] = useState("#FFF");
+  const selectedColor = useSharedValue(color);
+
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (isNewPost) {
@@ -128,17 +126,41 @@ const MemoriesScreen = () => {
       .then((res) => res.data);
   };
 
-  const [hangouts, fetchedStickers] = useQueries({
+  const fetchUser = async () => {
+    console.log("Fetching User Information");
+    return axios
+      .get(`${process.env.EXPO_PUBLIC_API_URL}/users/${user?.id}/${user?.id}`)
+      .then((res) => res.data);
+  };
+
+  const [hangouts, fetchedStickers, profile] = useQueries({
     queries: [
       { queryKey: ["hangouts-2"], queryFn: fetchHangouts },
       { queryKey: ["stickers", user?.id], queryFn: fetchStickers },
+      { queryKey: ["profile", user?.id], queryFn: fetchUser },
     ],
   });
 
   const { data: hangoutsData, isPending: isPendingHangouts } = hangouts;
   const { data: stickersData, isPending: isPendingStickers } = fetchedStickers;
+  const { data: profileDetails, isPending: isPendingProfile } = profile;
+
+  const handleBackgroundSubmit = async () => {
+    setIsEditBackgroundMode(false);
+
+    try {
+      const backgroundChangeResponse = await axios.put(
+        `${process.env.EXPO_PUBLIC_API_URL}/user/${user?.id}/background`,
+        { backgroundColor: selectedColor.value }
+      );
+      console.log(backgroundChangeResponse);
+    } catch {
+      console.log("Error changing background");
+    }
+  };
 
   const handleStickerSubmit = async () => {
+    setIsEditMode(false);
     const newStickers: StickerDetails[] = [];
     // console.log("New Stickers: " + newStickers);
     const existingStickers: StickerDetails[] = [];
@@ -169,15 +191,29 @@ const MemoriesScreen = () => {
         `${process.env.EXPO_PUBLIC_API_URL}/stickers`,
         newStickerRequestBody
       );
-      console.log(newStickersResponse);
+      // console.log(newStickersResponse);
 
       const existingStickersResponse = await axios.put(
         `${process.env.EXPO_PUBLIC_API_URL}/stickers`,
         existingStickerRequestBody
       );
-      console.log(existingStickersResponse);
+      // console.log(existingStickersResponse);
     } catch {}
     console.log("All operations done");
+  };
+
+  if (!isPendingProfile) {
+    selectedColor.value =
+      profileDetails.result.backgroundDetails.backgroundColor;
+  }
+
+  const backgroundColorStyle = useAnimatedStyle(() => ({
+    backgroundColor: selectedColor.value,
+  }));
+
+  const onColorSelect = (color: returnedResults) => {
+    "worklet";
+    selectedColor.value = color.hex;
   };
 
   const screenX = useSharedValue<number>(0);
@@ -426,6 +462,7 @@ const MemoriesScreen = () => {
   }, []);
 
   const handleOpenColorPickerModal = useCallback(() => {
+    setIsEditBackgroundMode(true);
     setModalContent("colorPicker");
     bottomSheetModalRef.current?.present();
   }, []);
@@ -435,6 +472,8 @@ const MemoriesScreen = () => {
   }, []);
 
   const handleStickerSelect = (e: any) => {
+    setIsEditMode(true);
+
     const newMedia = e.nativeEvent.media;
 
     const newSticker: Sticker = {
@@ -447,13 +486,15 @@ const MemoriesScreen = () => {
     setActiveStickerIndex(stickers.length);
 
     setStickers((prevStickers) => [...prevStickers, newSticker]);
+
+    bottomSheetModalRef.current?.close();
   };
 
   // if (!isPendingStickers) {
   //   console.log(stickersData);
   // }
 
-  return isPendingHangouts && isPendingStickers ? (
+  return isPendingHangouts && isPendingStickers && isPendingProfile ? (
     <Text>Loading...</Text>
   ) : (
     <BottomSheetModalProvider>
@@ -593,12 +634,22 @@ const MemoriesScreen = () => {
             <Ionicons name="checkmark-circle" size={64} color="#FFF" />
           </Pressable>
         )}
-        {/* <Pressable
-          onPress={handleStickerSubmit}
-          style={{ position: "absolute", right: 16, bottom: 75 }}
-        >
-          <Ionicons name="checkmark-circle" size={64} color="#FFF" />
-        </Pressable> */}
+        {isEditMode && (
+          <Pressable
+            onPress={handleStickerSubmit}
+            style={{ position: "absolute", right: 16, bottom: 75 }}
+          >
+            <Ionicons name="checkmark-circle" size={64} color="#FFF" />
+          </Pressable>
+        )}
+        {isEditBackgroundMode && (
+          <Pressable
+            onPress={handleBackgroundSubmit}
+            style={{ position: "absolute", right: 30, bottom: 75 }}
+          >
+            <Ionicons name="checkmark-circle" size={64} color="#FFF" />
+          </Pressable>
+        )}
       </Animated.View>
       <BottomSheetModal
         ref={bottomSheetModalRef}
