@@ -288,6 +288,7 @@ const handleHangoutRequestInDatabase = async (hangoutId, hangoutRequest) => {
 
 const fetchFreshHangoutsInDatabase = async (userId) => {
   const userDocRef = doc(db, "users", userId);
+  const joinHangoutRequestsRef = collection(db, "joinHangoutRequests");
   try {
     const userDocSnap = await getDoc(userDocRef);
     const friends = userDocSnap.data().friends || [];
@@ -304,9 +305,23 @@ const fetchFreshHangoutsInDatabase = async (userId) => {
               const hangoutDocSnap = await getDoc(doc(db, "hangouts", hangout));
               if (hangoutDocSnap.exists()) {
                 if (!hangoutDocSnap.data().participantIds.includes(userId)) {
+                  const q = query(
+                    joinHangoutRequestsRef,
+                    where("hangoutId", "==", hangoutDocSnap.id),
+                    where("userId", "==", userId),
+                    where("receiverId", "==", hangoutDocSnap.data().userId)
+                  );
+
+                  const docSnap = await getDocs(q);
+                  let askedToJoin = true;
+
+                  if (docSnap.empty) {
+                    askedToJoin = false;
+                  }
                   hangouts.push({
                     id: hangoutDocSnap.id,
                     ...hangoutDocSnap.data(),
+                    askedToJoin,
                   });
                 }
               }

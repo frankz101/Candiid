@@ -77,6 +77,7 @@ const FreshHangouts: React.FC<FreshHangoutsProps> = ({
               description={item.hangoutDescription}
               hangoutId={item.id}
               participantIds={item.participantIds}
+              askedToJoin={item.askedToJoin}
             />
           );
         }}

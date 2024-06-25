@@ -2,7 +2,7 @@ import { useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import React from "react";
+import React, { useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import {
   widthPercentageToDP as wp,
@@ -14,6 +14,7 @@ interface hangoutCardProps {
   description: string;
   hangoutId: string;
   participantIds: string[];
+  askedToJoin: boolean;
 }
 interface profilePicProps {
   id: string;
@@ -25,9 +26,11 @@ const FreshCard: React.FC<hangoutCardProps> = ({
   description,
   hangoutId,
   participantIds,
+  askedToJoin,
 }) => {
   const { user } = useUser();
   const users = participantIds.slice(0, 3);
+  const [asked, setAsked] = useState(askedToJoin);
   const getProfilePics = async () => {
     return axios
       .post(`${process.env.EXPO_PUBLIC_API_URL}/user/profile-pics`, {
@@ -43,7 +46,7 @@ const FreshCard: React.FC<hangoutCardProps> = ({
 
   const askToJoin = async () => {
     try {
-      axios.post(
+      const res = await axios.post(
         `${process.env.EXPO_PUBLIC_API_URL}/hangout/join-hangout-requests`,
         {
           userId: user?.id,
@@ -52,6 +55,9 @@ const FreshCard: React.FC<hangoutCardProps> = ({
           hangoutId,
         }
       );
+      if (res.status === 201) {
+        setAsked(true);
+      }
     } catch (err) {
       console.error(err);
     }
@@ -103,13 +109,17 @@ const FreshCard: React.FC<hangoutCardProps> = ({
       <Pressable
         style={({ pressed }) => [
           styles.button,
-          pressed
-            ? { backgroundColor: "rgba(85, 85, 85, 1)" }
-            : { backgroundColor: "rgba(85, 85, 85, .7)" },
+          asked ? styles.buttonDisabled : null,
+          pressed ? { backgroundColor: "rgba(85, 85, 85, .7)" } : null,
         ]}
+        disabled={asked}
         onPress={() => askToJoin()}
       >
-        <Text style={styles.buttonText}>Ask to Join</Text>
+        <Text
+          style={[styles.buttonText, asked ? styles.buttonTextDisabled : null]}
+        >
+          {asked ? "Asked to Join" : "Ask to Join"}
+        </Text>
       </Pressable>
     </View>
   );
@@ -179,15 +189,24 @@ const styles = StyleSheet.create({
   },
   button: {
     alignSelf: "flex-end",
+    alignItems: "center",
     borderColor: "white",
     borderWidth: 1,
     borderRadius: 5,
-    paddingHorizontal: wp(10),
+    width: wp(40),
     paddingVertical: hp(1),
     marginTop: hp(3),
+    backgroundColor: "rgba(85, 85, 85, .5)",
+  },
+  buttonDisabled: {
+    backgroundColor: "rgba(85, 85, 85, .5)",
+    borderColor: "gray",
   },
   buttonText: {
     color: "white",
     fontWeight: "bold",
+  },
+  buttonTextDisabled: {
+    color: "gray",
   },
 });
