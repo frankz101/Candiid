@@ -9,6 +9,7 @@ import {
   handleHangoutRequest,
   fetchFreshHangouts,
   createJoinHangoutRequest,
+  fetchJoinhangoutRequests,
 } from "../services/HangoutService.js";
 
 const postHangout = async (req, res) => {
@@ -127,6 +128,16 @@ const postJoinHangoutRequest = async (req, res) => {
   }
 };
 
+const getJoinHangoutRequests = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const result = await fetchJoinhangoutRequests(userId);
+    res.status(201).send({ result });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export {
   postHangout,
   postPhotoToHangout,
@@ -138,4 +149,5 @@ export {
   putHangoutRequest,
   getFreshHangouts,
   postJoinHangoutRequest,
+  getJoinHangoutRequests,
 };

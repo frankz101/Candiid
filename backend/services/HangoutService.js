@@ -10,6 +10,7 @@ import {
   handleHangoutRequestInDatabase,
   fetchFreshHangoutsInDatabase,
   createJoinHangoutRequestInDatabase,
+  fetchJoinHangoutRequestsInDatabase,
 } from "../db/HangoutDatabase.js";
 import { storage } from "../firebase.js";
 
@@ -107,6 +108,11 @@ const createJoinHangoutRequest = async (
   return result;
 };
 
+const fetchJoinhangoutRequests = async (userId) => {
+  const result = await fetchJoinHangoutRequestsInDatabase(userId);
+  return result;
+};
+
 export {
   createHangout,
   addPhotoToHangout,
@@ -118,4 +124,5 @@ export {
   handleHangoutRequest,
   fetchFreshHangouts,
   createJoinHangoutRequest,
+  fetchJoinhangoutRequests,
 };

@@ -247,11 +247,25 @@ const fetchHangoutRequestsInDatabase = async (userId) => {
 const handleHangoutRequestInDatabase = async (hangoutId, hangoutRequest) => {
   try {
     const hangoutRequestRef = collection(db, "hangoutRequests");
-    const q = query(
-      hangoutRequestRef,
-      where("hangoutId", "==", hangoutId),
-      where("receiverId", "==", hangoutRequest.receiverId)
-    );
+    const joinHangoutRequestRef = collection(db, "joinHangoutRequests");
+    console.log(hangoutRequest.type);
+
+    let q;
+
+    if (hangoutRequest.type === "request") {
+      q = query(
+        hangoutRequestRef,
+        where("hangoutId", "==", hangoutId),
+        where("receiverId", "==", hangoutRequest.receiverId)
+      );
+    } else if (hangoutRequest.type === "join") {
+      q = query(
+        joinHangoutRequestRef,
+        where("hangoutId", "==", hangoutId),
+        where("receiverId", "==", hangoutRequest.receiverId),
+        where("userId", "==", hangoutRequest.senderId)
+      );
+    }
 
     const docSnap = await getDocs(q);
 
@@ -267,18 +281,32 @@ const handleHangoutRequestInDatabase = async (hangoutId, hangoutRequest) => {
     if (hangoutRequest.status == "accept") {
       const hangoutDocRef = doc(db, "hangouts", hangoutId);
 
-      updateDoc(hangoutDocRef, {
-        pendingRequests: arrayRemove(hangoutRequest.receiverId),
-        participantIds: arrayUnion(hangoutRequest.receiverId),
-      })
-        .then(() => {
-          console.log(
-            `User ${hangoutRequest.receiverId} added to hangout: ${hangoutId}'s.`
-          );
+      if (hangoutRequest.type === "request") {
+        updateDoc(hangoutDocRef, {
+          pendingRequests: arrayRemove(hangoutRequest.receiverId),
+          participantIds: arrayUnion(hangoutRequest.receiverId),
         })
-        .catch((error) => {
-          console.error("Error updating document:", error);
-        });
+          .then(() => {
+            console.log(
+              `User ${hangoutRequest.receiverId} added to hangout: ${hangoutId}'s.`
+            );
+          })
+          .catch((error) => {
+            console.error("Error updating document:", error);
+          });
+      } else if (hangoutRequest.type === "join") {
+        updateDoc(hangoutDocRef, {
+          participantIds: arrayUnion(hangoutRequest.senderId),
+        })
+          .then(() => {
+            console.log(
+              `User ${hangoutRequest.senderId} join hangout request accepted: ${hangoutId}.`
+            );
+          })
+          .catch((error) => {
+            console.error("Error updating document:", error);
+          });
+      }
     }
   } catch (error) {
     console.error("Error handling friend request: ", error);
@@ -370,6 +398,27 @@ const createJoinHangoutRequestInDatabase = async (
   }
 };
 
+const fetchJoinHangoutRequestsInDatabase = async (userId) => {
+  try {
+    const hangoutRequestsRef = collection(db, "joinHangoutRequests");
+    const q = query(hangoutRequestsRef, where("receiverId", "==", userId));
+    const querySnapshot = await getDocs(q);
+
+    const promises = querySnapshot.docs.map(async (doc) => {
+      const hangoutRequest = { id: doc.id, ...doc.data() };
+      const userInfo = await searchUserInDatabase(hangoutRequest.userId);
+      return { ...hangoutRequest, userInfo };
+    });
+
+    const results = await Promise.all(promises);
+
+    return results;
+  } catch (error) {
+    console.error("Error fetching hangout requests:", error);
+    throw error;
+  }
+};
+
 export {
   createHangoutInDatabase,
   addPhotoToHangoutInDatabase,
@@ -381,4 +430,5 @@ export {
   handleHangoutRequestInDatabase,
   fetchFreshHangoutsInDatabase,
   createJoinHangoutRequestInDatabase,
+  fetchJoinHangoutRequestsInDatabase,
 };

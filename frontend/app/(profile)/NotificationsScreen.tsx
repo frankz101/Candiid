@@ -39,6 +39,7 @@ const scrollViewHeight = screenHeight - headerHeight - bottomPadding;
 const NotificationsScreen = () => {
   const [friendRequests, setFriendRequests] = useState<User[]>([]);
   const [hangoutRequests, setHangoutRequests] = useState([]);
+  const [joinHangoutRequests, setJoinHangoutRequests] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const { user } = useUser();
   const router = useRouter();
@@ -55,10 +56,26 @@ const NotificationsScreen = () => {
       currentRequests?.filter((request: User) => request.userId !== userId)
     );
   };
-  const updateHangoutRequests = (hangoutId: string, status: string) => {
-    setHangoutRequests((currentRequests) =>
-      currentRequests.filter((request: any) => request.hangoutId !== hangoutId)
-    );
+  const updateHangoutRequests = (
+    hangoutId: string,
+    status: string,
+    type: string
+  ) => {
+    if (type === "request") {
+      setHangoutRequests((currentRequests) =>
+        currentRequests.filter(
+          (request: any) => request.hangoutId !== hangoutId
+        )
+      );
+    }
+    if (type === "join") {
+      setJoinHangoutRequests((currentRequests) =>
+        currentRequests.filter(
+          (request: any) => request.hangoutId !== hangoutId
+        )
+      );
+    }
+
     console.log(status);
   };
 
@@ -79,6 +96,19 @@ const NotificationsScreen = () => {
     queryFn: fetchHangoutRequests,
   });
 
+  const fetchJoinHangoutRequests = async () => {
+    return axios
+      .get(
+        `${process.env.EXPO_PUBLIC_API_URL}/hangout/join-requests/${user?.id}`
+      )
+      .then((res) => res.data);
+  };
+  const { data: joinHangoutRequestsData, isPending: joinRequestsPending } =
+    useQuery({
+      queryKey: ["joinHangoutRequestsData", user?.id],
+      queryFn: fetchJoinHangoutRequests,
+    });
+
   const onRefresh = async () => {
     setRefreshing(true);
     await queryClient.invalidateQueries({
@@ -93,7 +123,13 @@ const NotificationsScreen = () => {
       setHangoutRequests(hangoutRequestsData.result);
     }
   }, [hangoutRequestsData]);
+  useEffect(() => {
+    if (joinHangoutRequestsData) {
+      setJoinHangoutRequests(joinHangoutRequestsData.result);
+    }
+  }, [joinHangoutRequestsData]);
 
+  console.log(joinHangoutRequests);
   if (isPending) {
     return (
       <BaseScreen>
@@ -143,13 +179,28 @@ const NotificationsScreen = () => {
         {hangoutRequests?.map((item: any, index: number) => (
           <HangoutRequestBanner
             key={"Hangout Request" + index}
+            type="request"
             senderName={item.userInfo.username}
             senderId={item.userInfo.userId}
             senderProfilePhoto={item.userInfo.profilePhoto?.fileUrl}
             hangoutId={item.hangoutId}
             hangoutName={item.hangoutName}
             onHandleRequest={(hangoutId: string, status: string) =>
-              updateHangoutRequests(hangoutId, status)
+              updateHangoutRequests(hangoutId, status, "request")
+            }
+          />
+        ))}
+        {joinHangoutRequests?.map((item: any, index: number) => (
+          <HangoutRequestBanner
+            key={index}
+            type="join"
+            senderName={item.userInfo.username}
+            senderId={item.userInfo.userId}
+            senderProfilePhoto={item.userInfo.profilePhoto?.fileUrl}
+            hangoutId={item.hangoutId}
+            hangoutName={item.hangoutName}
+            onHandleRequest={(hangoutId: string, status: string) =>
+              updateHangoutRequests(hangoutId, status, "join")
             }
           />
         ))}
