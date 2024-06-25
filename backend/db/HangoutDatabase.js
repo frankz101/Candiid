@@ -51,6 +51,12 @@ const createHangoutInDatabase = async (hangout) => {
       createdAt: serverTimestamp(),
     });
 
+    // add upcoming hangouts to profile
+    const userDocRef = doc(db, "users", hangout.userId);
+    await updateDoc(userDocRef, {
+      upcomingHangouts: arrayUnion(docRef.id),
+    });
+
     // const userDocRef = doc(db, "users", hangout.userId); ADD THIS IF YOU WANT TO IMPLEMENET MOST RECENT 12 HANGOUTS
 
     // await updateDoc(userDocRef, {
@@ -280,6 +286,39 @@ const handleHangoutRequestInDatabase = async (hangoutId, hangoutRequest) => {
   }
 };
 
+const fetchFreshHangoutsInDatabase = async (userId) => {
+  const userDocRef = doc(db, "users", userId);
+  try {
+    const userDocSnap = await getDoc(userDocRef);
+    const friends = userDocSnap.data().friends || [];
+    const hangouts = [];
+
+    await Promise.all(
+      friends.map(async (friendId) => {
+        const friendDoc = await getDoc(doc(db, "users", friendId));
+        const friendProfile = friendDoc.data();
+
+        if (friendProfile && Array.isArray(friendProfile.upcomingHangouts)) {
+          await Promise.all(
+            friendProfile.upcomingHangouts.map(async (hangout) => {
+              const hangoutDocSnap = await getDoc(doc(db, "hangouts", hangout));
+              if (hangoutDocSnap.exists()) {
+                hangouts.push({
+                  id: hangoutDocSnap.id,
+                  ...hangoutDocSnap.data(),
+                });
+              }
+            })
+          );
+        }
+      })
+    );
+    return hangouts;
+  } catch (error) {
+    console.error("Error fetching fresh hangouts: ", error);
+  }
+};
+
 export {
   createHangoutInDatabase,
   addPhotoToHangoutInDatabase,
@@ -289,4 +328,5 @@ export {
   createHangoutRequestsInDatabase,
   fetchHangoutRequestsInDatabase,
   handleHangoutRequestInDatabase,
+  fetchFreshHangoutsInDatabase,
 };

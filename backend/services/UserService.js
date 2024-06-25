@@ -10,6 +10,7 @@ import {
   searchUserInDatabase,
   editUserDetailsInDatabase,
   fetchFriendsPostsFromDatabase,
+  fetchProfilePicsInDatabase,
 } from "../db/UserDatabase.js";
 import { storage } from "../firebase.js";
 import {
@@ -142,6 +143,11 @@ const fetchFriendsPosts = async (userId) => {
   return result;
 };
 
+const fetchProfilePics = async (users) => {
+  const result = await fetchProfilePicsInDatabase(users);
+  return result;
+};
+
 export {
   createUser,
   changeProfilePhoto,
@@ -153,4 +159,5 @@ export {
   searchUser,
   editUserDetails,
   fetchFriendsPosts,
+  fetchProfilePics,
 };

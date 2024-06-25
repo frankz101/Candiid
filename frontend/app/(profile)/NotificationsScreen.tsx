@@ -145,7 +145,7 @@ const NotificationsScreen = () => {
             key={"Hangout Request" + index}
             senderName={item.userInfo.username}
             senderId={item.userInfo.userId}
-            senderProfilePhoto={item.userInfo.profilePhoto.fileUrl}
+            senderProfilePhoto={item.userInfo.profilePhoto?.fileUrl}
             hangoutId={item.hangoutId}
             hangoutName={item.hangoutName}
             onHandleRequest={(hangoutId: string, status: string) =>

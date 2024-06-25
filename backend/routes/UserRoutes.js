@@ -11,6 +11,7 @@ import {
   getUserWithId,
   putUserDetails,
   getPosts,
+  getProfilePics,
 } from "../controllers/UserController.js";
 
 var router = express.Router();
@@ -31,5 +32,6 @@ router.get("/user/search/:username/users/:userId", getUsers);
 router.get("/user/:id/friends", getFriends);
 router.put("/user/:id/details", putUserDetails);
 router.get("/user/:id/feed", getPosts);
+router.post("/user/profile-pics", getProfilePics);
 
 export default router;

@@ -9,6 +9,7 @@ import {
   searchUser,
   editUserDetails,
   fetchFriendsPosts,
+  fetchProfilePics,
 } from "../services/UserService.js";
 
 const postUser = async (req, res) => {
@@ -127,6 +128,17 @@ const getPosts = async (req, res) => {
   }
 };
 
+const getProfilePics = async (req, res) => {
+  try {
+    const users = req.body.users;
+    console.log(req.body.users);
+    const result = await fetchProfilePics(users);
+    res.status(201).send({ result });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export {
   postUser,
   putUserProfilePhoto,
@@ -138,4 +150,5 @@ export {
   getUserWithId,
   putUserDetails,
   getPosts,
+  getProfilePics,
 };

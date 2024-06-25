@@ -259,6 +259,27 @@ const fetchFriendsPostsFromDatabase = async (userId) => {
   }
 };
 
+const fetchProfilePicsInDatabase = async (users) => {
+  try {
+    const userInfoPromises = users.map(async (userId) => {
+      const userDoc = await getDoc(doc(db, "users", userId));
+      let fileUrl = "";
+      if (userDoc.exists() && userDoc.data().profilePhoto?.fileUrl) {
+        fileUrl = userDoc.data().profilePhoto.fileUrl;
+      } else if (userDoc.exists()) {
+        fileUrl = null;
+      }
+      return { id: userId, name: userDoc.data().name, profilePhoto: fileUrl };
+    });
+
+    const userInfo = await Promise.all(userInfoPromises);
+    return userInfo;
+  } catch (error) {
+    console.error("Error fetching profile pictures: ", error);
+    throw error;
+  }
+};
+
 export {
   createUserInDatabase,
   changeProfilePhotoInDatabase,
@@ -270,4 +291,5 @@ export {
   searchUserInDatabase,
   editUserDetailsInDatabase,
   fetchFriendsPostsFromDatabase,
+  fetchProfilePicsInDatabase,
 };

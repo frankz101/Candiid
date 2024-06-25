@@ -7,6 +7,7 @@ import {
   fetchHangoutRequests,
   createHangoutRequests,
   handleHangoutRequest,
+  fetchFreshHangouts,
 } from "../services/HangoutService.js";
 
 const postHangout = async (req, res) => {
@@ -100,6 +101,16 @@ const putHangoutRequest = async (req, res) => {
   }
 };
 
+const getFreshHangouts = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const result = await fetchFreshHangouts(userId);
+    res.status(201).send({ result });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export {
   postHangout,
   postPhotoToHangout,
@@ -109,4 +120,5 @@ export {
   getUpcomingHangouts,
   postHangoutRequests,
   putHangoutRequest,
+  getFreshHangouts,
 };

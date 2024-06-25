@@ -28,8 +28,7 @@ import FeedPost from "@/components/home/FeedPost";
 import CreateHangoutButton from "@/components/home/CreateHangoutButton";
 import CompletedHangouts from "@/components/home/CompletedHangouts";
 import ProfileTabBar from "@/components/home/ProfileTabBar";
-
-import uuid from "react-native-uuid";
+import FreshHangouts from "@/components/home/FreshHangouts";
 
 interface Photo {
   fileUrl: string;
@@ -68,7 +67,7 @@ const Home = () => {
       <CompletedHangouts refreshing={refreshing} onRefresh={onRefresh} />
     ),
     freshHangouts: () => (
-      <CompletedHangouts refreshing={refreshing} onRefresh={onRefresh} />
+      <FreshHangouts refreshing={refreshing} onRefresh={onRefresh} />
     ),
   });
 
