@@ -66,12 +66,13 @@ const searchUsers = async (username, userId) => {
 
     const friends = await fetchFriends(userId);
     const friendIds = friends.map((friend) => friend.userId);
+    const filteredUsersIds = usersIds.filter((user) => user.userId !== userId);
 
     const friendRequests = await retrieveFriendRequestsSent(userId);
     const friendRequestsIds = friendRequests.map(
       (friendRequest) => friendRequest.userId
     );
-    const usersWithFriendshipStatus = usersIds.map((user) => {
+    const usersWithFriendshipStatus = filteredUsersIds.map((user) => {
       let friendStatus = "Not Friends";
       if (friendIds.includes(user.userId)) {
         friendStatus = "Already Friends";
