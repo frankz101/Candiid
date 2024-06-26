@@ -34,7 +34,7 @@ const searchUser = async (friendId, userId) => {
 
     // Check if the friendId is in the user's friends list
     const friends = await fetchFriends(userId);
-    const friendIds = friends.map((friend) => friend.id);
+    const friendIds = friends.map((friend) => friend.userId);
     const isAlreadyFriend = friendIds.includes(friendId);
 
     // Check if there's a pending friend request from the user to the friend
@@ -65,7 +65,7 @@ const searchUsers = async (username, userId) => {
     const usersIds = await searchUsersInDatabase(username);
 
     const friends = await fetchFriends(userId);
-    const friendIds = friends.map((friend) => friend.id);
+    const friendIds = friends.map((friend) => friend.userId);
 
     const friendRequests = await retrieveFriendRequestsSent(userId);
     const friendRequestsIds = friendRequests.map(

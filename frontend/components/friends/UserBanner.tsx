@@ -1,5 +1,6 @@
 import { useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
+import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
@@ -151,7 +152,11 @@ const UserBanner: React.FC<UserBannerProps> = ({
     setFriendStatus("Not Friends");
   };
 
-  console.log(user.name);
+  const removeFriendList = (friendId: string) => {
+    if (onHandleRequest) {
+      onHandleRequest(friendId);
+    }
+  };
 
   return (
     <Pressable
@@ -268,7 +273,10 @@ const UserBanner: React.FC<UserBannerProps> = ({
           </View>
         )}
         {type === "friends" && (
-          <Pressable style={{ alignSelf: "center" }}>
+          <Pressable
+            style={{ alignSelf: "center" }}
+            onPress={() => removeFriendList(user.userId)}
+          >
             <Ionicons name="close-outline" color="gray" size={20} />
           </Pressable>
         )}
