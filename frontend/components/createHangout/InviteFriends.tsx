@@ -74,9 +74,12 @@ const InviteFriends = () => {
   const onSubmit = () => {}; // TODO: Implement search functionality
 
   interface Friend {
-    firstName: string;
+    username: string;
+    name: string;
     id: string;
-    profilePhoto: string;
+    profilePhoto: {
+      fileUrl: string;
+    };
   }
 
   const renderFriendBanner = ({
@@ -87,8 +90,8 @@ const InviteFriends = () => {
     index: number;
   }) => (
     <FriendInviteBanner
-      username={item.firstName} // FIX THIS WITH USERNAME NOT FIRSTNAME
-      profilePhoto={item.profilePhoto}
+      username={item.username} // FIX THIS WITH USERNAME NOT FIRSTNAME
+      profilePhoto={item.profilePhoto.fileUrl}
       onInvite={() => handleInvite(item.id)}
       onUninvite={() => handleUninvite(item.id)}
     />

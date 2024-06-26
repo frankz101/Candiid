@@ -11,14 +11,13 @@ import {
 } from "react-native-responsive-screen";
 
 interface User {
-  id: number;
   name: string;
   username: string;
   profilePhoto: {
     fileUrl: string;
   };
   userId: string;
-  friendStatus: string;
+  friendStatus?: string;
 }
 
 type FriendUpdateAction = {
@@ -152,6 +151,8 @@ const UserBanner: React.FC<UserBannerProps> = ({
     setFriendStatus("Not Friends");
   };
 
+  console.log(user.name);
+
   return (
     <Pressable
       onPress={async () => {
@@ -179,7 +180,12 @@ const UserBanner: React.FC<UserBannerProps> = ({
         ) : (
           <Ionicons name="person-circle" color="white" size={40} />
         )}
-        <View style={{ marginLeft: wp(3), flex: 1 }}>
+        <View
+          style={{
+            marginLeft: wp(3),
+            flex: 1,
+          }}
+        >
           <Text style={{ fontSize: 16, color: "white" }}>{user.name}</Text>
           <Text style={{ color: "#777" }}>{"@" + user.username}</Text>
         </View>
@@ -260,6 +266,11 @@ const UserBanner: React.FC<UserBannerProps> = ({
               <Text style={{ color: "#000" }}>Accept</Text>
             </Pressable>
           </View>
+        )}
+        {type === "friends" && (
+          <Pressable style={{ alignSelf: "center" }}>
+            <Ionicons name="close-outline" color="gray" size={20} />
+          </Pressable>
         )}
       </View>
     </Pressable>

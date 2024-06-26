@@ -183,9 +183,12 @@ const fetchFriendsFromDatabase = async (userId) => {
           const friendData = friendSnapshot.data();
           const profilePhotoUrl = friendData.profilePhoto?.fileUrl || null;
           friendsData.push({
-            id: friendId,
-            profilePhoto: profilePhotoUrl,
-            firstName: friendData.name,
+            userId: friendId,
+            profilePhoto: {
+              fileUrl: profilePhotoUrl,
+            },
+            name: friendData.name,
+            username: friendData.username,
           });
         }
       }
