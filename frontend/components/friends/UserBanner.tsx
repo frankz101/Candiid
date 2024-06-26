@@ -5,7 +5,7 @@ import axios from "axios";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -137,11 +137,28 @@ const UserBanner: React.FC<UserBannerProps> = ({
   };
 
   const removeFriend = (friendId: string) => {
-    setPendingUpdates((currentUpdates) => [
-      ...currentUpdates,
-      { action: "removeFriend", friendId },
-    ]);
-    setFriendStatus("Not Friends");
+    Alert.alert(
+      "Remove Friend",
+      "Are you sure you want to remove this friend?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "OK",
+          style: "destructive",
+          onPress: () => {
+            setPendingUpdates((currentUpdates) => [
+              ...currentUpdates,
+              { action: "removeFriend", friendId },
+            ]);
+            setFriendStatus("Not Friends");
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   const removeRequest = (friendId: string) => {
@@ -154,7 +171,22 @@ const UserBanner: React.FC<UserBannerProps> = ({
 
   const removeFriendList = (friendId: string) => {
     if (onHandleRequest) {
-      onHandleRequest(friendId);
+      Alert.alert(
+        "Remove Friend",
+        "Are you sure you want to remove this friend?",
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+          {
+            text: "OK",
+            style: "destructive",
+            onPress: () => onHandleRequest(friendId),
+          },
+        ],
+        { cancelable: true }
+      );
     }
   };
 
