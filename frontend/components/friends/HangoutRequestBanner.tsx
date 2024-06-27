@@ -9,6 +9,7 @@ import {
 } from "react-native-responsive-screen";
 
 interface HangoutRequestBannerProps {
+  type: string;
   senderName: string;
   senderId: string;
   senderProfilePhoto: string;
@@ -18,6 +19,7 @@ interface HangoutRequestBannerProps {
 }
 
 const HangoutRequestBanner: React.FC<HangoutRequestBannerProps> = ({
+  type,
   senderName,
   senderId,
   senderProfilePhoto,
@@ -31,7 +33,9 @@ const HangoutRequestBanner: React.FC<HangoutRequestBannerProps> = ({
       `${process.env.EXPO_PUBLIC_API_URL}/hangout/${hangoutId}/requests`,
       {
         receiverId: currentUser?.id,
+        senderId,
         status,
+        type,
       }
     );
 
@@ -53,7 +57,8 @@ const HangoutRequestBanner: React.FC<HangoutRequestBannerProps> = ({
       )}
       <View style={styles.textContainer}>
         <Text style={styles.inviteText}>
-          <Text style={styles.boldText}>{senderName}</Text> has invited you to{" "}
+          <Text style={styles.boldText}>{senderName}</Text>{" "}
+          {type === "request" ? "has invited you to" : "wants to join"}{" "}
           <Text style={styles.boldText}>{hangoutName}</Text>
         </Text>
       </View>

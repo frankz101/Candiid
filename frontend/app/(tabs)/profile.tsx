@@ -106,7 +106,7 @@ const Profile = () => {
     <BaseScreen style={styles.container}>
       <View style={styles.navOptions}>
         <Ionicons
-          onPress={() => router.push("/(profile)/AddFriendsScreen")}
+          onPress={() => router.push("/(profile)/FriendsScreen")}
           name="people-outline"
           size={32}
           color={"white"}

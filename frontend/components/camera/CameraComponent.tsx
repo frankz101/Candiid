@@ -30,6 +30,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import { Image } from "expo-image";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = screenWidth * (5 / 4);
@@ -40,6 +41,9 @@ interface CameraComponentProps {
 
 const CameraComponent: React.FC<CameraComponentProps> = ({ hangoutId }) => {
   const { hasPermission, requestPermission } = useCameraPermission();
+  const [cameraType, setCameraType] = useState("front");
+  const [recentPhoto, setRecentPhoto] = useState(null);
+
   const { isLoaded, user } = useUser();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -74,7 +78,19 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ hangoutId }) => {
   //   ],
   // });
 
-  const device = useCameraDevice("front");
+  const device = useCameraDevice(cameraType);
+
+  const lastTap = useRef<number | null>(null);
+  const handleDoubleTap = () => {
+    const now = Date.now();
+    const DOUBLE_PRESS_DELAY = 300; // Milliseconds
+    if (lastTap.current && now - lastTap.current < DOUBLE_PRESS_DELAY) {
+      setCameraType((prevCameraType) =>
+        prevCameraType === "front" ? "back" : "front"
+      );
+    }
+    lastTap.current = now;
+  };
 
   if (device == null) return <Text>No camera found</Text>;
 
@@ -161,16 +177,18 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ hangoutId }) => {
     <BottomSheetModalProvider>
       <View style={{ flex: 1 }}>
         <View style={{ flex: 1 }}>
-          <Camera
-            ref={camera}
-            device={device}
-            // format={format}
-            isActive={isActive}
-            photo={true}
-            style={StyleSheet.absoluteFill}
-            // style={styles.cameraPreview}
-          />
-          <Animated.View style={[styles.flashOverlay, flashStyle]} />
+          <Pressable onPress={handleDoubleTap} style={StyleSheet.absoluteFill}>
+            <Camera
+              ref={camera}
+              device={device}
+              // format={format}
+              isActive={isActive}
+              photo={true}
+              style={StyleSheet.absoluteFill}
+              // style={styles.cameraPreview}
+            />
+            <Animated.View style={[styles.flashOverlay, flashStyle]} />
+          </Pressable>
         </View>
         <Pressable
           onPress={onCameraCapture}
@@ -208,5 +226,13 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     backgroundColor: "white",
+  },
+  preview: {
+    position: "absolute",
+    bottom: 10,
+    left: 10,
+    width: 100,
+    height: 100,
+    borderRadius: 8,
   },
 });

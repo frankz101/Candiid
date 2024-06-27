@@ -56,6 +56,8 @@ import type { returnedResults } from "reanimated-color-picker";
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
 
+const initialLayout = { width: Dimensions.get("window").width };
+
 const padding = 20;
 const imageWidth = (screenWidth - padding * 6) / 3 + wp(4);
 const imageHeight = (screenWidth - padding * 6) / 3 + hp(6);
@@ -700,7 +702,7 @@ const MemoriesScreen = () => {
             )}
           </BottomSheetView>
         ) : (
-          <ColorPicker onChange={onColorSelect}>
+          <ColorPicker value={selectedColor.value} onChange={onColorSelect}>
             <Panel5 />
           </ColorPicker>
         )}

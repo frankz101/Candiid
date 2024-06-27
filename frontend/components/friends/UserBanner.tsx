@@ -1,24 +1,24 @@
 import { useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
+import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
 interface User {
-  id: number;
   name: string;
   username: string;
   profilePhoto: {
     fileUrl: string;
   };
   userId: string;
-  friendStatus: string;
+  friendStatus?: string;
 }
 
 type FriendUpdateAction = {
@@ -137,11 +137,28 @@ const UserBanner: React.FC<UserBannerProps> = ({
   };
 
   const removeFriend = (friendId: string) => {
-    setPendingUpdates((currentUpdates) => [
-      ...currentUpdates,
-      { action: "removeFriend", friendId },
-    ]);
-    setFriendStatus("Not Friends");
+    Alert.alert(
+      "Remove Friend",
+      "Are you sure you want to remove this friend?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "OK",
+          style: "destructive",
+          onPress: () => {
+            setPendingUpdates((currentUpdates) => [
+              ...currentUpdates,
+              { action: "removeFriend", friendId },
+            ]);
+            setFriendStatus("Not Friends");
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   const removeRequest = (friendId: string) => {
@@ -150,6 +167,27 @@ const UserBanner: React.FC<UserBannerProps> = ({
       { action: "removeRequest", friendId },
     ]);
     setFriendStatus("Not Friends");
+  };
+
+  const removeFriendList = (friendId: string) => {
+    if (onHandleRequest) {
+      Alert.alert(
+        "Remove Friend",
+        "Are you sure you want to remove this friend?",
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+          {
+            text: "OK",
+            style: "destructive",
+            onPress: () => onHandleRequest(friendId),
+          },
+        ],
+        { cancelable: true }
+      );
+    }
   };
 
   return (
@@ -179,7 +217,12 @@ const UserBanner: React.FC<UserBannerProps> = ({
         ) : (
           <Ionicons name="person-circle" color="white" size={40} />
         )}
-        <View style={{ marginLeft: wp(3), flex: 1 }}>
+        <View
+          style={{
+            marginLeft: wp(3),
+            flex: 1,
+          }}
+        >
           <Text style={{ fontSize: 16, color: "white" }}>{user.name}</Text>
           <Text style={{ color: "#777" }}>{"@" + user.username}</Text>
         </View>
@@ -260,6 +303,14 @@ const UserBanner: React.FC<UserBannerProps> = ({
               <Text style={{ color: "#000" }}>Accept</Text>
             </Pressable>
           </View>
+        )}
+        {type === "friends" && (
+          <Pressable
+            style={{ alignSelf: "center" }}
+            onPress={() => removeFriendList(user.userId)}
+          >
+            <Ionicons name="close-outline" color="gray" size={20} />
+          </Pressable>
         )}
       </View>
     </Pressable>

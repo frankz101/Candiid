@@ -183,9 +183,12 @@ const fetchFriendsFromDatabase = async (userId) => {
           const friendData = friendSnapshot.data();
           const profilePhotoUrl = friendData.profilePhoto?.fileUrl || null;
           friendsData.push({
-            id: friendId,
-            profilePhoto: profilePhotoUrl,
-            firstName: friendData.name,
+            userId: friendId,
+            profilePhoto: {
+              fileUrl: profilePhotoUrl,
+            },
+            name: friendData.name,
+            username: friendData.username,
           });
         }
       }
@@ -274,6 +277,26 @@ const updateBackgroundFromDatabase = async (userId, backgroundDetails) => {
     throw new Error("Failed to update background details");
   }
 };
+const fetchProfilePicsInDatabase = async (users) => {
+  try {
+    const userInfoPromises = users.map(async (userId) => {
+      const userDoc = await getDoc(doc(db, "users", userId));
+      let fileUrl = "";
+      if (userDoc.exists() && userDoc.data().profilePhoto?.fileUrl) {
+        fileUrl = userDoc.data().profilePhoto.fileUrl;
+      } else if (userDoc.exists()) {
+        fileUrl = null;
+      }
+      return { id: userId, name: userDoc.data().name, profilePhoto: fileUrl };
+    });
+
+    const userInfo = await Promise.all(userInfoPromises);
+    return userInfo;
+  } catch (error) {
+    console.error("Error fetching profile pictures: ", error);
+    throw error;
+  }
+};
 
 export {
   createUserInDatabase,
@@ -287,4 +310,5 @@ export {
   editUserDetailsInDatabase,
   fetchFriendsPostsFromDatabase,
   updateBackgroundFromDatabase,
+  fetchProfilePicsInDatabase,
 };
