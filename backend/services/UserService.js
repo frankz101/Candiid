@@ -66,23 +66,17 @@ const searchUsers = async (username, userId) => {
     const usersIds = await searchUsersInDatabase(username);
 
     const friends = await fetchFriends(userId);
-    const friendIds = friends.map((friend) => friend.userId);
-    const filteredUsersIds = usersIds.filter((user) => user.userId !== userId);
+    const friendIds = friends.map((friend) => friend.id);
 
     const friendRequests = await retrieveFriendRequestsSent(userId);
-    const filteredFriendRequests = friendRequests.filter(
-      (friendRequest) => friendRequest.senderId === userId
+    const friendRequestsIds = friendRequests.map(
+      (friendRequest) => friendRequest.userId
     );
-
-    const usersWithFriendshipStatus = filteredUsersIds.map((user) => {
+    const usersWithFriendshipStatus = usersIds.map((user) => {
       let friendStatus = "Not Friends";
       if (friendIds.includes(user.userId)) {
         friendStatus = "Already Friends";
-      } else if (
-        filteredFriendRequests.some(
-          (request) => request.receiverId === user.userId
-        )
-      ) {
+      } else if (friendRequestsIds.includes(user.userId)) {
         friendStatus = "Friend Requested";
       }
       return {
