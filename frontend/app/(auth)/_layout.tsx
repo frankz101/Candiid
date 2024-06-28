@@ -7,7 +7,7 @@ const Layout = () => {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="SignUpScreen" />
       <Stack.Screen name="PhoneNumberScreen" />
-      <Stack.Screen name="FirstNameScreen" />
+      <Stack.Screen name="NameScreen" />
       <Stack.Screen name="LoginScreen" />
       <Stack.Screen name="CodeVerificationScreen" />
       <Stack.Screen name="UsernameScreen" />

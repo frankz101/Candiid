@@ -3,56 +3,53 @@ import BackButton from "@/components/utils/BackButton";
 import BaseScreen from "@/components/utils/BaseScreen";
 import { useState } from "react";
 import { useRouter } from "expo-router";
-import {
-  Pressable,
-  TextInput,
-  Text,
-  View,
-  StyleSheet,
-  SafeAreaView,
-} from "react-native";
+import { Pressable, TextInput, Text, View, StyleSheet } from "react-native";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
 const LoginScreen = () => {
-  const { signIn, setActive } = useSignIn();
+  const { signIn } = useSignIn();
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [phoneNumberId, setPhoneNumberId] = useState("");
+  const [error, setError] = useState("");
   const router = useRouter();
 
   const handleSendCode = async () => {
-    if (signIn) {
-      const { supportedFirstFactors } = await signIn.create({
-        identifier: phoneNumber,
-      });
-      const firstPhoneFactor = supportedFirstFactors.find(
-        (factor) => factor.strategy === "phone_code"
-      ) as any;
-
-      const { phoneNumberId } = firstPhoneFactor;
-
-      if (firstPhoneFactor) {
-        setPhoneNumberId(firstPhoneFactor.phoneNumberId);
-        await signIn.prepareFirstFactor({
-          strategy: "phone_code",
-          phoneNumberId: firstPhoneFactor.phoneNumberId,
+    try {
+      if (signIn) {
+        const { supportedFirstFactors } = await signIn.create({
+          identifier: phoneNumber,
         });
-        router.push({
-          pathname: "/LoginVerificationScreen",
-          params: {
-            phoneNumberId,
-            phoneNumber,
-          },
-        });
+        const firstPhoneFactor = supportedFirstFactors.find(
+          (factor) => factor.strategy === "phone_code"
+        ) as any;
+
+        const { phoneNumberId } = firstPhoneFactor;
+
+        if (firstPhoneFactor) {
+          await signIn.prepareFirstFactor({
+            strategy: "phone_code",
+            phoneNumberId: firstPhoneFactor.phoneNumberId,
+          });
+          setError("");
+          router.push({
+            pathname: "/LoginVerificationScreen",
+            params: {
+              phoneNumberId,
+              phoneNumber,
+            },
+          });
+        }
       }
+    } catch (err: any) {
+      setError(err.errors[0].message);
     }
   };
 
   return (
     <BaseScreen>
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <BackButton />
         <Text style={styles.header}>Welcome Back!</Text>
         <TextInput
@@ -74,7 +71,8 @@ const LoginScreen = () => {
         >
           <Text style={styles.text}>Send Code</Text>
         </Pressable>
-      </SafeAreaView>
+        <Text style={styles.error}>{error}</Text>
+      </View>
     </BaseScreen>
   );
 };
@@ -83,7 +81,7 @@ export default LoginScreen;
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: wp(5),
+    paddingHorizontal: wp(5),
   },
   header: {
     color: "white",
@@ -117,5 +115,10 @@ const styles = StyleSheet.create({
     color: "white",
     fontFamily: "Inter",
     fontWeight: "bold",
+  },
+  error: {
+    color: "#FF0000",
+    alignSelf: "flex-end",
+    marginTop: hp(1),
   },
 });

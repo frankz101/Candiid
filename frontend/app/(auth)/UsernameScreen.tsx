@@ -18,28 +18,58 @@ import {
 } from "react-native-responsive-screen";
 
 const UsernameScreen = () => {
-  const { phoneNumber, firstName } = useLocalSearchParams();
+  const { phoneNumber: rawPhoneNumber, firstName: rawFirstName } =
+    useLocalSearchParams();
   const [username, setUsername] = useState("");
+  const [error, setError] = useState("");
   const { signUp } = useSignUp();
   const router = useRouter();
+  const phoneNumber = Array.isArray(rawPhoneNumber)
+    ? rawPhoneNumber[0]
+    : rawPhoneNumber;
+  const firstName = Array.isArray(rawFirstName)
+    ? rawFirstName[0]
+    : rawFirstName;
 
   const handleSubmit = async () => {
     try {
-      await signUp?.create({
-        username,
-        phoneNumber: Array.isArray(phoneNumber) ? phoneNumber[0] : phoneNumber,
-        firstName: Array.isArray(firstName) ? firstName[0] : firstName,
-      });
+      if (username && phoneNumber && firstName && phoneNumber.length === 10) {
+        await signUp?.create({
+          username,
+          phoneNumber: Array.isArray(phoneNumber)
+            ? phoneNumber[0]
+            : phoneNumber,
+          firstName: Array.isArray(firstName) ? firstName[0] : firstName,
+        });
 
-      await signUp?.preparePhoneNumberVerification({ strategy: "phone_code" });
-      router.push({
-        pathname: "/CodeVerificationScreen",
-        params: {
-          phoneNumber,
-        },
-      });
+        await signUp?.preparePhoneNumberVerification({
+          strategy: "phone_code",
+        });
+        router.push({
+          pathname: "/CodeVerificationScreen",
+          params: {
+            phoneNumber,
+          },
+        });
+      } else {
+        let missingFields = [];
+        if (
+          !phoneNumber ||
+          phoneNumber.trim() === "" ||
+          phoneNumber.length !== 10
+        ) {
+          missingFields.push("phone number");
+        }
+        if (!firstName || firstName.trim() === "") {
+          missingFields.push("name");
+        }
+        if (!username || username.trim() === "") {
+          missingFields.push("username");
+        }
+        setError(`Please input a valid ${missingFields.join(", ")}.`);
+      }
     } catch (err: any) {
-      console.error(err.message);
+      setError(err.errors[0].message);
     }
   };
 
@@ -67,6 +97,7 @@ const UsernameScreen = () => {
         >
           <Text style={styles.text}>Confirm</Text>
         </Pressable>
+        <Text style={styles.error}>{error}</Text>
       </View>
     </BaseScreen>
   );
@@ -76,7 +107,7 @@ export default UsernameScreen;
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: wp(5),
+    paddingHorizontal: wp(5),
   },
   header: {
     color: "white",
@@ -100,7 +131,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 5,
     height: hp(5),
-    width: hp(16),
+    width: wp(35),
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
@@ -110,5 +141,10 @@ const styles = StyleSheet.create({
     color: "white",
     fontFamily: "Inter",
     fontWeight: "bold",
+  },
+  error: {
+    color: "#FF0000",
+    alignSelf: "flex-end",
+    marginTop: hp(1),
   },
 });
