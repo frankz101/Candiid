@@ -16,6 +16,11 @@ import axios from "axios";
 import { useRouter } from "expo-router";
 import UserBanner from "@/components/friends/UserBanner";
 import BaseScreen from "@/components/utils/BaseScreen";
+import ContactsList from "./ContactsList";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 interface User {
   id: number;
@@ -36,12 +41,12 @@ const SearchFriends = () => {
   const { user } = useUser();
 
   const onSubmit = async () => {
-    const res = await axios.get(
-      `${process.env.EXPO_PUBLIC_API_URL}/user/search/${searchPhrase}/users/${user?.id}`
-    );
-
-    setSearchResults(res.data.result);
-    console.log("Search results " + searchResults);
+    if (searchPhrase) {
+      const res = await axios.get(
+        `${process.env.EXPO_PUBLIC_API_URL}/user/search/${searchPhrase}/users/${user?.id}`
+      );
+      setSearchResults(res.data.result);
+    }
   };
 
   const renderItem: ListRenderItem<User> = ({ item }) => (
@@ -50,19 +55,22 @@ const SearchFriends = () => {
 
   return (
     <BaseScreen>
-      <SearchBar
-        clicked={clicked}
-        searchPhrase={searchPhrase}
-        placeholder="Search Users"
-        setSearchPhrase={setSearchPhrase}
-        setClicked={setClicked}
-        onSubmit={onSubmit}
-      />
-      <FlatList
-        data={searchResults}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id.toString()}
-      />
+      <View style={styles.container}>
+        <SearchBar
+          clicked={clicked}
+          searchPhrase={searchPhrase}
+          placeholder="Search Users"
+          setSearchPhrase={setSearchPhrase}
+          setClicked={setClicked}
+          onSubmit={onSubmit}
+        />
+        <FlatList
+          data={searchResults}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id.toString()}
+        />
+      </View>
+      <ContactsList />
     </BaseScreen>
   );
 };
@@ -71,8 +79,7 @@ export default SearchFriends;
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: "column",
-    justifyContent: "space-evenly",
-    height: "100%",
+    alignItems: "stretch",
+    marginBottom: hp(2),
   },
 });

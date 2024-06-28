@@ -10,6 +10,7 @@ import {
   editUserDetails,
   fetchFriendsPosts,
   fetchProfilePics,
+  fetchContacts,
 } from "../services/UserService.js";
 
 const postUser = async (req, res) => {
@@ -131,8 +132,18 @@ const getPosts = async (req, res) => {
 const getProfilePics = async (req, res) => {
   try {
     const users = req.body.users;
-    console.log(req.body.users);
     const result = await fetchProfilePics(users);
+    res.status(201).send({ result });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+const getContacts = async (req, res) => {
+  try {
+    const batch = req.body.phoneNumbers;
+    const userId = req.body.userId;
+    const result = await fetchContacts(batch, userId);
     res.status(201).send({ result });
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -151,4 +162,5 @@ export {
   putUserDetails,
   getPosts,
   getProfilePics,
+  getContacts,
 };

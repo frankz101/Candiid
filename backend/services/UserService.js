@@ -11,6 +11,7 @@ import {
   editUserDetailsInDatabase,
   fetchFriendsPostsFromDatabase,
   fetchProfilePicsInDatabase,
+  fetchContactsInDatabase,
 } from "../db/UserDatabase.js";
 import { storage } from "../firebase.js";
 import {
@@ -69,14 +70,19 @@ const searchUsers = async (username, userId) => {
     const filteredUsersIds = usersIds.filter((user) => user.userId !== userId);
 
     const friendRequests = await retrieveFriendRequestsSent(userId);
-    const friendRequestsIds = friendRequests.map(
-      (friendRequest) => friendRequest.userId
+    const filteredFriendRequests = friendRequests.filter(
+      (friendRequest) => friendRequest.senderId === userId
     );
+
     const usersWithFriendshipStatus = filteredUsersIds.map((user) => {
       let friendStatus = "Not Friends";
       if (friendIds.includes(user.userId)) {
         friendStatus = "Already Friends";
-      } else if (friendRequestsIds.includes(user.userId)) {
+      } else if (
+        filteredFriendRequests.some(
+          (request) => request.receiverId === user.userId
+        )
+      ) {
         friendStatus = "Friend Requested";
       }
       return {
@@ -149,6 +155,30 @@ const fetchProfilePics = async (users) => {
   return result;
 };
 
+const fetchContacts = async (batch, userId) => {
+  const users = await fetchContactsInDatabase(batch);
+  const friends = await fetchFriends(userId);
+  const friendIds = friends.map((friend) => friend.userId);
+
+  const sentFriendRequests = await retrieveFriendRequestsSent(userId);
+  const friendRequestsIds = sentFriendRequests.map(
+    (friendRequest) => friendRequest.userId
+  );
+  const usersWithFriendshipStatus = users.map((user) => {
+    let friendStatus = "Not Friends";
+    if (friendIds.includes(user.userId)) {
+      friendStatus = "Already Friends";
+    } else if (friendRequestsIds.includes(user.userId)) {
+      friendStatus = "Friend Requested";
+    }
+    return {
+      ...user,
+      friendStatus,
+    };
+  });
+  return usersWithFriendshipStatus;
+};
+
 export {
   createUser,
   changeProfilePhoto,
@@ -161,4 +191,5 @@ export {
   editUserDetails,
   fetchFriendsPosts,
   fetchProfilePics,
+  fetchContacts,
 };

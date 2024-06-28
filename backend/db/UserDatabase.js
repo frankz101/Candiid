@@ -283,6 +283,44 @@ const fetchProfilePicsInDatabase = async (users) => {
   }
 };
 
+const fetchContactsInDatabase = async (phoneNumbers) => {
+  try {
+    if (!phoneNumbers || !Array.isArray(phoneNumbers)) {
+      return [];
+    }
+
+    // Batch the phone number queries if Firestore has a limit on array size
+    const batchSize = 10; // Adjust the batch size according to Firestore limits
+    let registeredUsers = [];
+
+    for (let i = 0; i < phoneNumbers.length; i += batchSize) {
+      const batch = phoneNumbers.slice(i, i + batchSize);
+      const usersSnapshot = await getDocs(
+        query(collection(db, "users"), where("phoneNumber", "in", batch))
+      );
+
+      const users = usersSnapshot.docs.map((doc) => {
+        console.log(doc.data());
+        const data = doc.data();
+        return {
+          name: data.name,
+          userId: data.userId,
+          username: data.username,
+          profilePhoto: {
+            fileUrl: data.profilePhoto?.fileUrl || null,
+          },
+        };
+      });
+      registeredUsers = registeredUsers.concat(users);
+    }
+
+    return registeredUsers;
+  } catch (error) {
+    console.error("Error checking contacts: ", error);
+    throw error;
+  }
+};
+
 export {
   createUserInDatabase,
   changeProfilePhotoInDatabase,
@@ -295,4 +333,5 @@ export {
   editUserDetailsInDatabase,
   fetchFriendsPostsFromDatabase,
   fetchProfilePicsInDatabase,
+  fetchContactsInDatabase,
 };
