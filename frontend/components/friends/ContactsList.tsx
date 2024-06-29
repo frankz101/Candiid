@@ -33,14 +33,16 @@ const ContactsList: React.FC = () => {
 
   return (
     <BaseScreen>
-      <View style={styles.container}>
-        <Text style={styles.header}>Active Contacts</Text>
-        <FlatList
-          data={registeredContacts}
-          keyExtractor={(item) => item.userId}
-          renderItem={renderItem}
-        />
-      </View>
+      {registeredContacts && (
+        <View style={styles.container}>
+          <Text style={styles.header}>Active Contacts</Text>
+          <FlatList
+            data={registeredContacts}
+            keyExtractor={(item) => item.userId}
+            renderItem={renderItem}
+          />
+        </View>
+      )}
     </BaseScreen>
   );
 };
