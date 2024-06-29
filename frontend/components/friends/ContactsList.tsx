@@ -33,7 +33,7 @@ const ContactsList: React.FC = () => {
 
   return (
     <BaseScreen>
-      {registeredContacts && (
+      {registeredContacts && registeredContacts?.length > 0 && (
         <View style={styles.container}>
           <Text style={styles.header}>Active Contacts</Text>
           <FlatList
