@@ -293,14 +293,25 @@ const fetchContactsInDatabase = async (phoneNumbers) => {
     const batchSize = 10; // Adjust the batch size according to Firestore limits
     let registeredUsers = [];
 
-    for (let i = 0; i < phoneNumbers.length; i += batchSize) {
-      const batch = phoneNumbers.slice(i, i + batchSize);
+    const normalizePhoneNumber = (phoneNumber) => {
+      const cleaned = phoneNumber.replace(/\D/g, "");
+
+      if (cleaned.length === 10) {
+        return `+1${cleaned}`;
+      }
+
+      return `+${cleaned}`;
+    };
+
+    const normalizedPhoneNumbers = phoneNumbers.map(normalizePhoneNumber);
+
+    for (let i = 0; i < normalizedPhoneNumbers.length; i += batchSize) {
+      const batch = normalizedPhoneNumbers.slice(i, i + batchSize);
       const usersSnapshot = await getDocs(
         query(collection(db, "users"), where("phoneNumber", "in", batch))
       );
 
       const users = usersSnapshot.docs.map((doc) => {
-        console.log(doc.data());
         const data = doc.data();
         return {
           name: data.name,
