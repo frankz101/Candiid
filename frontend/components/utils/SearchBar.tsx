@@ -80,11 +80,10 @@ export default SearchBar;
 const styles = StyleSheet.create({
   container: {
     marginTop: hp(2),
-    marginLeft: wp(2),
-    justifyContent: "space-between",
+    justifyContent: "center",
     alignItems: "center",
     flexDirection: "row",
-    width: wp(95),
+    width: wp(100),
   },
   searchBar__unclicked: {
     padding: 14,
@@ -97,7 +96,7 @@ const styles = StyleSheet.create({
   searchBar__clicked: {
     padding: 14,
     flexDirection: "row",
-    width: wp(80),
+    width: wp(83.5),
     backgroundColor: "#252525",
     borderRadius: 5,
     alignItems: "center",
