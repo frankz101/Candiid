@@ -14,27 +14,33 @@ import {
 } from "react-native-responsive-screen";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import useStore from "@/store/useStore";
-import { useEffect, useState } from "react";
+import { MutableRefObject, useEffect, useState } from "react";
 import uuid from "react-native-uuid";
 
 interface MediaComponentProps {
   id?: string;
   media: GiphyMedia;
+  positionX?: number;
+  positionY?: number;
   scale?: SharedValue<number>;
   mediaType: string;
+  displayModeRef: MutableRefObject<boolean>;
 }
 
 const MediaComponent: React.FC<MediaComponentProps> = ({
   id,
   media,
+  positionX = 0,
+  positionY = 0,
   scale,
   mediaType,
+  displayModeRef,
 }) => {
-  const mediaContext = useSharedValue({ x: 0, y: 0 });
+  const mediaContext = useSharedValue({ x: positionX, y: positionY });
   const [stickerId, setStickerId] = useState<string>();
 
-  const positionX = useSharedValue<number>(0);
-  const positionY = useSharedValue<number>(0);
+  const posX = useSharedValue<number>(positionX);
+  const posY = useSharedValue<number>(positionY);
 
   const isMediaActive = useSharedValue<boolean>(false);
 
@@ -44,15 +50,14 @@ const MediaComponent: React.FC<MediaComponentProps> = ({
   }));
 
   useEffect(() => {
-    console.log(id);
     const stickerTempId = id || uuid.v4();
-    console.log("Sticker Temp: " + stickerTempId);
+
     setStickerId(stickerTempId as string);
-    console.log("Sticker Id: " + stickerId);
+
     addSticker({
       id: stickerTempId as string,
-      x: 0,
-      y: 0,
+      x: posX.value,
+      y: posY.value,
       media: media,
       scale: 1,
       rotation: 0,
@@ -62,8 +67,8 @@ const MediaComponent: React.FC<MediaComponentProps> = ({
   const animatedStyle = useAnimatedStyle(() => {
     return {
       transform: [
-        { translateX: positionX.value },
-        { translateY: positionY.value },
+        { translateX: posX.value },
+        { translateY: posY.value },
         // Apply scaling if scale is provided and valid
         ...(scale ? [{ scale: scale.value }] : []),
       ],
@@ -91,24 +96,29 @@ const MediaComponent: React.FC<MediaComponentProps> = ({
     }
   };
 
+  console.log("DISPLAY: " + displayModeRef.current);
+
   const panGesture = Gesture.Pan()
     .onStart(() => {
+      if (displayModeRef.current) return;
       isMediaActive.value = true;
       mediaContext.value = {
-        x: positionX.value,
-        y: positionY.value,
+        x: posX.value,
+        y: posY.value,
       };
     })
     .onUpdate((e) => {
-      positionX.value = e.translationX + mediaContext.value.x;
-      positionY.value = e.translationY + mediaContext.value.y;
+      if (displayModeRef.current) return;
+      posX.value = e.translationX + mediaContext.value.x;
+      posY.value = e.translationY + mediaContext.value.y;
     })
     .onEnd(() => {
+      if (displayModeRef.current) return;
       isMediaActive.value = false;
       if (stickerId) {
         runOnJS(updateSticker)(stickerId, {
-          x: positionX.value,
-          y: positionY.value,
+          x: posX.value,
+          y: posY.value,
         });
       } else {
         console.log("Sticker id is undefined, cannot update.");

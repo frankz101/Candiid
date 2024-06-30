@@ -3,7 +3,7 @@ import AnimatedMemory from "@/components/photo/AnimatedMemory";
 import useStore from "@/store/useStore";
 import { useUser } from "@clerk/clerk-expo";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios, { AxiosResponse } from "axios";
 import { router, useLocalSearchParams } from "expo-router";
 import React, {
@@ -50,9 +50,13 @@ import {
 } from "@giphy/react-native-sdk";
 import MediaComponent from "@/components/photo/MediaComponent";
 import { StickerDetails } from "@/store/createStickerSlice";
+import ColorPicker, { Panel5 } from "reanimated-color-picker";
+import type { returnedResults } from "reanimated-color-picker";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
+
+const initialLayout = { width: Dimensions.get("window").width };
 
 const padding = 20;
 const imageWidth = (screenWidth - padding * 6) / 3 + wp(4);
@@ -61,6 +65,8 @@ const imageHeight = (screenWidth - padding * 6) / 3 + hp(6);
 const mediaWidth = wp(20);
 
 GiphySDK.configure({ apiKey: "QDW5PFQZJ8MYnbeJ6mjQhPrRC5v9UI1b" });
+
+export type ViewStyleKey = "square" | "rectangle" | "polaroid";
 
 interface Sticker {
   media: GiphyMedia;
@@ -83,8 +89,19 @@ const MemoriesScreen = () => {
   const [activeStickerIndex, setActiveStickerIndex] = useState<number | null>(
     null
   );
+  const [isEditMode, setIsEditMode] = useState<boolean>(false);
+  const [isEditBackgroundMode, setIsEditBackgroundMode] =
+    useState<boolean>(false);
+  const [modalContent, setModalContent] = useState("");
+  const [viewStyle, setViewStyle] = useState<ViewStyleKey>("polaroid");
+  const displayModeRef = useRef(true); // SAVE THIS FOR IS EDIT MODE
 
   const postDetails = useStore((state) => state.postDetails);
+
+  const [color, setColor] = useState("#FFF");
+  const selectedColor = useSharedValue(color);
+
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (isNewPost) {
@@ -105,29 +122,53 @@ const MemoriesScreen = () => {
       .then((res) => res.data);
   };
 
-  const { data: hangouts, isPending } = useQuery({
-    queryKey: ["hangouts-2"],
-    queryFn: fetchHangouts,
-  });
-
-  const createSticker = () => {
-    console.log("Creating Sticker");
-
-    try {
-    } catch {}
+  const fetchStickers = async () => {
+    console.log("Fetching Stickers");
+    return axios
+      .get(`${process.env.EXPO_PUBLIC_API_URL}/stickers/${user?.id}`)
+      .then((res) => res.data);
   };
 
-  function isUuid(id: string) {
-    const regex =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    return regex.test(id);
-  }
+  const fetchUser = async () => {
+    console.log("Fetching User Information");
+    return axios
+      .get(`${process.env.EXPO_PUBLIC_API_URL}/users/${user?.id}/${user?.id}`)
+      .then((res) => res.data);
+  };
+
+  const [hangouts, fetchedStickers, profile] = useQueries({
+    queries: [
+      { queryKey: ["hangouts-2"], queryFn: fetchHangouts },
+      { queryKey: ["stickers", user?.id], queryFn: fetchStickers },
+      { queryKey: ["profile", user?.id], queryFn: fetchUser },
+    ],
+  });
+
+  const { data: hangoutsData, isPending: isPendingHangouts } = hangouts;
+  const { data: stickersData, isPending: isPendingStickers } = fetchedStickers;
+  const { data: profileDetails, isPending: isPendingProfile } = profile;
+
+  const handleBackgroundSubmit = async () => {
+    setIsEditBackgroundMode(false);
+
+    try {
+      const backgroundChangeResponse = await axios.put(
+        `${process.env.EXPO_PUBLIC_API_URL}/user/${user?.id}/background`,
+        { backgroundColor: selectedColor.value }
+      );
+      console.log(backgroundChangeResponse);
+    } catch {
+      console.log("Error changing background");
+    }
+  };
 
   const handleStickerSubmit = async () => {
+    setIsEditMode(false);
+    displayModeRef.current = false;
     const newStickers: StickerDetails[] = [];
-    console.log("New Stickers: " + newStickers);
-    const existingStickers = [];
-    console.log("Sticker Array: " + stickerArray);
+    // console.log("New Stickers: " + newStickers);
+    const existingStickers: StickerDetails[] = [];
+    // console.log("Sticker Array: " + stickerArray);
 
     stickerArray.forEach((sticker) => {
       if (sticker.id && sticker.id.length > 20) {
@@ -139,15 +180,44 @@ const MemoriesScreen = () => {
       }
     });
 
-    try {
-      const stickersResponse = await axios.post(
-        `${process.env.EXPO_PUBLIC_API_URL}/stickers`,
-        { newStickers }
-      );
+    const newStickerRequestBody = {
+      userId: user?.id,
+      newStickers,
+    };
 
-      console.log(stickersResponse);
+    const existingStickerRequestBody = {
+      userId: user?.id,
+      existingStickers,
+    };
+
+    try {
+      const newStickersResponse = await axios.post(
+        `${process.env.EXPO_PUBLIC_API_URL}/stickers`,
+        newStickerRequestBody
+      );
+      // console.log(newStickersResponse);
+
+      const existingStickersResponse = await axios.put(
+        `${process.env.EXPO_PUBLIC_API_URL}/stickers`,
+        existingStickerRequestBody
+      );
+      // console.log(existingStickersResponse);
     } catch {}
     console.log("All operations done");
+  };
+
+  if (!isPendingProfile) {
+    selectedColor.value =
+      profileDetails.result.backgroundDetails.backgroundColor;
+  }
+
+  const backgroundColorStyle = useAnimatedStyle(() => ({
+    backgroundColor: selectedColor.value,
+  }));
+
+  const onColorSelect = (color: returnedResults) => {
+    "worklet";
+    selectedColor.value = color.hex;
   };
 
   const screenX = useSharedValue<number>(0);
@@ -334,6 +404,7 @@ const MemoriesScreen = () => {
         hangoutId: hangoutId,
         postX: postX.value,
         postY: postY.value,
+        frame: viewStyle,
         color: frameColor,
       };
 
@@ -389,14 +460,25 @@ const MemoriesScreen = () => {
 
   const snapPoints = useMemo(() => ["25%", "50%", "90%"], []);
 
-  const handlePresentModalPress = useCallback(() => {
+  const handleOpenStickerModal = useCallback(() => {
+    setModalContent("stickers");
     bottomSheetModalRef.current?.present();
   }, []);
+
+  const handleOpenColorPickerModal = useCallback(() => {
+    setIsEditBackgroundMode(true);
+    setModalContent("colorPicker");
+    bottomSheetModalRef.current?.present();
+  }, []);
+
   const handleSheetChanges = useCallback((index: number) => {
     console.log("handleSheetChanges", index);
   }, []);
 
   const handleStickerSelect = (e: any) => {
+    setIsEditMode(true);
+    displayModeRef.current = true;
+
     const newMedia = e.nativeEvent.media;
 
     const newSticker: Sticker = {
@@ -409,19 +491,25 @@ const MemoriesScreen = () => {
     setActiveStickerIndex(stickers.length);
 
     setStickers((prevStickers) => [...prevStickers, newSticker]);
+
+    bottomSheetModalRef.current?.close();
   };
 
-  return isPending ? (
+  // if (!isPendingStickers) {
+  //   console.log(stickersData);
+  // }
+
+  return isPendingHangouts && isPendingStickers && isPendingProfile ? (
     <Text>Loading...</Text>
   ) : (
     <BottomSheetModalProvider>
       <Animated.View
-        style={styles.background}
+        style={[styles.background, backgroundColorStyle]}
         // sharedTransitionTag="MemoriesScreen"
       >
         <Pressable
-          style={styles.topRightButton}
-          onPress={handlePresentModalPress}
+          style={styles.stickerButton}
+          onPress={handleOpenStickerModal}
         >
           <MaterialCommunityIcons
             name="sticker-emoji"
@@ -429,11 +517,17 @@ const MemoriesScreen = () => {
             color="white"
           />
         </Pressable>
+        <Pressable
+          style={styles.colorPickerButton}
+          onPress={handleOpenColorPickerModal}
+        >
+          <Ionicons name="color-palette-outline" size={32} color="white" />
+        </Pressable>
         <GestureDetector gesture={combinedGesture}>
           <Animated.View style={[styles.container, containerStyle]}>
             <DotGrid width={screenWidth} height={screenHeight} />
-            {hangouts && hangouts.length > 0 ? (
-              hangouts.map((hangout: any, index: number) => (
+            {hangoutsData && hangoutsData.length > 0 ? (
+              hangoutsData.map((hangout: any, index: number) => (
                 <AnimatedMemory
                   key={index + (hangout.postId || "")}
                   postId={hangout.postId}
@@ -441,12 +535,31 @@ const MemoriesScreen = () => {
                   memoryId={hangout.id}
                   positionX={hangout.postX}
                   positionY={hangout.postY}
+                  frame={hangout.frame}
                   color={hangout.color}
                 />
               ))
             ) : (
               <View />
             )}
+
+            {stickersData && stickersData.length > 0 ? (
+              stickersData.map((sticker: any, index: number) => (
+                <MediaComponent
+                  key={index}
+                  id={sticker.id}
+                  media={sticker.media}
+                  positionX={sticker.x}
+                  positionY={sticker.y}
+                  mediaType={"sticker"} // change this later
+                  displayModeRef={displayModeRef}
+                />
+              ))
+            ) : (
+              <View />
+            )}
+
+            {/* TEMPORARY STICKERS */}
             {stickers.length > 0 ? (
               stickers.map((sticker, index: number) => (
                 // <GestureDetector gesture={mediaPan} key={index}>
@@ -472,10 +585,11 @@ const MemoriesScreen = () => {
                   key={index}
                   media={sticker.media}
                   mediaType={sticker.mediaType}
+                  displayModeRef={displayModeRef}
                 />
               ))
             ) : (
-              <Text>No stickers available</Text>
+              <View />
             )}
             {isPostPlacementMode && (
               <GestureDetector gesture={postPan}>
@@ -491,6 +605,8 @@ const MemoriesScreen = () => {
                   <AnimatedPost
                     thumbnail={postDetails.photos[0].fileUrl}
                     color={frameColor as string}
+                    viewStyle={viewStyle}
+                    setViewStyle={setViewStyle}
                   />
                 </Animated.View>
               </GestureDetector>
@@ -525,12 +641,22 @@ const MemoriesScreen = () => {
             <Ionicons name="checkmark-circle" size={64} color="#FFF" />
           </Pressable>
         )}
-        <Pressable
-          onPress={handleStickerSubmit}
-          style={{ position: "absolute", right: 16, bottom: 75 }}
-        >
-          <Ionicons name="checkmark-circle" size={64} color="#FFF" />
-        </Pressable>
+        {isEditMode && (
+          <Pressable
+            onPress={handleStickerSubmit}
+            style={{ position: "absolute", right: 16, bottom: 75 }}
+          >
+            <Ionicons name="checkmark-circle" size={64} color="#FFF" />
+          </Pressable>
+        )}
+        {isEditBackgroundMode && (
+          <Pressable
+            onPress={handleBackgroundSubmit}
+            style={{ position: "absolute", right: 30, bottom: 75 }}
+          >
+            <Ionicons name="checkmark-circle" size={64} color="#FFF" />
+          </Pressable>
+        )}
       </Animated.View>
       <BottomSheetModal
         ref={bottomSheetModalRef}
@@ -543,42 +669,48 @@ const MemoriesScreen = () => {
         // handleStyle={styles.handleStyle}
         // handleIndicatorStyle={{ backgroundColor: "#FFF" }}
       >
-        <BottomSheetView>
-          <TextInput
-            autoFocus
-            onChangeText={setSearchQuery}
-            placeholder="Search..."
-            value={searchQuery}
-          />
-          <GiphyGridView
-            content={
-              searchQuery
-                ? GiphyContent.search({
-                    searchQuery: searchQuery,
-                    mediaType: GiphyMediaType.Sticker,
-                  })
-                : GiphyContent.trendingStickers()
-            }
-            cellPadding={3}
-            style={{ height: 300, marginTop: 24 }}
-            onMediaSelect={handleStickerSelect}
-          />
-          {media && (
-            <ScrollView
-              style={{
-                aspectRatio: media.aspectRatio,
-                maxHeight: 400,
-                padding: 24,
-                width: "100%",
-              }}
-            >
-              <GiphyMediaView
-                media={media}
-                style={{ aspectRatio: media.aspectRatio }}
-              />
-            </ScrollView>
-          )}
-        </BottomSheetView>
+        {modalContent === "stickers" ? (
+          <BottomSheetView>
+            <TextInput
+              autoFocus
+              onChangeText={setSearchQuery}
+              placeholder="Search..."
+              value={searchQuery}
+            />
+            <GiphyGridView
+              content={
+                searchQuery
+                  ? GiphyContent.search({
+                      searchQuery: searchQuery,
+                      mediaType: GiphyMediaType.Sticker,
+                    })
+                  : GiphyContent.trendingStickers()
+              }
+              cellPadding={3}
+              style={{ height: 300, marginTop: 24 }}
+              onMediaSelect={handleStickerSelect}
+            />
+            {media && (
+              <ScrollView
+                style={{
+                  aspectRatio: media.aspectRatio,
+                  maxHeight: 400,
+                  padding: 24,
+                  width: "100%",
+                }}
+              >
+                <GiphyMediaView
+                  media={media}
+                  style={{ aspectRatio: media.aspectRatio }}
+                />
+              </ScrollView>
+            )}
+          </BottomSheetView>
+        ) : (
+          <ColorPicker value={selectedColor.value} onChange={onColorSelect}>
+            <Panel5 />
+          </ColorPicker>
+        )}
       </BottomSheetModal>
     </BottomSheetModalProvider>
   );
@@ -589,7 +721,7 @@ export default MemoriesScreen;
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    backgroundColor: "#141417",
+    // backgroundColor: "#141417",
   },
   container: {
     flex: 1,
@@ -597,11 +729,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "rgba(44, 44, 48, 0.50)",
   },
-  topRightButton: {
+  stickerButton: {
     position: "absolute",
     zIndex: 2,
     top: hp(6),
     right: wp(6),
+  },
+  colorPickerButton: {
+    position: "absolute",
+    zIndex: 2,
+    top: hp(6),
+    right: wp(15),
   },
   post: {
     // width: postWidth,

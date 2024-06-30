@@ -27,6 +27,8 @@ const screenHeight = Dimensions.get("window").height;
 const padding = 20;
 const imageWidth = (screenWidth - padding * 6) / 3; // Subtract total padding and divide by 3
 
+type ViewStyleKey = "square" | "rectangle" | "polaroid";
+
 interface AnimatedMemoryProps {
   positionX: number;
   positionY: number;
@@ -34,6 +36,7 @@ interface AnimatedMemoryProps {
   hangoutId: string;
   memoryId: string;
   color?: string;
+  frame?: ViewStyleKey;
 }
 
 const AnimatedMemory = ({
@@ -42,13 +45,14 @@ const AnimatedMemory = ({
   postId,
   hangoutId,
   memoryId,
+  frame = "polaroid",
   color = "#FFF",
 }: AnimatedMemoryProps) => {
   const [isEnlarged, setIsEnlarged] = useState(false);
   const postStyle = useAnimatedStyle(() => ({
     position: "absolute",
     transform: [{ translateX: positionX }, { translateY: positionY }],
-    backgroundColor: "#FFF",
+    // backgroundColor: "#FFF",
   }));
   const router = useRouter();
   const { user } = useUser();
@@ -68,9 +72,78 @@ const AnimatedMemory = ({
     return <Text>Loading...</Text>;
   }
 
-  // if (photoData) {
-  //   console.log("PostID: " + postId + " " + "Photo Data: " + photoData);
-  // }
+  const viewStyles = {
+    rectangle: {
+      view: {
+        width: imageWidth,
+        aspectRatio: 4 / 5,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: color,
+        borderRadius: 5,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 3,
+      },
+      imageContainer: {},
+      image: {
+        width: imageWidth,
+        height: "100%",
+        borderRadius: 5,
+      },
+    },
+    square: {
+      view: {
+        width: imageWidth,
+        height: imageWidth,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: color,
+        borderRadius: 5,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 3,
+      },
+      imageContainer: {},
+      image: {
+        width: imageWidth,
+        height: imageWidth,
+        borderRadius: 5,
+      },
+    },
+    polaroid: {
+      view: {
+        width: imageWidth + wp(4),
+        height: imageWidth + hp(6),
+        paddingBottom: hp(2),
+        backgroundColor: color,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 3,
+        flexDirection: "row",
+        justifyContent: "center",
+        alignItems: "center",
+        borderRadius: 5,
+      },
+      imageContainer: {
+        width: imageWidth,
+        height: imageWidth,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.3,
+        shadowRadius: 3,
+        borderRadius: 5,
+      },
+      image: {
+        borderRadius: 5,
+        width: imageWidth,
+        height: imageWidth,
+      },
+    },
+  };
 
   const handlePress = () => {
     router.push({
@@ -83,18 +156,18 @@ const AnimatedMemory = ({
 
   return (
     <Animated.View style={postStyle}>
-      <View style={[styles.polaroid, { backgroundColor: color }]}>
+      <View style={[styles.baseImageStyle, viewStyles[frame].view]}>
+        {/* work around pls fix*/}
         {postId && photoData ? (
-          <Animated.Image
-            source={{ uri: photoData.result.photoUrls[0].fileUrl }}
-            // source={{
-            //   uri: imageUrl,
-            // }} FOR TESTING PURPOSES
-            style={styles.post}
-            // style={{ width: "100%", height: "100%" }}
-            // sharedTransitionTag={postId + "1"}
-            resizeMode="cover"
-          />
+          <View
+            style={[styles.baseImageStyle, viewStyles[frame].imageContainer]}
+          >
+            <Animated.Image
+              source={{ uri: photoData.result.photoUrls[0].fileUrl }}
+              style={[styles.baseImageStyle, viewStyles[frame].image]}
+              resizeMode="cover"
+            />
+          </View>
         ) : (
           <Animated.View />
         )}
@@ -128,4 +201,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 3,
   },
+  baseImageStyle: {},
 });

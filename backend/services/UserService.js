@@ -11,6 +11,7 @@ import {
   editUserDetailsInDatabase,
   fetchFriendsPostsFromDatabase,
   fetchProfilePicsInDatabase,
+  updateBackgroundFromDatabase,
   fetchContactsInDatabase,
 } from "../db/UserDatabase.js";
 import { storage } from "../firebase.js";
@@ -149,6 +150,11 @@ const fetchProfilePics = async (users) => {
   return result;
 };
 
+const updateBackground = async (userId, backgroundDetails) => {
+  const result = await updateBackgroundFromDatabase(userId, backgroundDetails);
+  return result;
+};
+
 const fetchContacts = async (batch, userId) => {
   const users = await fetchContactsInDatabase(batch);
   const friends = await fetchFriends(userId);
@@ -185,5 +191,6 @@ export {
   editUserDetails,
   fetchFriendsPosts,
   fetchProfilePics,
+  updateBackground,
   fetchContacts,
 };

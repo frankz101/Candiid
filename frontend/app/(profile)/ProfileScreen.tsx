@@ -19,6 +19,12 @@ import { Image } from "expo-image";
 import MemoriesView from "@/components/profile/MemoriesView";
 import Animated from "react-native-reanimated";
 import { BlurView } from "expo-blur";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+import BaseScreen from "@/components/utils/BaseScreen";
+import FriendshipButton from "@/components/friends/FriendshipButton";
 
 const screenHeight = Dimensions.get("window").height;
 const headerHeight = 120;
@@ -64,10 +70,6 @@ const ProfileScreen = () => {
     setRefreshing(false);
   };
 
-  const openChangePhotoSheet = () => {
-    SheetManager.show("change-photo");
-  };
-
   if (isPendingMemories || isPendingProfile) {
     return <Text>Is Loading...</Text>;
   }
@@ -76,45 +78,23 @@ const ProfileScreen = () => {
   }
 
   return (
-    <SafeAreaView>
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          paddingHorizontal: 18,
-          paddingVertical: 10,
-        }}
-      >
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Pressable
-            onPress={openChangePhotoSheet}
-            style={{ paddingRight: 10 }}
-          >
-            {profileDetails &&
-            profileDetails.result &&
-            profileDetails.result.profilePhoto ? (
-              <Image
-                source={{ uri: profileDetails.result.profilePhoto.fileUrl }}
-                style={styles.profilePhoto}
-              />
-            ) : (
-              <Ionicons name="person-circle" size={64} />
-            )}
-          </Pressable>
-
-          <View>
-            <Text style={styles.name}>{profileDetails.result.name}</Text>
-            <Text
-              style={styles.username}
-            >{`@${profileDetails.result.username}`}</Text>
-          </View>
-        </View>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Pressable onPress={() => router.push("/(profile)/SettingsScreen")}>
-            <Ionicons name="menu" size={32} />
-          </Pressable>
-        </View>
+    <BaseScreen style={styles.container}>
+      <View style={styles.navOptions}>
+        <Ionicons
+          // onPress={() => router.push("/(profile)/AddFriendsScreen")}
+          name="people-outline"
+          size={32}
+          color={"white"}
+        />
+        <Text
+          style={styles.userDetailText}
+        >{`@${profileDetails.result.username}`}</Text>
+        <Ionicons
+          onPress={() => router.push("/(profile)/SettingsScreen")}
+          name="reorder-three-outline"
+          size={32}
+          color={"white"}
+        />
       </View>
       <ScrollView
         contentContainerStyle={styles.scrollViewContainer}
@@ -122,28 +102,134 @@ const ProfileScreen = () => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        <Animated.View
-          style={styles.animatedView}
-          // sharedTransitionTag="MemoriesScreen"
-        >
+        <View style={styles.userDetails}>
+          {profileDetails &&
+          profileDetails.result &&
+          profileDetails.result.profilePhoto ? (
+            <Image
+              source={{ uri: profileDetails.result.profilePhoto.fileUrl }}
+              style={styles.profilePhoto}
+            />
+          ) : (
+            <Ionicons name="person-circle" size={64} />
+          )}
+          <Text style={styles.userText}>{profileDetails.result.name}</Text>
+          <FriendshipButton user={profileDetails} />
+        </View>
+        {/* <Text style={styles.headerText}>Memoryboard</Text> */}
+        <Animated.View style={styles.animatedView}>
           <Pressable onPress={() => router.push("/(hangout)/MemoriesScreen")}>
             <MemoriesView hangouts={memoriesData} />
           </Pressable>
-          {profileDetails.result.friendStatus === "Not Friends" && (
-            <BlurView
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-              }}
-              intensity={50}
-            />
-          )}
         </Animated.View>
+        {/* DEFAULT PROFILE PIC NOT CENTERED AND SIZE IS WRONG */}
+        {/* <View style={styles.upcomingHangouts}>
+          <Text style={styles.headerText}>Upcoming Hangouts</Text>
+          {upcomingHangouts?.map((hangout: Hangout) => {
+            return (
+              <Pressable
+                key={hangout.id}
+                onPress={() => router.push(`/(hangout)/${hangout.id}`)}
+              >
+                <View style={styles.hangoutBanner}>
+                  <Text style={styles.hangoutText}>{hangout.hangoutName}</Text>
+                  <View style={styles.participants}>
+                    {hangout.participants.map((participant: Participant) =>
+                      participant.profilePhoto ? (
+                        <Image
+                          key={participant.userId}
+                          source={{ uri: participant.profilePhoto.fileUrl }}
+                          style={styles.participantPhoto}
+                        />
+                      ) : (
+                        <View
+                          key={participant.userId}
+                          style={styles.participantPhoto}
+                        >
+                          <Ionicons
+                            name="person-circle"
+                            size={40}
+                            color="white"
+                          />
+                        </View>
+                      )
+                    )}
+                    {hangout.participantIds.length > 2 && (
+                      <View style={styles.additionalParticipants}>
+                        <Text>+{hangout.participantIds.length - 2}</Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+              </Pressable>
+            );
+          })}
+        </View> */}
       </ScrollView>
-    </SafeAreaView>
+    </BaseScreen>
+    // <SafeAreaView>
+    //   <View
+    //     style={{
+    //       flexDirection: "row",
+    //       justifyContent: "space-between",
+    //       alignItems: "center",
+    //       paddingHorizontal: 18,
+    //       paddingVertical: 10,
+    //     }}
+    //   >
+    //     <View style={{ flexDirection: "row", alignItems: "center" }}>
+    //       {profileDetails &&
+    //       profileDetails.result &&
+    //       profileDetails.result.profilePhoto ? (
+    //         <Image
+    //           source={{ uri: profileDetails.result.profilePhoto.fileUrl }}
+    //           style={styles.profilePhoto}
+    //         />
+    //       ) : (
+    //         <Ionicons name="person-circle" size={64} />
+    //       )}
+
+    //       <View>
+    //         <Text style={styles.name}>{profileDetails.result.name}</Text>
+    //         <Text
+    //           style={styles.username}
+    //         >{`@${profileDetails.result.username}`}</Text>
+    //       </View>
+    //     </View>
+    //     <View style={{ flexDirection: "row", alignItems: "center" }}>
+    //       <Pressable onPress={() => router.push("/(profile)/SettingsScreen")}>
+    //         <Ionicons name="menu" size={32} />
+    //       </Pressable>
+    //     </View>
+    //   </View>
+    //   <ScrollView
+    //     contentContainerStyle={styles.scrollViewContainer}
+    //     refreshControl={
+    //       <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+    //     }
+    //   >
+    //     <Animated.View
+    //       style={styles.animatedView}
+    //       // sharedTransitionTag="MemoriesScreen"
+    //     >
+    //       <Pressable onPress={() => router.push("/(hangout)/MemoriesScreen")}>
+    //         <MemoriesView hangouts={memoriesData} />
+    //       </Pressable>
+    //       {profileDetails.result.friendStatus === "Not Friends" && (
+    //         <BlurView
+    //           style={{
+    //             position: "absolute",
+    //             top: 0,
+    //             left: 0,
+    //             right: 0,
+    //             bottom: 0,
+    //           }}
+    //           intensity={50}
+    //         />
+    //       )}
+    //     </Animated.View>
+    //   </ScrollView>
+    // </SafeAreaView>
   );
 };
 
@@ -152,15 +238,44 @@ export default ProfileScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#141417",
+  },
+  navOptions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: wp(4),
+    paddingBottom: hp(1),
+  },
+  userDetails: {
+    alignItems: "center",
+  },
+  userText: {
+    color: "#FFF",
+    fontFamily: "Inter",
+    fontSize: 18,
+    fontWeight: "bold",
+    marginVertical: hp(1),
+  },
+  userDetailText: {
+    color: "#FFF",
+    fontFamily: "Inter",
+    fontSize: 14,
+    alignSelf: "center",
   },
   profilePhoto: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: wp(25),
+    height: wp(25),
+    borderRadius: wp(25),
   },
   scrollViewContainer: {
     flexGrow: 1,
-    height: scrollViewHeight,
+    marginHorizontal: wp(2),
+  },
+  headerText: {
+    color: "#FFF",
+    fontFamily: "Inter",
+    fontSize: 14,
+    fontWeight: "bold",
   },
   animatedView: {
     justifyContent: "center",
@@ -172,12 +287,48 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     marginVertical: 10,
   },
-  name: {
-    fontSize: 20,
+  upcomingHangouts: {
+    paddingTop: hp(2),
+  },
+  hangoutBanner: {
+    marginTop: hp(1),
+    height: hp(8),
+    flexDirection: "row",
+    gap: wp(40),
+    backgroundColor: "#202023",
+    borderRadius: 5,
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  hangoutText: {
+    paddingLeft: wp(4),
+    color: "#FFF",
+    fontFamily: "Inter",
+    fontSize: 18,
     fontWeight: "bold",
   },
-  username: {
-    fontSize: 14,
-    opacity: 0.8,
+  participants: {
+    flexDirection: "row",
+    marginRight: wp(4),
+    gap: -wp(5),
+  },
+  participantPhoto: {
+    height: 36,
+    width: 36,
+    borderRadius: 18,
+    borderColor: "white",
+    borderWidth: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  additionalParticipants: {
+    height: 36,
+    width: 36,
+    borderRadius: 18,
+    backgroundColor: "#D9D9D9",
+    borderColor: "white",
+    borderWidth: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

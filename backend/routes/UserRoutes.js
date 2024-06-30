@@ -11,6 +11,7 @@ import {
   getUserWithId,
   putUserDetails,
   getPosts,
+  putUserBackground,
   getProfilePics,
   getContacts,
 } from "../controllers/UserController.js";
@@ -33,6 +34,7 @@ router.get("/user/search/:username/users/:userId", getUsers);
 router.get("/user/:id/friends", getFriends);
 router.put("/user/:id/details", putUserDetails);
 router.get("/user/:id/feed", getPosts);
+router.put("/user/:id/background", putUserBackground);
 router.post("/user/profile-pics", getProfilePics);
 router.post("/user/check-contacts", getContacts);
 

@@ -1,3 +1,4 @@
+import { ViewStyleKey } from "@/app/(hangout)/MemoriesScreen";
 import { useUser } from "@clerk/clerk-expo";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -30,27 +31,112 @@ const imageWidth = (screenWidth - padding * 6) / 3; // Subtract total padding an
 interface AnimatedPostProps {
   thumbnail: string;
   color?: string;
+  viewStyle: ViewStyleKey;
+  setViewStyle: (updateFn: (prevStyle: ViewStyleKey) => ViewStyleKey) => void;
 }
 
-const AnimatedPost = ({ thumbnail, color = "#FFF" }: AnimatedPostProps) => {
+const AnimatedPost = ({
+  thumbnail,
+  color = "#FFF",
+  viewStyle,
+  setViewStyle,
+}: AnimatedPostProps) => {
   const [isEnlarged, setIsEnlarged] = useState(false);
   const router = useRouter();
   const { user } = useUser();
   const [isImagePrefetched, setIsImagePrefetched] = useState(false);
 
+  const cycleViewStyle = () => {
+    setViewStyle((currentStyle: ViewStyleKey) => {
+      switch (currentStyle) {
+        case "square":
+          return "rectangle";
+        case "rectangle":
+          return "polaroid";
+        case "polaroid":
+          return "square";
+        default:
+          return "rectangle";
+      }
+    });
+  };
+
+  const viewStyles = {
+    rectangle: {
+      view: {
+        width: imageWidth,
+        aspectRatio: 4 / 5,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: color,
+        borderRadius: 8,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 3,
+      },
+      image: {
+        width: "100%",
+        height: "100%",
+        borderRadius: 8,
+      },
+    },
+    square: {
+      view: {
+        width: imageWidth,
+        height: imageWidth,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: color,
+        borderRadius: 8,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 3,
+      },
+      image: {
+        width: imageWidth,
+        height: imageWidth,
+        borderRadius: 8,
+      },
+    },
+    polaroid: {
+      view: {
+        width: imageWidth + wp(4),
+        height: imageWidth + hp(6),
+        paddingBottom: hp(2),
+        backgroundColor: color,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 3,
+        flexDirection: "row",
+        justifyContent: "center",
+        alignItems: "center",
+        borderRadius: 8,
+      },
+      image: {
+        width: imageWidth,
+        height: imageWidth,
+      },
+    },
+  };
+
   return (
-    <Animated.View>
-      <View style={[styles.polaroid, { backgroundColor: color }]}>
-        {thumbnail ? (
-          <Animated.Image
-            source={{ uri: thumbnail }}
-            style={styles.post}
-            // sharedTransitionTag={thumbnail + "1"}
-            resizeMode="cover"
-          />
-        ) : null}
-      </View>
-    </Animated.View>
+    <Pressable onPress={cycleViewStyle}>
+      <Animated.View>
+        <View style={[styles.baseImageStyle, viewStyles[viewStyle].view]}>
+          {thumbnail ? (
+            <Animated.Image
+              source={{ uri: thumbnail }}
+              style={[styles.baseImageStyle, viewStyles[viewStyle].image]}
+              // sharedTransitionTag={thumbnail + "1"}
+              resizeMode="cover"
+            />
+          ) : null}
+        </View>
+      </Animated.View>
+    </Pressable>
   );
 };
 
@@ -73,4 +159,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 3,
   },
+  baseImageStyle: {},
 });

@@ -10,6 +10,7 @@ import {
   editUserDetails,
   fetchFriendsPosts,
   fetchProfilePics,
+  updateBackground,
   fetchContacts,
 } from "../services/UserService.js";
 
@@ -139,6 +140,16 @@ const getProfilePics = async (req, res) => {
   }
 };
 
+const putUserBackground = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const result = await updateBackground(userId, req.body);
+    res.status(201).send({ result });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 const getContacts = async (req, res) => {
   try {
     const batch = req.body.phoneNumbers;
@@ -161,6 +172,7 @@ export {
   getUserWithId,
   putUserDetails,
   getPosts,
+  putUserBackground,
   getProfilePics,
   getContacts,
 };
