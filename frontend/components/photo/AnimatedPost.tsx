@@ -127,12 +127,12 @@ const AnimatedPost = ({
       <Animated.View>
         <View style={[styles.baseImageStyle, viewStyles[viewStyle].view]}>
           {thumbnail ? (
-            <Animated.Image
-              source={{ uri: thumbnail }}
-              style={[styles.baseImageStyle, viewStyles[viewStyle].image]}
-              // sharedTransitionTag={thumbnail + "1"}
-              resizeMode="cover"
-            />
+            <Animated.View>
+              <Image
+                source={{ uri: thumbnail }}
+                style={[styles.baseImageStyle, viewStyles[viewStyle].image]}
+              />
+            </Animated.View>
           ) : null}
         </View>
       </Animated.View>

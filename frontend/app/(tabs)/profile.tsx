@@ -54,7 +54,7 @@ const Profile = () => {
   };
 
   const fetchUser = async () => {
-    console.log("Fetching User Information");
+    console.log("Fetching User Information in Profile Tab");
     return axios
       .get(`${process.env.EXPO_PUBLIC_API_URL}/users/${user?.id}/${user?.id}`)
       .then((res) => res.data);
@@ -75,13 +75,26 @@ const Profile = () => {
 
   const [memories, profile, hangouts, fetchedStickers] = useQueries({
     queries: [
-      { queryKey: ["memories", user?.id], queryFn: fetchMemories },
-      { queryKey: ["profile", user?.id], queryFn: fetchUser },
+      {
+        queryKey: ["memories", user?.id],
+        queryFn: fetchMemories,
+        staleTime: 1000 * 60 * 5,
+      },
+      {
+        queryKey: ["profile", user?.id],
+        queryFn: fetchUser,
+        staleTime: 1000 * 60 * 5,
+      },
       {
         queryKey: ["hangouts", user?.id],
         queryFn: fetchUpcomingHangouts,
+        staleTime: 1000 * 60 * 5,
       },
-      { queryKey: ["stickers", user?.id], queryFn: fetchStickers },
+      {
+        queryKey: ["stickers", user?.id],
+        queryFn: fetchStickers,
+        staleTime: 1000 * 60 * 5,
+      },
     ],
   });
 
@@ -95,6 +108,7 @@ const Profile = () => {
     await queryClient.invalidateQueries({ queryKey: ["memories", user?.id] });
     await queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
     await queryClient.invalidateQueries({ queryKey: ["hangouts", user?.id] });
+    await queryClient.invalidateQueries({ queryKey: ["stickers", user?.id] });
     setRefreshing(false);
   };
 
@@ -102,9 +116,9 @@ const Profile = () => {
     SheetManager.show("change-photo");
   };
 
-  if (isPendingMemories || isPendingProfile) {
-    return <Text>Is Loading...</Text>;
-  }
+  // if (isPendingMemories || isPendingProfile) {
+  //   return <Text>Is Loading...</Text>;
+  // }
 
   const userProfile = profileDetails?.result || {
     name: "Unknown User",
@@ -151,18 +165,18 @@ const Profile = () => {
         {/* <Text style={styles.headerText}>Memoryboard</Text> */}
         <Animated.View style={styles.animatedView}>
           <Pressable onPress={() => router.push("/(hangout)/MemoriesScreen")}>
-            <MemoriesView hangouts={memoriesData} stickers={stickersData} />
+            <MemoriesView
+              hangouts={memoriesData}
+              stickers={stickersData}
+              color={userProfile.backgroundDetails.backgroundColor}
+            />
           </Pressable>
         </Animated.View>
         {/* DEFAULT PROFILE PIC NOT CENTERED AND SIZE IS WRONG */}
         <Text style={styles.headerText}>Upcoming Hangouts</Text>
         <View style={styles.upcomingHangouts}>
           {upcomingHangouts?.map((hangout: Hangout) => {
-            return (
-              <View>
-                <ProfileHangout key={hangout.id} hangout={hangout} />
-              </View>
-            );
+            return <ProfileHangout key={hangout.id} hangout={hangout} />;
           })}
         </View>
       </ScrollView>
@@ -181,7 +195,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     paddingHorizontal: wp(4),
-    paddingBottom: hp(1),
+    marginBottom: hp(1),
   },
   userDetails: {
     alignItems: "center",
@@ -191,7 +205,8 @@ const styles = StyleSheet.create({
     fontFamily: "Inter",
     fontSize: 18,
     fontWeight: "bold",
-    marginVertical: hp(1),
+    marginTop: hp(1),
+    marginBottom: hp(2),
   },
   userDetailText: {
     color: "#FFF",
@@ -209,7 +224,7 @@ const styles = StyleSheet.create({
     marginHorizontal: wp(2),
   },
   headerText: {
-    marginTop: hp(1),
+    marginTop: hp(2),
     color: "#FFF",
     fontFamily: "Inter",
     fontSize: 14,
@@ -218,12 +233,8 @@ const styles = StyleSheet.create({
   animatedView: {
     justifyContent: "center",
     alignItems: "center",
-    height: 300,
-    borderWidth: 1,
-    borderColor: "black",
-    borderRadius: 10,
     overflow: "hidden",
-    marginVertical: 10,
+    borderRadius: 15,
   },
   upcomingHangouts: {
     marginTop: hp(1),

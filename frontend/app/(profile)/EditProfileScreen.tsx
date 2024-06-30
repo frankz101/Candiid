@@ -3,6 +3,12 @@ import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useUser } from "@clerk/clerk-expo";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+import BackButton from "@/components/utils/BackButton";
+import BaseScreen from "@/components/utils/BaseScreen";
 
 const EditProfileScreen = () => {
   const [name, setName] = useState("");
@@ -59,13 +65,17 @@ const EditProfileScreen = () => {
   }, []);
 
   return (
-    <SafeAreaView>
-      <View style={{ flexDirection: "row", justifyContent: "center" }}>
-        <Text>Edit Profile Screen</Text>
+    <BaseScreen>
+      <View style={styles.header}>
+        <View style={{ width: wp(14) }}>
+          <BackButton />
+        </View>
+        <Text style={styles.headerText}>Edit Profile</Text>
+        <View style={{ width: wp(14) }} />
       </View>
 
       <View style={styles.editContainer}>
-        <Text style={styles.label}>Name</Text>
+        <Text style={styles.labelText}>Name</Text>
         <TextInput
           placeholder="Name"
           onChangeText={(input) => setName(input)} //CONSIDER CHANGING THIS TO ONSUBMITEDITING
@@ -73,11 +83,12 @@ const EditProfileScreen = () => {
           maxLength={30}
           value={name}
           style={styles.input}
+          placeholderTextColor="#FFFFFF88"
         />
       </View>
 
       <View style={styles.editContainer}>
-        <Text style={styles.label}>Username</Text>
+        <Text style={styles.labelText}>Username</Text>
         <TextInput
           placeholder="Username"
           onChangeText={(input) => setUsername(input)} //CONSIDER CHANGING THIS TO ONSUBMITEDITING
@@ -85,11 +96,12 @@ const EditProfileScreen = () => {
           maxLength={30}
           value={username}
           style={styles.input}
+          placeholderTextColor="#FFFFFF88"
         />
       </View>
 
       <View style={styles.editContainer}>
-        <Text style={styles.label}>Bio</Text>
+        <Text style={styles.labelText}>Bio</Text>
         <TextInput
           placeholder="Bio"
           onChangeText={(input) => setBio(input)} //CONSIDER CHANGING THIS TO ONSUBMITEDITING
@@ -97,25 +109,39 @@ const EditProfileScreen = () => {
           maxLength={30}
           value={bio}
           style={styles.input}
+          placeholderTextColor="#FFFFFF88"
         />
       </View>
-    </SafeAreaView>
+    </BaseScreen>
   );
 };
 
 export default EditProfileScreen;
 
 const styles = StyleSheet.create({
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    alignSelf: "center",
+    width: wp(95),
+    marginBottom: hp(2),
+  },
+  headerText: {
+    color: "white",
+    fontFamily: "Inter",
+    fontSize: 26,
+  },
   editContainer: {
     flexDirection: "row",
-    margin: 4,
+    paddingLeft: wp(4),
+    paddingVertical: hp(1),
   },
-  label: {
+  labelText: {
     width: 100,
+    color: "#FFF",
   },
   input: {
-    // borderWidth: 1,
-    // borderColor: "#ccc",
-    // borderRadius: 5,
+    color: "#DDD",
   },
 });

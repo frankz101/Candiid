@@ -8,12 +8,12 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import AnimatedPost from "@/components/photo/AnimatedMemory";
 import { Ionicons } from "@expo/vector-icons";
 import AnimatedMemory from "@/components/photo/AnimatedMemory";
 import { GiphyMedia } from "@giphy/react-native-sdk";
 import MediaComponent from "../photo/MediaComponent";
 import { ViewStyleKey } from "@/app/(hangout)/MemoriesScreen";
+import DotGrid from "../utils/DotGrid";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
@@ -38,68 +38,23 @@ interface Sticker {
 }
 
 interface MemoriesViewProps {
-  hangouts: Hangout[];
-  stickers: Sticker[];
+  hangouts?: Hangout[];
+  stickers?: Sticker[];
+  color: string;
 }
 
-const MemoriesView: React.FC<MemoriesViewProps> = ({ hangouts, stickers }) => {
+const MemoriesView: React.FC<MemoriesViewProps> = ({
+  hangouts,
+  stickers,
+  color,
+}) => {
   const screenX = useSharedValue<number>(0);
   const screenY = useSharedValue<number>(0);
-  const postX = useSharedValue<number>(0);
-  const postY = useSharedValue<number>(0);
   const scale = useSharedValue<number>(1);
-  const scaleContext = useSharedValue({ scale: 1 });
-  const screenContext = useSharedValue({ x: 0, y: 0 });
-  const isPostActive = useSharedValue<boolean>(false);
+
+  const selectedColor = useSharedValue(color);
   const displayModeRef = useRef(true); // SAVE THIS FOR IS EDIT MODE
-
-  const springBorder = () => {
-    screenX.value = withSpring(0, {
-      stiffness: 60,
-    });
-    screenY.value = withSpring(0, {
-      stiffness: 60,
-    });
-  };
-
-  const screenPan = Gesture.Pan()
-    .onStart((e) => {
-      screenContext.value = {
-        x: screenX.value * scale.value,
-        y: screenY.value * scale.value,
-      };
-    })
-    .onUpdate((e) => {
-      let newX = (e.translationX + screenContext.value.x) / scale.value;
-      let newY = (e.translationY + screenContext.value.y) / scale.value;
-
-      const containerWidth = screenWidth * scale.value;
-      const containerHeight = screenHeight * scale.value; // Use the scaled dimensions of the inner container
-      const extraSpace = 35;
-      const maxX = Math.max(0, (containerWidth - screenWidth) / 2 + extraSpace);
-      const maxY =
-        Math.max(0, (containerHeight - screenHeight) / 2 + extraSpace) * 9.5;
-      const minX = -maxX;
-      const minY = -maxY;
-
-      // if (newX >= maxX || newY >= maxY || newX <= minX || newY <= minY) {
-      //   runOnJS(springBorder)();
-      // }
-
-      screenX.value = Math.min(Math.max(newX, minX), maxX);
-      screenY.value = Math.min(Math.max(newY, minY), maxY);
-    });
-
-  const pinch = Gesture.Pinch()
-    .onStart((e) => {
-      scaleContext.value = { scale: scale.value };
-    })
-    .onUpdate((e) => {
-      const newScale = e.scale * scaleContext.value.scale;
-      scale.value = Math.min(Math.max(newScale, 0.9), 2);
-    });
-
-  const combinedGesture = Gesture.Simultaneous(screenPan, pinch);
+  console.log(selectedColor.value);
 
   const containerStyle = useAnimatedStyle(() => {
     return {
@@ -108,47 +63,65 @@ const MemoriesView: React.FC<MemoriesViewProps> = ({ hangouts, stickers }) => {
         { translateX: screenX.value },
         { translateY: screenY.value },
       ],
+      backgroundColor: color,
     };
   });
-  // console.log("ScreenHeight: " + screenHeight);
-  // console.log("ScreenWidth: " + screenWidth);
-  // console.log("Hangout Data " + hangouts);
+
+  if (!hangouts) {
+    return (
+      <View>
+        <Animated.View
+          style={[styles.container, containerStyle]}
+        ></Animated.View>
+      </View>
+    );
+  }
 
   return (
     <View>
-      <GestureDetector gesture={combinedGesture}>
-        <Animated.View style={[styles.container, containerStyle]}>
-          {hangouts &&
-            hangouts.map((hangout, index) => (
-              <AnimatedPost
-                key={index + hangout.hangoutId}
-                postId={hangout.postId}
-                hangoutId={hangout.hangoutId}
-                memoryId={hangout.id}
-                positionX={hangout.postX}
-                positionY={hangout.postY}
-                frame={hangout.frame}
-                color={hangout.color}
-              />
-            ))}
+      <Animated.View style={[styles.container, containerStyle]}>
+        {/* <Animated.View style={overlayStyle} /> */}
+        {/* <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: screenWidth,
+            height: screenHeight,
+            backgroundColor: "rgba(44, 44, 48, 0.50)",
+          }}
+        /> */}
+        {/* <DotGrid width={screenWidth} height={screenHeight} /> */}
+        {hangouts &&
+          hangouts.map((hangout, index) => (
+            <AnimatedMemory
+              key={index + hangout.hangoutId}
+              postId={hangout.postId}
+              hangoutId={hangout.hangoutId}
+              memoryId={hangout.id}
+              positionX={hangout.postX}
+              positionY={hangout.postY}
+              frame={hangout.frame}
+              color={hangout.color}
+            />
+          ))}
 
-          {stickers && stickers.length > 0 ? (
-            stickers.map((sticker: any, index: number) => (
-              <MediaComponent
-                key={index}
-                id={sticker.id}
-                media={sticker.media}
-                positionX={sticker.x}
-                positionY={sticker.y}
-                mediaType={"sticker"} // change this later
-                displayModeRef={displayModeRef}
-              />
-            ))
-          ) : (
-            <View />
-          )}
-        </Animated.View>
-      </GestureDetector>
+        {stickers && stickers.length > 0 ? (
+          stickers.map((sticker: any, index: number) => (
+            <MediaComponent
+              key={index}
+              id={sticker.id}
+              media={sticker.media}
+              positionX={sticker.x}
+              positionY={sticker.y}
+              mediaType={"sticker"} // change this later
+              displayModeRef={displayModeRef}
+            />
+          ))
+        ) : (
+          <View />
+        )}
+      </Animated.View>
     </View>
   );
 };

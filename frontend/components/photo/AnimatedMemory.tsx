@@ -1,16 +1,10 @@
 import { useUser } from "@clerk/clerk-expo";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import {
-  Dimensions,
-  Pressable,
-  Text,
-  View,
-  Image,
-  StyleSheet,
-} from "react-native";
+import { Dimensions, Pressable, Text, View, StyleSheet } from "react-native";
 import Animated, { useAnimatedStyle } from "react-native-reanimated";
 import {
   widthPercentageToDP as wp,
@@ -66,10 +60,11 @@ const AnimatedMemory = ({
   const { data: photoData, isPending } = useQuery({
     queryKey: ["photo", postId],
     queryFn: fetchHangout,
+    staleTime: 1000 * 60 * 5,
   });
 
   if (isPending) {
-    return <Text>Loading...</Text>;
+    return <View />;
   }
 
   const viewStyles = {
@@ -162,11 +157,12 @@ const AnimatedMemory = ({
           <View
             style={[styles.baseImageStyle, viewStyles[frame].imageContainer]}
           >
-            <Animated.Image
-              source={{ uri: photoData.result.photoUrls[0].fileUrl }}
-              style={[styles.baseImageStyle, viewStyles[frame].image]}
-              resizeMode="cover"
-            />
+            <Animated.View>
+              <Image
+                source={{ uri: photoData.result.photoUrls[0].fileUrl }}
+                style={[styles.baseImageStyle, viewStyles[frame].image]}
+              />
+            </Animated.View>
           </View>
         ) : (
           <Animated.View />

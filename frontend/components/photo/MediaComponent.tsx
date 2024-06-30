@@ -99,8 +99,8 @@ const MediaComponent: React.FC<MediaComponentProps> = ({
   console.log("DISPLAY: " + displayModeRef.current);
 
   const panGesture = Gesture.Pan()
+    .enabled(!displayModeRef.current)
     .onStart(() => {
-      if (displayModeRef.current) return;
       isMediaActive.value = true;
       mediaContext.value = {
         x: posX.value,
@@ -108,12 +108,10 @@ const MediaComponent: React.FC<MediaComponentProps> = ({
       };
     })
     .onUpdate((e) => {
-      if (displayModeRef.current) return;
       posX.value = e.translationX + mediaContext.value.x;
       posY.value = e.translationY + mediaContext.value.y;
     })
     .onEnd(() => {
-      if (displayModeRef.current) return;
       isMediaActive.value = false;
       if (stickerId) {
         runOnJS(updateSticker)(stickerId, {

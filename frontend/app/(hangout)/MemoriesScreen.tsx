@@ -52,6 +52,7 @@ import MediaComponent from "@/components/photo/MediaComponent";
 import { StickerDetails } from "@/store/createStickerSlice";
 import ColorPicker, { Panel5 } from "reanimated-color-picker";
 import type { returnedResults } from "reanimated-color-picker";
+import BackButton from "@/components/utils/BackButton";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
@@ -115,36 +116,48 @@ const MemoriesScreen = () => {
     }
   }, [media]);
 
-  const fetchHangouts = async () => {
-    console.log("Fetching Memories");
+  const fetchMemories = async () => {
+    console.log("Fetching Memories in Memories");
     return axios
       .get(`${process.env.EXPO_PUBLIC_API_URL}/memories/${user?.id}`)
       .then((res) => res.data);
   };
 
   const fetchStickers = async () => {
-    console.log("Fetching Stickers");
+    console.log("Fetching Stickers in Memories");
     return axios
       .get(`${process.env.EXPO_PUBLIC_API_URL}/stickers/${user?.id}`)
       .then((res) => res.data);
   };
 
   const fetchUser = async () => {
-    console.log("Fetching User Information");
+    console.log("Fetching User Information in Memories");
     return axios
       .get(`${process.env.EXPO_PUBLIC_API_URL}/users/${user?.id}/${user?.id}`)
       .then((res) => res.data);
   };
 
-  const [hangouts, fetchedStickers, profile] = useQueries({
+  const [memories, fetchedStickers, profile] = useQueries({
     queries: [
-      { queryKey: ["hangouts-2"], queryFn: fetchHangouts },
-      { queryKey: ["stickers", user?.id], queryFn: fetchStickers },
-      { queryKey: ["profile", user?.id], queryFn: fetchUser },
+      {
+        queryKey: ["memories", user?.id],
+        queryFn: fetchMemories,
+        staleTime: 1000 * 60 * 5,
+      },
+      {
+        queryKey: ["stickers", user?.id],
+        queryFn: fetchStickers,
+        staleTime: 1000 * 60 * 5,
+      },
+      {
+        queryKey: ["profile", user?.id],
+        queryFn: fetchUser,
+        staleTime: 1000 * 60 * 5,
+      },
     ],
   });
 
-  const { data: hangoutsData, isPending: isPendingHangouts } = hangouts;
+  const { data: memoriesData, isPending: isPendingMemories } = memories;
   const { data: stickersData, isPending: isPendingStickers } = fetchedStickers;
   const { data: profileDetails, isPending: isPendingProfile } = profile;
 
@@ -164,7 +177,7 @@ const MemoriesScreen = () => {
 
   const handleStickerSubmit = async () => {
     setIsEditMode(false);
-    displayModeRef.current = false;
+    displayModeRef.current = true;
     const newStickers: StickerDetails[] = [];
     // console.log("New Stickers: " + newStickers);
     const existingStickers: StickerDetails[] = [];
@@ -321,48 +334,6 @@ const MemoriesScreen = () => {
     });
 
   // console.log("Stickers: " + stickers[1].positionX);
-  const mediaPan = Gesture.Pan()
-    .onStart(() => {
-      isMediaActive.value = true;
-
-      if (activeStickerIndex) {
-        mediaContext.value = {
-          x: stickers[activeStickerIndex].positionX.value * scale.value,
-          y: stickers[activeStickerIndex].positionY.value * scale.value,
-        };
-      }
-    })
-    .onUpdate((e) => {
-      if (activeStickerIndex !== null) {
-        console.log("Selected: " + activeStickerIndex);
-        const sticker = stickers[activeStickerIndex];
-        let newMediaX = (e.translationX + mediaContext.value.x) / scale.value;
-        let newMediaY = (e.translationY + mediaContext.value.y) / scale.value;
-
-        const halfMediaWidth = mediaWidth / 2;
-
-        const minX = -screenWidth / 2 + halfMediaWidth;
-        const maxX = screenWidth / 2 - halfMediaWidth;
-        const minY = -screenHeight / 2 + halfMediaWidth;
-        const maxY = screenHeight / 2 - halfMediaWidth;
-
-        console.log("ZIPPY: " + sticker);
-        console.log(
-          "NEW STICKER: " +
-            JSON.stringify({
-              positionX: sticker.positionX.value,
-              positionY: sticker.positionY.value,
-              mediaType: sticker.mediaType,
-            })
-        );
-
-        sticker.positionX.value = Math.min(Math.max(newMediaX, minX), maxX);
-        sticker.positionY.value = Math.min(Math.max(newMediaY, minY), maxY);
-      }
-    })
-    .onEnd(() => {
-      isMediaActive.value = false;
-    });
 
   const pinch = Gesture.Pinch()
     .onStart((e) => {
@@ -477,7 +448,7 @@ const MemoriesScreen = () => {
 
   const handleStickerSelect = (e: any) => {
     setIsEditMode(true);
-    displayModeRef.current = true;
+    displayModeRef.current = false;
 
     const newMedia = e.nativeEvent.media;
 
@@ -499,7 +470,7 @@ const MemoriesScreen = () => {
   //   console.log(stickersData);
   // }
 
-  return isPendingHangouts && isPendingStickers && isPendingProfile ? (
+  return isPendingMemories && isPendingStickers && isPendingProfile ? (
     <Text>Loading...</Text>
   ) : (
     <BottomSheetModalProvider>
@@ -507,6 +478,9 @@ const MemoriesScreen = () => {
         style={[styles.background, backgroundColorStyle]}
         // sharedTransitionTag="MemoriesScreen"
       >
+        <Pressable style={styles.backButton} onPress={() => router.back()}>
+          <Ionicons name="chevron-back" size={32} color="#FFF" />
+        </Pressable>
         <Pressable
           style={styles.stickerButton}
           onPress={handleOpenStickerModal}
@@ -526,8 +500,8 @@ const MemoriesScreen = () => {
         <GestureDetector gesture={combinedGesture}>
           <Animated.View style={[styles.container, containerStyle]}>
             <DotGrid width={screenWidth} height={screenHeight} />
-            {hangoutsData && hangoutsData.length > 0 ? (
-              hangoutsData.map((hangout: any, index: number) => (
+            {memoriesData && memoriesData.length > 0 ? (
+              memoriesData.map((hangout: any, index: number) => (
                 <AnimatedMemory
                   key={index + (hangout.postId || "")}
                   postId={hangout.postId}
@@ -728,6 +702,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(44, 44, 48, 0.50)",
+  },
+  backButton: {
+    position: "absolute",
+    zIndex: 2,
+    top: hp(6),
+    left: wp(6),
   },
   stickerButton: {
     position: "absolute",
