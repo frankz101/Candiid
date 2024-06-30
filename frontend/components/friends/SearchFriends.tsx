@@ -21,6 +21,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import ShareButton from "./ShareButton";
 
 interface User {
   id: number;
@@ -64,6 +65,7 @@ const SearchFriends = () => {
           setClicked={setClicked}
           onSubmit={onSubmit}
         />
+        <ShareButton />
         <FlatList
           data={searchResults}
           renderItem={renderItem}
