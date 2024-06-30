@@ -25,16 +25,17 @@ import {
 } from "react-native-responsive-screen";
 import BaseScreen from "@/components/utils/BaseScreen";
 import MemoriesScreen from "../(hangout)/MemoriesScreen";
+import ProfileHangout from "@/components/profile/ProfileHangout";
 
-interface Hangout {
+export interface Hangout {
   hangoutName: string;
-  description: string;
+  hangoutDescription: string;
   id: string;
   participantIds: string[];
   participants: Participant[];
 }
 
-interface Participant {
+export interface Participant {
   userId: string;
   profilePhoto: null | { fileUrl: string };
 }
@@ -65,7 +66,14 @@ const Profile = () => {
       .then((res) => res.data);
   };
 
-  const [memories, profile, hangouts] = useQueries({
+  const fetchStickers = async () => {
+    console.log("Fetching Stickers");
+    return axios
+      .get(`${process.env.EXPO_PUBLIC_API_URL}/stickers/${user?.id}`)
+      .then((res) => res.data);
+  };
+
+  const [memories, profile, hangouts, fetchedStickers] = useQueries({
     queries: [
       { queryKey: ["memories", user?.id], queryFn: fetchMemories },
       { queryKey: ["profile", user?.id], queryFn: fetchUser },
@@ -73,12 +81,14 @@ const Profile = () => {
         queryKey: ["hangouts", user?.id],
         queryFn: fetchUpcomingHangouts,
       },
+      { queryKey: ["stickers", user?.id], queryFn: fetchStickers },
     ],
   });
 
   const { data: memoriesData, isPending: isPendingMemories } = memories;
   const { data: profileDetails, isPending: isPendingProfile } = profile;
   const { data: upcomingHangouts, isPending: isPendingHangouts } = hangouts;
+  const { data: stickersData, isPending: isPendingStickers } = fetchedStickers;
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -141,49 +151,17 @@ const Profile = () => {
         {/* <Text style={styles.headerText}>Memoryboard</Text> */}
         <Animated.View style={styles.animatedView}>
           <Pressable onPress={() => router.push("/(hangout)/MemoriesScreen")}>
-            <MemoriesView hangouts={memoriesData} />
+            <MemoriesView hangouts={memoriesData} stickers={stickersData} />
           </Pressable>
         </Animated.View>
         {/* DEFAULT PROFILE PIC NOT CENTERED AND SIZE IS WRONG */}
+        <Text style={styles.headerText}>Upcoming Hangouts</Text>
         <View style={styles.upcomingHangouts}>
-          <Text style={styles.headerText}>Upcoming Hangouts</Text>
           {upcomingHangouts?.map((hangout: Hangout) => {
             return (
-              <Pressable
-                key={hangout.id}
-                onPress={() => router.push(`/(hangout)/${hangout.id}`)}
-              >
-                <View style={styles.hangoutBanner}>
-                  <Text style={styles.hangoutText}>{hangout.hangoutName}</Text>
-                  <View style={styles.participants}>
-                    {hangout.participants.map((participant: Participant) =>
-                      participant.profilePhoto ? (
-                        <Image
-                          key={participant.userId}
-                          source={{ uri: participant.profilePhoto.fileUrl }}
-                          style={styles.participantPhoto}
-                        />
-                      ) : (
-                        <View
-                          key={participant.userId}
-                          style={styles.participantPhoto}
-                        >
-                          <Ionicons
-                            name="person-circle"
-                            size={40}
-                            color="white"
-                          />
-                        </View>
-                      )
-                    )}
-                    {hangout.participantIds.length > 2 && (
-                      <View style={styles.additionalParticipants}>
-                        <Text>+{hangout.participantIds.length - 2}</Text>
-                      </View>
-                    )}
-                  </View>
-                </View>
-              </Pressable>
+              <View>
+                <ProfileHangout key={hangout.id} hangout={hangout} />
+              </View>
             );
           })}
         </View>
@@ -231,6 +209,7 @@ const styles = StyleSheet.create({
     marginHorizontal: wp(2),
   },
   headerText: {
+    marginTop: hp(1),
     color: "#FFF",
     fontFamily: "Inter",
     fontSize: 14,
@@ -247,7 +226,10 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   upcomingHangouts: {
-    paddingTop: hp(2),
+    marginTop: hp(1),
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
   },
   hangoutBanner: {
     marginTop: hp(1),

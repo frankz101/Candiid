@@ -14,7 +14,7 @@ import {
 } from "react-native-responsive-screen";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import useStore from "@/store/useStore";
-import { useEffect, useState } from "react";
+import { MutableRefObject, useEffect, useState } from "react";
 import uuid from "react-native-uuid";
 
 interface MediaComponentProps {
@@ -24,6 +24,7 @@ interface MediaComponentProps {
   positionY?: number;
   scale?: SharedValue<number>;
   mediaType: string;
+  displayModeRef: MutableRefObject<boolean>;
 }
 
 const MediaComponent: React.FC<MediaComponentProps> = ({
@@ -33,6 +34,7 @@ const MediaComponent: React.FC<MediaComponentProps> = ({
   positionY = 0,
   scale,
   mediaType,
+  displayModeRef,
 }) => {
   const mediaContext = useSharedValue({ x: positionX, y: positionY });
   const [stickerId, setStickerId] = useState<string>();
@@ -94,8 +96,11 @@ const MediaComponent: React.FC<MediaComponentProps> = ({
     }
   };
 
+  console.log("DISPLAY: " + displayModeRef.current);
+
   const panGesture = Gesture.Pan()
     .onStart(() => {
+      if (displayModeRef.current) return;
       isMediaActive.value = true;
       mediaContext.value = {
         x: posX.value,
@@ -103,10 +108,12 @@ const MediaComponent: React.FC<MediaComponentProps> = ({
       };
     })
     .onUpdate((e) => {
+      if (displayModeRef.current) return;
       posX.value = e.translationX + mediaContext.value.x;
       posY.value = e.translationY + mediaContext.value.y;
     })
     .onEnd(() => {
+      if (displayModeRef.current) return;
       isMediaActive.value = false;
       if (stickerId) {
         runOnJS(updateSticker)(stickerId, {

@@ -94,6 +94,7 @@ const MemoriesScreen = () => {
     useState<boolean>(false);
   const [modalContent, setModalContent] = useState("");
   const [viewStyle, setViewStyle] = useState<ViewStyleKey>("polaroid");
+  const displayModeRef = useRef(true); // SAVE THIS FOR IS EDIT MODE
 
   const postDetails = useStore((state) => state.postDetails);
 
@@ -163,6 +164,7 @@ const MemoriesScreen = () => {
 
   const handleStickerSubmit = async () => {
     setIsEditMode(false);
+    displayModeRef.current = false;
     const newStickers: StickerDetails[] = [];
     // console.log("New Stickers: " + newStickers);
     const existingStickers: StickerDetails[] = [];
@@ -475,6 +477,7 @@ const MemoriesScreen = () => {
 
   const handleStickerSelect = (e: any) => {
     setIsEditMode(true);
+    displayModeRef.current = true;
 
     const newMedia = e.nativeEvent.media;
 
@@ -549,6 +552,7 @@ const MemoriesScreen = () => {
                   positionX={sticker.x}
                   positionY={sticker.y}
                   mediaType={"sticker"} // change this later
+                  displayModeRef={displayModeRef}
                 />
               ))
             ) : (
@@ -581,6 +585,7 @@ const MemoriesScreen = () => {
                   key={index}
                   media={sticker.media}
                   mediaType={sticker.mediaType}
+                  displayModeRef={displayModeRef}
                 />
               ))
             ) : (

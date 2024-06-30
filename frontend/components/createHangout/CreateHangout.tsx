@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
   nameInputContainer: {
     backgroundColor: "rgba(44, 44, 48, 0.50)",
     width: wp("95%"),
-    height: hp("20%"),
+    aspectRatio: 1,
     marginTop: hp(2),
     borderRadius: 5,
   },
