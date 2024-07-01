@@ -10,6 +10,7 @@ import {
   getDocs,
   query,
   orderBy,
+  deleteDoc,
 } from "firebase/firestore";
 import { db } from "../firebase.js";
 import { deleteObject, ref } from "firebase/storage";
@@ -347,6 +348,19 @@ const fetchContactsInDatabase = async (phoneNumbers) => {
   }
 };
 
+const deleteUserInDatabase = async (userId) => {
+  try {
+    const userDoc = doc(db, "users", userId);
+    if (userDoc) {
+      deleteDoc(userDoc);
+    }
+    return "User doc deleted";
+  } catch (error) {
+    console.error("Error deleting user: ", error);
+    throw error;
+  }
+};
+
 export {
   createUserInDatabase,
   changeProfilePhotoInDatabase,
@@ -361,4 +375,5 @@ export {
   updateBackgroundFromDatabase,
   fetchProfilePicsInDatabase,
   fetchContactsInDatabase,
+  deleteUserInDatabase,
 };

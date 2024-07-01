@@ -14,6 +14,7 @@ import {
   putUserBackground,
   getProfilePics,
   getContacts,
+  deleteUser,
 } from "../controllers/UserController.js";
 
 var router = express.Router();
@@ -37,5 +38,6 @@ router.get("/user/:id/feed", getPosts);
 router.put("/user/:id/background", putUserBackground);
 router.post("/user/profile-pics", getProfilePics);
 router.post("/user/check-contacts", getContacts);
+router.delete("/user/delete/:userId", deleteUser);
 
 export default router;

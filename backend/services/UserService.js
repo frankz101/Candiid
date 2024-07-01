@@ -13,6 +13,7 @@ import {
   fetchProfilePicsInDatabase,
   updateBackgroundFromDatabase,
   fetchContactsInDatabase,
+  deleteUserInDatabase,
 } from "../db/UserDatabase.js";
 import { storage } from "../firebase.js";
 import {
@@ -179,6 +180,11 @@ const fetchContacts = async (batch, userId) => {
   return usersWithFriendshipStatus;
 };
 
+const removeUser = async (userId) => {
+  const result = await deleteUserInDatabase(userId);
+  return result;
+};
+
 export {
   createUser,
   changeProfilePhoto,
@@ -193,4 +199,5 @@ export {
   fetchProfilePics,
   updateBackground,
   fetchContacts,
+  removeUser,
 };

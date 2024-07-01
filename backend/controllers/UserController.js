@@ -12,6 +12,7 @@ import {
   fetchProfilePics,
   updateBackground,
   fetchContacts,
+  removeUser,
 } from "../services/UserService.js";
 
 const postUser = async (req, res) => {
@@ -161,6 +162,16 @@ const getContacts = async (req, res) => {
   }
 };
 
+const deleteUser = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const result = await removeUser(userId);
+    res.status(201).send({ result });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export {
   postUser,
   putUserProfilePhoto,
@@ -175,4 +186,5 @@ export {
   putUserBackground,
   getProfilePics,
   getContacts,
+  deleteUser,
 };
