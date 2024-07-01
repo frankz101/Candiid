@@ -133,7 +133,7 @@ const fetchUpcomingHangoutsFromDatabase = async (userId) => {
       querySnapshot.forEach((doc) => {
         const hangout = { id: doc.id, ...doc.data() };
         const participantIds = hangout.participantIds.slice(0, 2); // Get first two participants
-        hangout.participantIds = participantIds; // Update the hangout object with only the first two participants
+        hangout.participants = participantIds;
         hangouts.push(hangout);
 
         participantIds.forEach((userId) => userIdsToFetch.push(userId));
@@ -154,7 +154,7 @@ const fetchUpcomingHangoutsFromDatabase = async (userId) => {
 
       // Map the profile photos to the respective participants in the hangouts
       hangouts.forEach((hangout) => {
-        hangout.participants = hangout.participantIds.map((userId) => ({
+        hangout.participants = hangout.participants.map((userId) => ({
           userId,
           profilePhoto: userProfiles[userId]?.profilePhoto || null,
         }));
