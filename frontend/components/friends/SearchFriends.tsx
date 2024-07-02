@@ -46,7 +46,11 @@ const SearchFriends = () => {
       const res = await axios.get(
         `${process.env.EXPO_PUBLIC_API_URL}/user/search/${searchPhrase}/users/${user?.id}`
       );
-      setSearchResults(res.data.result);
+      setSearchResults(
+        res.data.result.filter(
+          (result: User) => result.id.toString() !== user?.id
+        )
+      );
     }
   };
 
