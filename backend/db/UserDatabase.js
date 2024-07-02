@@ -11,6 +11,8 @@ import {
   query,
   orderBy,
   deleteDoc,
+  or,
+  arrayRemove,
 } from "firebase/firestore";
 import { db } from "../firebase.js";
 import { deleteObject, ref } from "firebase/storage";
@@ -354,7 +356,131 @@ const deleteUserInDatabase = async (userId) => {
     if (userDoc) {
       deleteDoc(userDoc);
     }
-    return "User doc deleted";
+
+    const friendRequestQuery = query(
+      collection(db, "friendRequests"),
+      or(where("senderId", "==", userId), where("receiverId", "==", userId))
+    );
+    const friendRequestSnapshot = await getDocs(friendRequestQuery);
+    const friendRequests = friendRequestSnapshot.docs.map((doc) => doc.id);
+    await Promise.all(
+      friendRequests.map(async (requestId) => {
+        const requestDocRef = doc(db, "friendRequests", requestId);
+        await deleteDoc(requestDocRef);
+      })
+    );
+
+    const hangoutRequestQuery = query(
+      collection(db, "hangoutRequests"),
+      or(where("userId", "==", userId), where("receiverId", "==", userId))
+    );
+    const hangoutRequestSnapshot = await getDocs(hangoutRequestQuery);
+    const hangoutRequests = hangoutRequestSnapshot.docs.map((doc) => doc.id);
+    await Promise.all(
+      hangoutRequests.map(async (requestId) => {
+        const requestDocRef = doc(db, "hangoutRequests", requestId);
+        await deleteDoc(requestDocRef);
+      })
+    );
+
+    const joinHangoutRequestQuery = query(
+      collection(db, "joinHangoutRequests"),
+      or(where("userId", "==", userId), where("receiverId", "==", userId))
+    );
+    const joinHangoutRequestSnapshot = await getDocs(joinHangoutRequestQuery);
+    const joinHangoutRequests = joinHangoutRequestSnapshot.docs.map(
+      (doc) => doc.id
+    );
+    await Promise.all(
+      joinHangoutRequests.map(async (requestId) => {
+        const requestDocRef = doc(db, "joinHangoutRequests", requestId);
+        await deleteDoc(requestDocRef);
+      })
+    );
+
+    const hangoutQuery = query(
+      collection(db, "hangouts"),
+      where("userId", "==", userId)
+    );
+    const hangoutSnapshot = await getDocs(hangoutQuery);
+    const hangouts = hangoutSnapshot.docs.map((doc) => doc.id);
+    await Promise.all(
+      hangouts.map(async (requestId) => {
+        const requestDocRef = doc(db, "hangouts", requestId);
+        await deleteDoc(requestDocRef);
+      })
+    );
+
+    const hangoutParticipantQuery = query(
+      collection(db, "hangouts"),
+      where("participantIds", "array-contains", userId)
+    );
+    const hangoutParticipantSnapshot = await getDocs(hangoutParticipantQuery);
+    const hangoutParticipants = hangoutParticipantSnapshot.docs.map(
+      (doc) => doc.id
+    );
+    await Promise.all(
+      hangoutParticipants.map(async (requestId) => {
+        const requestDocRef = doc(db, "hangouts", requestId);
+        await updateDoc(requestDocRef, {
+          participantIds: arrayRemove(userId),
+        });
+      })
+    );
+
+    const memoriesQuery = query(
+      collection(db, "memories"),
+      where("userId", "==", userId)
+    );
+    const memoriesSnapshot = await getDocs(memoriesQuery);
+    const memories = memoriesSnapshot.docs.map((doc) => doc.id);
+    await Promise.all(
+      memories.map(async (requestId) => {
+        const requestDocRef = doc(db, "memories", requestId);
+        await deleteDoc(requestDocRef);
+      })
+    );
+
+    const postQuery = query(
+      collection(db, "posts"),
+      where("userId", "==", userId)
+    );
+    const postSnapshot = await getDocs(postQuery);
+    const posts = postSnapshot.docs.map((doc) => doc.id);
+    await Promise.all(
+      posts.map(async (requestId) => {
+        const requestDocRef = doc(db, "posts", requestId);
+        await deleteDoc(requestDocRef);
+      })
+    );
+
+    const stickerQuery = query(
+      collection(db, "stickers"),
+      where("userId", "==", userId)
+    );
+    const stickerSnapshot = await getDocs(stickerQuery);
+    const stickers = stickerSnapshot.docs.map((doc) => doc.id);
+    await Promise.all(
+      stickers.map(async (requestId) => {
+        const requestDocRef = doc(db, "stickers", requestId);
+        await deleteDoc(requestDocRef);
+      })
+    );
+
+    const supportQuery = query(
+      collection(db, "support"),
+      where("userId", "==", userId)
+    );
+    const supportSnapshot = await getDocs(supportQuery);
+    const supports = supportSnapshot.docs.map((doc) => doc.id);
+    await Promise.all(
+      supports.map(async (requestId) => {
+        const requestDocRef = doc(db, "support", requestId);
+        await deleteDoc(requestDocRef);
+      })
+    );
+
+    return "User deleted";
   } catch (error) {
     console.error("Error deleting user: ", error);
     throw error;
