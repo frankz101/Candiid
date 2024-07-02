@@ -55,19 +55,10 @@ const ProfileScreen = () => {
       .then((res) => res.data);
   };
 
-  const fetchUser = async () => {
-    console.log("Fetching User Information");
-    return axios
-      .get(`${process.env.EXPO_PUBLIC_API_URL}/users/${userId}/${user?.id}`)
-      .then((res) => res.data);
-  };
-
-  const { data: memories } = useQuery({
+  const { data: memoriesData, isPending } = useQuery({
     queryKey: ["memories", userId],
     queryFn: fetchMemories,
   });
-
-  const { data: memoriesData, isPending: isPendingMemories } = memories;
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -75,7 +66,7 @@ const ProfileScreen = () => {
     setRefreshing(false);
   };
 
-  if (isPendingMemories) {
+  if (isPending) {
     return <Text>Is Loading...</Text>;
   }
 
