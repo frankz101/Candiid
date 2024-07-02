@@ -25,6 +25,7 @@ import {
 } from "react-native-responsive-screen";
 import BaseScreen from "@/components/utils/BaseScreen";
 import FriendshipButton from "@/components/friends/FriendshipButton";
+import BackButton from "@/components/utils/BackButton";
 
 const screenHeight = Dimensions.get("window").height;
 const headerHeight = 120;
@@ -32,13 +33,21 @@ const bottomPadding = 20;
 
 const scrollViewHeight = screenHeight - headerHeight - bottomPadding;
 
+//STATE DOES NOT UPDATE WHEN PRESSING BACK BUTTON ONTO SEARCH SCREEN
 const ProfileScreen = () => {
   const { user } = useUser();
   const router = useRouter();
-  const { userId } = useLocalSearchParams();
+  const { userId, username, name, profilePhoto, friendStatus } =
+    useLocalSearchParams();
+  const userIdStr = Array.isArray(userId) ? userId[0] : userId;
+  const profilePhotoStr = Array.isArray(profilePhoto)
+    ? profilePhoto[0]
+    : profilePhoto;
+  const friendStatusStr = Array.isArray(friendStatus)
+    ? friendStatus[0]
+    : friendStatus;
   const [refreshing, setRefreshing] = useState(false);
   const queryClient = useQueryClient();
-
   const fetchMemories = async () => {
     console.log("Fetching Memories");
     return axios
@@ -53,48 +62,28 @@ const ProfileScreen = () => {
       .then((res) => res.data);
   };
 
-  const [memories, profile] = useQueries({
-    queries: [
-      { queryKey: ["memories", userId], queryFn: fetchMemories },
-      { queryKey: ["profile", userId], queryFn: fetchUser },
-    ],
+  const { data: memories } = useQuery({
+    queryKey: ["memories", userId],
+    queryFn: fetchMemories,
   });
 
   const { data: memoriesData, isPending: isPendingMemories } = memories;
-  const { data: profileDetails, isPending: isPendingProfile } = profile;
 
   const onRefresh = async () => {
     setRefreshing(true);
     await queryClient.invalidateQueries({ queryKey: ["memories", userId] });
-    await queryClient.invalidateQueries({ queryKey: ["profile", userId] });
     setRefreshing(false);
   };
 
-  if (isPendingMemories || isPendingProfile) {
+  if (isPendingMemories) {
     return <Text>Is Loading...</Text>;
-  }
-  if (profileDetails) {
-    console.log(profileDetails);
   }
 
   return (
     <BaseScreen style={styles.container}>
       <View style={styles.navOptions}>
-        <Ionicons
-          // onPress={() => router.push("/(profile)/AddFriendsScreen")}
-          name="people-outline"
-          size={32}
-          color={"white"}
-        />
-        <Text
-          style={styles.userDetailText}
-        >{`@${profileDetails.result.username}`}</Text>
-        <Ionicons
-          onPress={() => router.push("/(profile)/SettingsScreen")}
-          name="reorder-three-outline"
-          size={32}
-          color={"white"}
-        />
+        <BackButton />
+        <Text style={styles.userDetailText}>{`@${username}`}</Text>
       </View>
       <ScrollView
         contentContainerStyle={styles.scrollViewContainer}
@@ -103,18 +92,16 @@ const ProfileScreen = () => {
         }
       >
         <View style={styles.userDetails}>
-          {profileDetails &&
-          profileDetails.result &&
-          profileDetails.result.profilePhoto ? (
+          {profilePhotoStr !== "undefined" ? (
             <Image
-              source={{ uri: profileDetails.result.profilePhoto.fileUrl }}
+              source={{ uri: profilePhotoStr }}
               style={styles.profilePhoto}
             />
           ) : (
-            <Ionicons name="person-circle" size={64} />
+            <Ionicons name="person-circle" size={wp(25)} />
           )}
-          <Text style={styles.userText}>{profileDetails.result.name}</Text>
-          <FriendshipButton user={profileDetails} />
+          <Text style={styles.userText}>{name}</Text>
+          <FriendshipButton userId={userIdStr} status={friendStatusStr} />
         </View>
         {/* <Text style={styles.headerText}>Memoryboard</Text> */}
         <Animated.View style={styles.animatedView}>
@@ -243,7 +230,6 @@ const styles = StyleSheet.create({
   navOptions: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingHorizontal: wp(4),
     paddingBottom: hp(1),
   },
   userDetails: {
@@ -257,6 +243,10 @@ const styles = StyleSheet.create({
     marginVertical: hp(1),
   },
   userDetailText: {
+    position: "absolute",
+    left: wp(20),
+    right: wp(20),
+    textAlign: "center",
     color: "#FFF",
     fontFamily: "Inter",
     fontSize: 14,

@@ -8,12 +8,12 @@ import {
   TextInput,
   View,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import SearchBar from "@/components/utils/SearchBar";
 import BackButton from "@/components/utils/BackButton";
 import { useUser } from "@clerk/clerk-expo";
 import axios from "axios";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import UserBanner from "@/components/friends/UserBanner";
 import BaseScreen from "@/components/utils/BaseScreen";
 import ContactsList from "./ContactsList";
@@ -47,9 +47,7 @@ const SearchFriends = () => {
         `${process.env.EXPO_PUBLIC_API_URL}/user/search/${searchPhrase}/users/${user?.id}`
       );
       setSearchResults(
-        res.data.result.filter(
-          (result: User) => result.id.toString() !== user?.id
-        )
+        res.data.result.filter((result: User) => result.userId !== user?.id)
       );
     }
   };
@@ -73,7 +71,7 @@ const SearchFriends = () => {
         <FlatList
           data={searchResults}
           renderItem={renderItem}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => item.userId}
         />
       </View>
       <ContactsList />
