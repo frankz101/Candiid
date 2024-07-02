@@ -1,4 +1,11 @@
-import { SafeAreaView, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  SafeAreaView,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  Alert,
+} from "react-native";
 import React from "react";
 import { useClerk, useUser } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
@@ -18,17 +25,34 @@ const SettingsScreen = () => {
   const toEditProfile = () => {
     router.push("/EditProfileScreen");
   };
-  const deleteAccount = async () => {
+  const deleteAccount = () => {
     try {
-      if (user) {
-        await user.delete();
-        await axios.delete(
-          `${process.env.EXPO_PUBLIC_API_URL}/user/delete/${user.id}`
-        );
-        console.log("User deleted successfully");
-      } else {
-        console.log("No user to delete");
-      }
+      Alert.alert(
+        "Delete Account",
+        "Are you sure you want to delete your account? This action is irreversible.",
+        [
+          {
+            text: "No",
+            style: "cancel",
+          },
+          {
+            text: "Yes",
+            style: "destructive",
+            onPress: async () => {
+              if (user) {
+                await user.delete();
+                await axios.delete(
+                  `${process.env.EXPO_PUBLIC_API_URL}/user/delete/${user.id}`
+                );
+                console.log("User deleted successfully");
+              } else {
+                console.log("No user to delete");
+              }
+            },
+          },
+        ],
+        { cancelable: true }
+      );
     } catch (error) {
       console.error("Error deleting user:", error);
     }
