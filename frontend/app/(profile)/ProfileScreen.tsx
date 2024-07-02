@@ -7,6 +7,7 @@ import {
   ScrollView,
   RefreshControl,
   Dimensions,
+  Modal,
 } from "react-native";
 import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useState } from "react";
@@ -47,6 +48,7 @@ const ProfileScreen = () => {
     ? friendStatus[0]
     : friendStatus;
   const [refreshing, setRefreshing] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
   const queryClient = useQueryClient();
   const fetchMemories = async () => {
     console.log("Fetching Memories");
@@ -75,6 +77,76 @@ const ProfileScreen = () => {
       <View style={styles.navOptions}>
         <BackButton />
         <Text style={styles.userDetailText}>{`@${username}`}</Text>
+        <View>
+          <Pressable onPress={() => setModalVisible(true)}>
+            <Ionicons
+              name="ellipsis-horizontal-outline"
+              size={30}
+              color="white"
+            />
+          </Pressable>
+          <Modal transparent={true} animationType="fade" visible={modalVisible}>
+            <Pressable
+              style={styles.overlay}
+              onPress={() => setModalVisible(false)}
+            >
+              <View style={styles.modalContainer}>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.modalButton,
+                    pressed
+                      ? { backgroundColor: "#3a3a3d" }
+                      : { backgroundColor: "#2a2a2d" },
+                  ]}
+                  onPress={() => {
+                    setModalVisible(false);
+                    router.push({
+                      pathname: "/ReportScreen",
+                      params: {
+                        userId,
+                        username,
+                      },
+                    });
+                  }}
+                >
+                  <Text style={styles.modalButtonText}>Report {username}</Text>
+                  <Ionicons name="alert-circle-outline" color="red" size={24} />
+                </Pressable>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.modalButton,
+                    pressed
+                      ? { backgroundColor: "#3a3a3d" }
+                      : { backgroundColor: "#2a2a2d" },
+                  ]}
+                >
+                  <Text style={styles.modalButtonText}>Block {username}</Text>
+                  <Ionicons name="ban-outline" color="red" size={24} />
+                </Pressable>
+
+                {friendStatus === "Already Friends" && (
+                  <Pressable
+                    style={({ pressed }) => [
+                      styles.modalButton,
+                      pressed
+                        ? { backgroundColor: "#3a3a3d" }
+                        : { backgroundColor: "#2a2a2d" },
+                    ]}
+                  >
+                    <Text style={styles.modalButtonText}>
+                      Remove friendship
+                    </Text>
+                    <Ionicons
+                      name="person-remove-outline"
+                      color="red"
+                      size={24}
+                    />
+                  </Pressable>
+                )}
+              </View>
+            </Pressable>
+          </Modal>
+        </View>
       </View>
       <ScrollView
         contentContainerStyle={styles.scrollViewContainer}
@@ -221,6 +293,7 @@ const styles = StyleSheet.create({
   navOptions: {
     flexDirection: "row",
     justifyContent: "space-between",
+    paddingRight: wp(2),
     paddingBottom: hp(1),
   },
   userDetails: {
@@ -311,5 +384,40 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  modalContainer: {
+    width: wp(70),
+    maxWidth: wp(90),
+    backgroundColor: "#d9d9d9",
+    borderRadius: 10,
+    overflow: "hidden",
+  },
+  modalButton: {
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(1),
+    borderBottomColor: "#4a4a4d",
+    borderBottomWidth: 0.5,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  modalButtonText: {
+    color: "red",
+    fontSize: 16,
+  },
+  overlay: {
+    flex: 1,
+    justifyContent: "flex-start",
+    alignItems: "flex-end",
+    paddingTop: hp(11),
+    paddingRight: wp(3),
+  },
+  modalContent: {
+    padding: 20,
+    alignItems: "center",
+  },
+  modalText: {
+    marginBottom: 15,
+    fontSize: 18,
   },
 });

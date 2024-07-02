@@ -498,6 +498,17 @@ const createSupportInDatabase = async (ticketDetails) => {
   }
 };
 
+const createReportInDatabase = async (ticketDetails) => {
+  try {
+    const reportCollectionRef = collection(db, "reports");
+    const docRef = await addDoc(reportCollectionRef, ticketDetails);
+    return docRef.id;
+  } catch (error) {
+    console.error("Error creating report ticket: ", error);
+    throw error;
+  }
+};
+
 export {
   createUserInDatabase,
   changeProfilePhotoInDatabase,
@@ -514,4 +525,5 @@ export {
   fetchContactsInDatabase,
   deleteUserInDatabase,
   createSupportInDatabase,
+  createReportInDatabase,
 };

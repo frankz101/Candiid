@@ -14,6 +14,7 @@ import {
   fetchContacts,
   removeUser,
   createSupport,
+  createReport,
 } from "../services/UserService.js";
 
 const postUser = async (req, res) => {
@@ -183,6 +184,16 @@ const postSupport = async (req, res) => {
   }
 };
 
+const postReport = async (req, res) => {
+  try {
+    const ticketDetails = req.body.ticketDetails;
+    const result = await createReport(ticketDetails);
+    res.status(201).send({ result });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export {
   postUser,
   putUserProfilePhoto,
@@ -199,4 +210,5 @@ export {
   getContacts,
   deleteUser,
   postSupport,
+  postReport,
 };

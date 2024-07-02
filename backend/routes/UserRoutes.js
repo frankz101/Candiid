@@ -16,6 +16,7 @@ import {
   getContacts,
   deleteUser,
   postSupport,
+  postReport,
 } from "../controllers/UserController.js";
 
 var router = express.Router();
@@ -41,5 +42,6 @@ router.post("/user/profile-pics", getProfilePics);
 router.post("/user/check-contacts", getContacts);
 router.delete("/user/delete/:userId", deleteUser);
 router.post("/user/support", postSupport);
+router.post("/user/report", postReport);
 
 export default router;

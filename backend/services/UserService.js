@@ -15,6 +15,7 @@ import {
   fetchContactsInDatabase,
   deleteUserInDatabase,
   createSupportInDatabase,
+  createReportInDatabase,
 } from "../db/UserDatabase.js";
 import { storage } from "../firebase.js";
 import { retrieveFriendRequestsSent } from "./FriendRequestService.js";
@@ -203,6 +204,11 @@ const createSupport = async (ticketDetails) => {
   return result;
 };
 
+const createReport = async (ticketDetails) => {
+  const result = await createReportInDatabase(ticketDetails);
+  return result;
+};
+
 export {
   createUser,
   changeProfilePhoto,
@@ -219,4 +225,5 @@ export {
   fetchContacts,
   removeUser,
   createSupport,
+  createReport,
 };
