@@ -14,7 +14,6 @@ import Toast from "react-native-toast-message";
 const ReportScreen = () => {
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
-  const [subjectBorderColor, setSubjectBorderColor] = useState("#4A4A4D");
   const [disabled, setDisabled] = useState(true);
 
   const { userId, username } = useLocalSearchParams();
@@ -61,7 +60,7 @@ const ReportScreen = () => {
       <View style={styles.form}>
         <Text style={styles.userText}>User: {username}</Text>
         <TextInput
-          style={[styles.input, { borderColor: subjectBorderColor }]}
+          style={styles.input}
           placeholder="Subject"
           placeholderTextColor={"#3A3A3D"}
           onChangeText={(text) => {
@@ -132,13 +131,13 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     borderRadius: 5,
+    borderColor: "#4A4A4D",
     paddingVertical: hp(1),
     paddingHorizontal: wp(2),
     color: "white",
   },
   description: {
     minHeight: hp(15),
-    borderColor: "#4A4A4D",
   },
   button: {
     borderRadius: 10,

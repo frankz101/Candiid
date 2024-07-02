@@ -14,7 +14,6 @@ import Toast from "react-native-toast-message";
 const ContactUsScreen = () => {
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
-  const [subjectBorderColor, setSubjectBorderColor] = useState("#4A4A4D");
   const [disabled, setDisabled] = useState(true);
 
   const router = useRouter();
@@ -22,31 +21,27 @@ const ContactUsScreen = () => {
 
   const handleSend = async () => {
     try {
-      if (subject) {
-        const ticketDetails = {
-          userId: user?.id,
-          subject,
-          description,
-        };
-        const res = await axios.post(
-          `${process.env.EXPO_PUBLIC_API_URL}/user/support`,
-          {
-            ticketDetails,
-          }
-        );
-        console.log(res.data.result);
-        if (res.status === 201) {
-          Toast.show({
-            type: "success",
-            text1: "Support ticket created successfully",
-            text2: "We'll get back to you shortly!",
-            position: "bottom",
-            visibilityTime: 1500,
-          });
-          router.navigate("/profile");
+      const ticketDetails = {
+        userId: user?.id,
+        subject,
+        description,
+      };
+      const res = await axios.post(
+        `${process.env.EXPO_PUBLIC_API_URL}/user/support`,
+        {
+          ticketDetails,
         }
-      } else {
-        setSubjectBorderColor("red");
+      );
+      console.log(res.data.result);
+      if (res.status === 201) {
+        Toast.show({
+          type: "success",
+          text1: "Support ticket created successfully",
+          text2: "We'll get back to you shortly!",
+          position: "bottom",
+          visibilityTime: 1500,
+        });
+        router.navigate("/profile");
       }
     } catch (err: any) {
       console.error("Error submitting support: ", err.message);
@@ -61,10 +56,13 @@ const ContactUsScreen = () => {
       </View>
       <View style={styles.form}>
         <TextInput
-          style={[styles.input, { borderColor: subjectBorderColor }]}
+          style={styles.input}
           placeholder="Subject"
           placeholderTextColor={"#3A3A3D"}
-          onChangeText={(text) => setSubject(text)}
+          onChangeText={(text) => {
+            setSubject(text);
+            setDisabled(text.length == 0 || description.length <= 25);
+          }}
           maxLength={50}
           returnKeyType="done"
         />
@@ -74,7 +72,7 @@ const ContactUsScreen = () => {
           placeholderTextColor={"#3A3A3D"}
           onChangeText={(text) => {
             setDescription(text);
-            setDisabled(text.length <= 25);
+            setDisabled(text.length <= 25 || subject.length == 0);
           }}
           maxLength={300}
           multiline
@@ -124,13 +122,13 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     borderRadius: 5,
+    borderColor: "#4A4A4D",
     paddingVertical: hp(1),
     paddingHorizontal: wp(2),
     color: "white",
   },
   description: {
     minHeight: hp(15),
-    borderColor: "#4A4A4D",
   },
   button: {
     borderRadius: 10,
