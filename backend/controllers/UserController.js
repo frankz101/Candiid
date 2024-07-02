@@ -13,6 +13,7 @@ import {
   updateBackground,
   fetchContacts,
   removeUser,
+  createSupport,
 } from "../services/UserService.js";
 
 const postUser = async (req, res) => {
@@ -172,6 +173,16 @@ const deleteUser = async (req, res) => {
   }
 };
 
+const postSupport = async (req, res) => {
+  try {
+    const ticketDetails = req.body.ticketDetails;
+    const result = await createSupport(ticketDetails);
+    res.status(201).send({ result });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export {
   postUser,
   putUserProfilePhoto,
@@ -187,4 +198,5 @@ export {
   getProfilePics,
   getContacts,
   deleteUser,
+  postSupport,
 };

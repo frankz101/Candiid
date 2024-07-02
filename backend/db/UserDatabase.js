@@ -361,6 +361,17 @@ const deleteUserInDatabase = async (userId) => {
   }
 };
 
+const createSupportInDatabase = async (ticketDetails) => {
+  try {
+    const supportCollectionRef = collection(db, "support");
+    const docRef = await addDoc(supportCollectionRef, ticketDetails);
+    return docRef.id;
+  } catch (error) {
+    console.error("Error creating support ticket: ", error);
+    throw error;
+  }
+};
+
 export {
   createUserInDatabase,
   changeProfilePhotoInDatabase,
@@ -376,4 +387,5 @@ export {
   fetchProfilePicsInDatabase,
   fetchContactsInDatabase,
   deleteUserInDatabase,
+  createSupportInDatabase,
 };

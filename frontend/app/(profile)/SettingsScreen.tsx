@@ -33,6 +33,10 @@ const SettingsScreen = () => {
       console.error("Error deleting user:", error);
     }
   };
+
+  const contactUs = () => {
+    router.push("/ContactUsScreen");
+  };
   return (
     <BaseScreen>
       <View style={styles.header}>
@@ -46,6 +50,11 @@ const SettingsScreen = () => {
         title={"Edit Profile"}
         icon={"pencil-outline"}
         onTabPress={toEditProfile}
+      />
+      <SettingsTab
+        title={"Contact Us"}
+        icon={"mail-outline"}
+        onTabPress={contactUs}
       />
       <SettingsTab
         title={"Log Out"}

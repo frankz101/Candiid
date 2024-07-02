@@ -14,6 +14,7 @@ import {
   updateBackgroundFromDatabase,
   fetchContactsInDatabase,
   deleteUserInDatabase,
+  createSupportInDatabase,
 } from "../db/UserDatabase.js";
 import { storage } from "../firebase.js";
 import {
@@ -185,6 +186,11 @@ const removeUser = async (userId) => {
   return result;
 };
 
+const createSupport = async (ticketDetails) => {
+  const result = await createSupportInDatabase(ticketDetails);
+  return result;
+};
+
 export {
   createUser,
   changeProfilePhoto,
@@ -200,4 +206,5 @@ export {
   updateBackground,
   fetchContacts,
   removeUser,
+  createSupport,
 };
