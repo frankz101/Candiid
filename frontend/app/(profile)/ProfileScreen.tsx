@@ -197,13 +197,13 @@ const ProfileScreen = () => {
         }
       >
         <View style={styles.userDetails}>
-          {profilePhotoStr !== "undefined" ? (
+          {profilePhotoStr !== "undefined" && profilePhotoStr !== "null" ? (
             <Image
               source={{ uri: profilePhotoStr }}
               style={styles.profilePhoto}
             />
           ) : (
-            <Ionicons name="person-circle" size={wp(25)} />
+            <Ionicons name="person-circle" size={wp(25)} color="white" />
           )}
           <Text style={styles.userText}>{name}</Text>
           <FriendshipButton userId={userIdStr} status={friendStatusStr} />
