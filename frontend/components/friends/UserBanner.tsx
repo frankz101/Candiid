@@ -45,6 +45,11 @@ const UserBanner: React.FC<UserBannerProps> = ({
   const router = useRouter();
 
   useEffect(() => {
+    if (type === "friends") setFriendStatus("Already Friends");
+    else if (type === "friendRequests") setFriendStatus("Incoming Request");
+  }, []);
+
+  useEffect(() => {
     return () => {
       applyUpdates();
     };

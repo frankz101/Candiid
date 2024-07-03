@@ -20,13 +20,6 @@ import { useFocusEffect } from "expo-router";
 
 const FriendsScreen = () => {
   const [isSearch, setIsSearch] = useState(true);
-  const [key, setKey] = useState(0);
-
-  useFocusEffect(
-    useCallback(() => {
-      setKey((prevKey) => prevKey + 1); // Change the key to force remount
-    }, [])
-  );
 
   const animation = useRef(new Animated.Value(0)).current; // Initialize animated value
 
@@ -47,7 +40,7 @@ const FriendsScreen = () => {
     <BaseScreen>
       <BackButton />
       <View style={styles.container}>
-        {isSearch ? <SearchFriends key={key} /> : <FriendsList />}
+        {isSearch ? <SearchFriends /> : <FriendsList />}
         <View style={styles.toggleContainer}>
           <Animated.View
             style={[styles.bubble, { transform: [{ translateX }] }]}

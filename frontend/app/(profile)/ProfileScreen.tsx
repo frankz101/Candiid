@@ -100,6 +100,7 @@ const ProfileScreen = () => {
                     details,
                   }
                 );
+                queryClient.invalidateQueries({ queryKey: ["searchResults"] });
                 console.log(res.data.result);
               },
             },

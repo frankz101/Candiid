@@ -1,5 +1,5 @@
 import { FlatList, ListRenderItem, StyleSheet, Text, View } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import SearchBar from "@/components/utils/SearchBar";
 import { useUser } from "@clerk/clerk-expo";
 import axios from "axios";
@@ -11,6 +11,8 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import ShareButton from "./ShareButton";
+import { useFocusEffect } from "@react-navigation/native";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface User {
   id: number;
@@ -26,27 +28,45 @@ interface User {
 const SearchFriends = () => {
   const [clicked, setClicked] = useState(false);
   const [searchPhrase, setSearchPhrase] = useState("");
-  const [searchResults, setSearchResults] = useState<User[]>([]);
-  const [resultsExist, setResultsExist] = useState(true);
-
+  const [debouncedSearchPhrase, setDebouncedSearchPhrase] = useState("");
   const { user } = useUser();
 
-  const onSubmit = async () => {
-    if (searchPhrase) {
-      const res = await axios.get(
-        `${process.env.EXPO_PUBLIC_API_URL}/user/search/${searchPhrase}/users/${user?.id}`
-      );
-      const filteredResults = res.data.result.filter(
-        (result: User) => result.userId !== user?.id
-      );
-      if (filteredResults.length > 0) {
-        setSearchResults(filteredResults);
-        setResultsExist(true);
-      } else {
-        setResultsExist(false);
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+    debounceTimeout.current = setTimeout(() => {
+      setDebouncedSearchPhrase(searchPhrase.trim());
+    }, 500);
+
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
       }
+    };
+  }, [searchPhrase]);
+
+  const fetchSearchResults = async () => {
+    console.log("fetching");
+    if (user) {
+      const res = await axios.get(
+        `${
+          process.env.EXPO_PUBLIC_API_URL
+        }/user/search/${searchPhrase.trim()}/users/${user.id}`
+      );
+      return res.data.result.filter(
+        (result: User) => result.userId !== user.id
+      );
     }
   };
+
+  const { data: searchResults = [] } = useQuery({
+    queryKey: ["searchResults", searchPhrase],
+    queryFn: fetchSearchResults,
+    enabled: !!debouncedSearchPhrase,
+  });
 
   const renderItem: ListRenderItem<User> = ({ item }) => (
     <UserBanner key={item.id} user={item} type="searchResults" />
@@ -61,25 +81,14 @@ const SearchFriends = () => {
           placeholder="Search Users"
           setSearchPhrase={setSearchPhrase}
           setClicked={setClicked}
-          onSubmit={onSubmit}
+          onSubmit={fetchSearchResults}
         />
         <ShareButton />
-        {resultsExist ? (
-          <FlatList
-            data={searchResults}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.userId}
-          />
-        ) : (
-          <Text
-            style={{
-              color: "white",
-              textAlign: "center",
-            }}
-          >
-            No results found
-          </Text>
-        )}
+        <FlatList
+          data={searchResults}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.userId}
+        />
       </View>
       <ContactsList />
     </BaseScreen>
