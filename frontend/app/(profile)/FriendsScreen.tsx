@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -16,9 +16,18 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import { useFocusEffect } from "expo-router";
 
 const FriendsScreen = () => {
   const [isSearch, setIsSearch] = useState(true);
+  const [key, setKey] = useState(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      setKey((prevKey) => prevKey + 1); // Change the key to force remount
+    }, [])
+  );
+
   const animation = useRef(new Animated.Value(0)).current; // Initialize animated value
 
   const toggle = (toSearch: boolean) => {
@@ -38,7 +47,7 @@ const FriendsScreen = () => {
     <BaseScreen>
       <BackButton />
       <View style={styles.container}>
-        {isSearch ? <SearchFriends /> : <FriendsList />}
+        {isSearch ? <SearchFriends key={key} /> : <FriendsList />}
         <View style={styles.toggleContainer}>
           <Animated.View
             style={[styles.bubble, { transform: [{ translateX }] }]}

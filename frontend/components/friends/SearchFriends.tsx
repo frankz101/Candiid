@@ -38,6 +38,7 @@ const SearchFriends = () => {
   const [clicked, setClicked] = useState(false);
   const [searchPhrase, setSearchPhrase] = useState("");
   const [searchResults, setSearchResults] = useState<User[]>([]);
+  const [resultsExist, setResultsExist] = useState(true);
 
   const { user } = useUser();
 
@@ -46,9 +47,15 @@ const SearchFriends = () => {
       const res = await axios.get(
         `${process.env.EXPO_PUBLIC_API_URL}/user/search/${searchPhrase}/users/${user?.id}`
       );
-      setSearchResults(
-        res.data.result.filter((result: User) => result.userId !== user?.id)
+      const filteredResults = res.data.result.filter(
+        (result: User) => result.userId !== user?.id
       );
+      if (filteredResults.length > 0) {
+        setSearchResults(filteredResults);
+        setResultsExist(true);
+      } else {
+        setResultsExist(false);
+      }
     }
   };
 
@@ -68,11 +75,22 @@ const SearchFriends = () => {
           onSubmit={onSubmit}
         />
         <ShareButton />
-        <FlatList
-          data={searchResults}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.userId}
-        />
+        {resultsExist ? (
+          <FlatList
+            data={searchResults}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.userId}
+          />
+        ) : (
+          <Text
+            style={{
+              color: "white",
+              textAlign: "center",
+            }}
+          >
+            No results found
+          </Text>
+        )}
       </View>
       <ContactsList />
     </BaseScreen>

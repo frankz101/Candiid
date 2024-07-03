@@ -88,6 +88,7 @@ const ProfileScreen = () => {
               text: "Yes",
               style: "destructive",
               onPress: async () => {
+                router.back();
                 setModalVisible(false);
                 const details = {
                   userId: user.id,
