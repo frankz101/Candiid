@@ -19,8 +19,8 @@ import {
 
 interface BlockedUser {
   id: string;
+  userId: string;
   username: string;
-  // other fields if necessary
 }
 
 const BlockedUsersScreen = () => {

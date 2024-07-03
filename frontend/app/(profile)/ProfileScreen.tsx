@@ -88,6 +88,7 @@ const ProfileScreen = () => {
               text: "Yes",
               style: "destructive",
               onPress: async () => {
+                setModalVisible(false);
                 const details = {
                   userId: user.id,
                   blockedUserId: userIdStr,
@@ -98,7 +99,6 @@ const ProfileScreen = () => {
                     details,
                   }
                 );
-                setModalVisible(false);
                 console.log(res.data.result);
               },
             },

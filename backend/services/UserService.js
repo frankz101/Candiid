@@ -83,8 +83,15 @@ const searchUsers = async (username, userId) => {
     const friendRequestsIds = friendRequests.map(
       (friendRequest) => friendRequest.receiverId
     );
+
+    const blockedUsers = await fetchBlocks(userId);
+    const blockedUsersIds = blockedUsers.map((user) => user.userId);
+
+    const filteredUserIds = usersIds.filter(
+      (user) => !blockedUsersIds.includes(user.userId)
+    );
     const usersWithFriendshipStatus = await Promise.all(
-      usersIds.map(async (user) => {
+      filteredUserIds.map(async (user) => {
         const friendsRequests = await retrieveFriendRequestsSent(user.userId);
         const incomingFriendRequest = friendsRequests.some(
           (request) => request.receiverId === userId

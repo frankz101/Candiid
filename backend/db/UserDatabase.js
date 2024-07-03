@@ -511,8 +511,75 @@ const createReportInDatabase = async (ticketDetails) => {
 
 const createBlockInDatabase = async (details) => {
   try {
+    const userId = details.userId;
+    const blockedUserId = details.blockedUserId;
+    const friendRequestQuery = query(
+      collection(db, "friendRequests"),
+      or(
+        (where("senderId", "==", userId),
+        where("receiverId", "==", blockedUserId)),
+        (where("senderId", "==", blockedUserId),
+        where("receiverId", "==", userId))
+      )
+    );
+    const friendRequestSnapshot = await getDocs(friendRequestQuery);
+    const friendRequests = friendRequestSnapshot.docs.map((doc) => doc.id);
+    await Promise.all(
+      friendRequests.map(async (requestId) => {
+        const requestDocRef = doc(db, "friendRequests", requestId);
+        await deleteDoc(requestDocRef);
+      })
+    );
+
+    const hangoutRequestQuery = query(
+      collection(db, "hangoutRequests"),
+      or(
+        (where("userId", "==", userId),
+        where("receiverId", "==", blockedUserId)),
+        (where("userId", "==", blockedUserId),
+        where("receiverId", "==", userId))
+      )
+    );
+    const hangoutRequestSnapshot = await getDocs(hangoutRequestQuery);
+    const hangoutRequests = hangoutRequestSnapshot.docs.map((doc) => doc.id);
+    await Promise.all(
+      hangoutRequests.map(async (requestId) => {
+        const requestDocRef = doc(db, "hangoutRequests", requestId);
+        await deleteDoc(requestDocRef);
+      })
+    );
+
+    const joinHangoutRequestQuery = query(
+      collection(db, "joinHangoutRequests"),
+      or(
+        (where("userId", "==", userId),
+        where("receiverId", "==", blockedUserId)),
+        (where("userId", "==", blockedUserId),
+        where("receiverId", "==", userId))
+      )
+    );
+    const joinHangoutRequestSnapshot = await getDocs(joinHangoutRequestQuery);
+    const joinHangoutRequests = joinHangoutRequestSnapshot.docs.map(
+      (doc) => doc.id
+    );
+    await Promise.all(
+      joinHangoutRequests.map(async (requestId) => {
+        const requestDocRef = doc(db, "joinHangoutRequests", requestId);
+        await deleteDoc(requestDocRef);
+      })
+    );
+
+    const userDocRef = doc(db, "users", userId);
+    await updateDoc(userDocRef, {
+      friends: arrayRemove(blockedUserId),
+    });
+    const blockedUserDocRef = doc(db, "users", blockedUserId);
+    await updateDoc(blockedUserDocRef, {
+      friends: arrayRemove(userId),
+    });
     const blockedCollectionRef = collection(db, "blocked");
     const docRef = await addDoc(blockedCollectionRef, details);
+
     return docRef.id;
   } catch (error) {
     console.error("Error blocking user: ", error);
@@ -538,6 +605,7 @@ const fetchBlocksInDatabase = async (userId) => {
         if (blockedUserDoc.exists()) {
           return {
             id: blockedDoc.id,
+            userId: blockedUserDoc.data().userId,
             username: blockedUserDoc.data().username,
           };
         } else {
