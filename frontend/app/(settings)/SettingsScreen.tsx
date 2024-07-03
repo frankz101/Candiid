@@ -61,6 +61,10 @@ const SettingsScreen = () => {
   const contactUs = () => {
     router.push("/ContactUsScreen");
   };
+
+  const toBlockedUsers = () => {
+    router.push("/BlockedUsersScreen");
+  };
   return (
     <BaseScreen>
       <View style={styles.header}>
@@ -74,6 +78,11 @@ const SettingsScreen = () => {
         title={"Edit Profile"}
         icon={"pencil-outline"}
         onTabPress={toEditProfile}
+      />
+      <SettingsTab
+        title={"Blocked Users"}
+        icon={"ban-outline"}
+        onTabPress={toBlockedUsers}
       />
       <SettingsTab
         title={"Contact Us"}

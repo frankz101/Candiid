@@ -8,6 +8,7 @@ import {
   RefreshControl,
   Dimensions,
   Modal,
+  Alert,
 } from "react-native";
 import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useState } from "react";
@@ -72,6 +73,44 @@ const ProfileScreen = () => {
     return <Text>Is Loading...</Text>;
   }
 
+  const blockUser = async () => {
+    try {
+      if (user) {
+        Alert.alert(
+          "Are you sure you want to block this user?",
+          "You will no longer be able to view their profile",
+          [
+            {
+              text: "No",
+              style: "cancel",
+            },
+            {
+              text: "Yes",
+              style: "destructive",
+              onPress: async () => {
+                const details = {
+                  userId: user.id,
+                  blockedUserId: userIdStr,
+                };
+                const res = await axios.post(
+                  `${process.env.EXPO_PUBLIC_API_URL}/user/block`,
+                  {
+                    details,
+                  }
+                );
+                setModalVisible(false);
+                console.log(res.data.result);
+              },
+            },
+          ],
+          { cancelable: true }
+        );
+      }
+    } catch (err) {
+      console.error("Error blocking user: ", err);
+    }
+  };
+
   return (
     <BaseScreen style={styles.container}>
       <View style={styles.navOptions}>
@@ -119,6 +158,7 @@ const ProfileScreen = () => {
                       ? { backgroundColor: "#3a3a3d" }
                       : { backgroundColor: "#2a2a2d" },
                   ]}
+                  onPress={blockUser}
                 >
                   <Text style={styles.modalButtonText}>Block {username}</Text>
                   <Ionicons name="ban-outline" color="red" size={24} />

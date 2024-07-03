@@ -16,6 +16,9 @@ import {
   deleteUserInDatabase,
   createSupportInDatabase,
   createReportInDatabase,
+  createBlockInDatabase,
+  fetchBlocksInDatabase,
+  removeBlockInDatabase,
 } from "../db/UserDatabase.js";
 import { storage } from "../firebase.js";
 import { retrieveFriendRequestsSent } from "./FriendRequestService.js";
@@ -209,6 +212,21 @@ const createReport = async (ticketDetails) => {
   return result;
 };
 
+const createBlock = async (details) => {
+  const result = await createBlockInDatabase(details);
+  return result;
+};
+
+const fetchBlocks = async (userId) => {
+  const result = await fetchBlocksInDatabase(userId);
+  return result;
+};
+
+const removeBlock = async (blockId) => {
+  const result = await removeBlockInDatabase(blockId);
+  return result;
+};
+
 export {
   createUser,
   changeProfilePhoto,
@@ -226,4 +244,7 @@ export {
   removeUser,
   createSupport,
   createReport,
+  createBlock,
+  fetchBlocks,
+  removeBlock,
 };

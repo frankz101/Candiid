@@ -509,6 +509,63 @@ const createReportInDatabase = async (ticketDetails) => {
   }
 };
 
+const createBlockInDatabase = async (details) => {
+  try {
+    const blockedCollectionRef = collection(db, "blocked");
+    const docRef = await addDoc(blockedCollectionRef, details);
+    return docRef.id;
+  } catch (error) {
+    console.error("Error blocking user: ", error);
+    throw error;
+  }
+};
+
+const fetchBlocksInDatabase = async (userId) => {
+  try {
+    const blockedCollectionRef = collection(db, "blocked");
+    const docSnapshot = await getDocs(
+      query(blockedCollectionRef, where("userId", "==", userId))
+    );
+    const result = await Promise.all(
+      docSnapshot.docs.map(async (blockedDoc) => {
+        const blockedUserDocRef = doc(
+          db,
+          "users",
+          blockedDoc.data().blockedUserId
+        );
+        const blockedUserDoc = await getDoc(blockedUserDocRef);
+
+        if (blockedUserDoc.exists()) {
+          return {
+            id: blockedDoc.id,
+            username: blockedUserDoc.data().username,
+          };
+        } else {
+          console.log(
+            `No such document for user ID: ${blockedDoc.data().blockedUserId}`
+          );
+          return null;
+        }
+      })
+    );
+    return result;
+  } catch (error) {
+    console.error("Error getting blocked users: ", error);
+    throw error;
+  }
+};
+
+const removeBlockInDatabase = async (blockId) => {
+  try {
+    const docRef = doc(db, "blocked", blockId);
+    await deleteDoc(docRef);
+    return "success";
+  } catch (error) {
+    console.error("Error deleting block: ", error);
+    throw error;
+  }
+};
+
 export {
   createUserInDatabase,
   changeProfilePhotoInDatabase,
@@ -526,4 +583,7 @@ export {
   deleteUserInDatabase,
   createSupportInDatabase,
   createReportInDatabase,
+  createBlockInDatabase,
+  fetchBlocksInDatabase,
+  removeBlockInDatabase,
 };

@@ -15,6 +15,9 @@ import {
   removeUser,
   createSupport,
   createReport,
+  createBlock,
+  fetchBlocks,
+  removeBlock,
 } from "../services/UserService.js";
 
 const postUser = async (req, res) => {
@@ -194,6 +197,36 @@ const postReport = async (req, res) => {
   }
 };
 
+const postBlock = async (req, res) => {
+  try {
+    const details = req.body.details;
+    const result = await createBlock(details);
+    res.status(201).send({ result });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+const getBlocks = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const result = await fetchBlocks(userId);
+    res.status(201).send({ result });
+  } catch (error) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+const deleteBlock = async (req, res) => {
+  try {
+    const blockId = req.params.id;
+    const result = await removeBlock(blockId);
+    res.status(201).send({ result });
+  } catch (error) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export {
   postUser,
   putUserProfilePhoto,
@@ -211,4 +244,7 @@ export {
   deleteUser,
   postSupport,
   postReport,
+  postBlock,
+  getBlocks,
+  deleteBlock,
 };

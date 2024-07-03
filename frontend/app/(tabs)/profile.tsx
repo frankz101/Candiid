@@ -123,7 +123,7 @@ const Profile = () => {
         />
         <Text style={styles.userDetailText}>{`@${userProfile.username}`}</Text>
         <Ionicons
-          onPress={() => router.push("/(profile)/SettingsScreen")}
+          onPress={() => router.push("/(settings)/SettingsScreen")}
           name="reorder-three-outline"
           size={32}
           color={"white"}
