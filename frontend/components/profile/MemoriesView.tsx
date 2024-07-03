@@ -103,6 +103,7 @@ const MemoriesView: React.FC<MemoriesViewProps> = ({
               positionY={hangout.postY}
               frame={hangout.frame}
               color={hangout.color}
+              isDisplay={true}
             />
           ))}
 
@@ -116,6 +117,7 @@ const MemoriesView: React.FC<MemoriesViewProps> = ({
               positionY={sticker.y}
               mediaType={"sticker"} // change this later
               displayModeRef={displayModeRef}
+              isDisplay={true}
             />
           ))
         ) : (

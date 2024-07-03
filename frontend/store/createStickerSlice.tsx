@@ -8,6 +8,8 @@ export interface StickerDetails {
   media: GiphyMedia;
   scale: number;
   rotation: number;
+  isNew?: boolean;
+  modified?: boolean;
 }
 
 export interface StickerSlice {
@@ -22,13 +24,30 @@ export const createStickerSlice: StateCreator<StickerSlice> = (set) => ({
 
   addSticker: (sticker: StickerDetails) =>
     set((state) => ({
-      stickers: [...state.stickers, sticker],
+      stickers: [
+        ...state.stickers,
+        {
+          ...sticker,
+          isNew: sticker.isNew ?? false,
+          modified: false,
+        },
+      ],
     })),
 
   updateSticker: (id: string, changes: Partial<StickerDetails>) =>
     set((state) => ({
       stickers: state.stickers.map((sticker) =>
-        sticker.id === id ? { ...sticker, ...changes } : sticker
+        sticker.id === id
+          ? {
+              ...sticker,
+              ...changes,
+              modified:
+                sticker.x !== changes.x ||
+                sticker.y !== changes.y ||
+                sticker.scale !== changes.scale ||
+                sticker.rotation !== changes.rotation,
+            }
+          : sticker
       ),
     })),
 

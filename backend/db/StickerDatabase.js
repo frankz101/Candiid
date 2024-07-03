@@ -10,6 +10,7 @@ import {
   where,
   query,
   updateDoc,
+  deleteDoc,
 } from "firebase/firestore";
 import { db } from "../firebase.js";
 
@@ -60,13 +61,13 @@ const fetchStickersFromDatabase = async (userId) => {
 const updateStickersInDatabase = async (stickerData) => {
   try {
     if (
-      !Array.isArray(stickerData.existingStickers) ||
-      stickerData.existingStickers.length === 0
+      !Array.isArray(stickerData.modifiedStickers) ||
+      stickerData.modifiedStickers.length === 0
     ) {
       throw new Error("No stickers provided for update.");
     }
 
-    for (const sticker of stickerData.existingStickers) {
+    for (const sticker of stickerData.modifiedStickers) {
       if (!sticker.id) {
         throw new Error("Sticker missing an id, cannot update.");
       }
@@ -83,8 +84,21 @@ const updateStickersInDatabase = async (stickerData) => {
   }
 };
 
+const deleteStickerFromDatabase = async (stickerId) => {
+  try {
+    const stickerDocRef = doc(db, "stickers", stickerId);
+    await deleteDoc(stickerDocRef);
+    console.log(`Sticker ${stickerId} deleted successfully.`);
+    return true;
+  } catch (error) {
+    console.error("Error deleting sticker:", error);
+    throw new Error(`Failed to delete sticker with ID ${stickerId}`);
+  }
+};
+
 export {
   createStickersInDatabase,
   fetchStickersFromDatabase,
   updateStickersInDatabase,
+  deleteStickerFromDatabase,
 };

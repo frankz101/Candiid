@@ -10,14 +10,22 @@ import {
 import BackButton from "@/components/utils/BackButton";
 import BaseScreen from "@/components/utils/BaseScreen";
 
+interface ProfileData {
+  result: {
+    name: string;
+    username: string;
+    // bio: string;
+  };
+}
+
 const EditProfileScreen = () => {
-  const [name, setName] = useState("");
-  const [username, setUsername] = useState("");
-  const [bio, setBio] = useState("");
-
-  const queryClient = useQueryClient();
-
   const { user } = useUser();
+  const queryClient = useQueryClient();
+  const profile = queryClient.getQueryData<ProfileData>(["profile", user?.id]);
+
+  const [name, setName] = useState(profile?.result.name ?? "");
+  const [username, setUsername] = useState(profile?.result.username ?? "");
+  const [bio, setBio] = useState("");
 
   const nameRef = useRef(name);
   const usernameRef = useRef(username);
@@ -39,9 +47,9 @@ const EditProfileScreen = () => {
       if (usernameRef.current !== "") {
         userDetails.username = usernameRef.current;
       }
-      if (bioRef.current !== "") {
-        userDetails.bio = bioRef.current;
-      }
+      // if (bioRef.current !== "") {
+      //   userDetails.bio = bioRef.current;
+      // }
 
       if (Object.keys(userDetails).length > 0) {
         try {
@@ -100,7 +108,7 @@ const EditProfileScreen = () => {
         />
       </View>
 
-      <View style={styles.editContainer}>
+      {/* <View style={styles.editContainer}>
         <Text style={styles.labelText}>Bio</Text>
         <TextInput
           placeholder="Bio"
@@ -111,7 +119,7 @@ const EditProfileScreen = () => {
           style={styles.input}
           placeholderTextColor="#FFFFFF88"
         />
-      </View>
+      </View> */}
     </BaseScreen>
   );
 };

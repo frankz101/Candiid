@@ -1,17 +1,29 @@
 import { useUser } from "@clerk/clerk-expo";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
-import { Dimensions, Pressable, Text, View, StyleSheet } from "react-native";
-import Animated, { useAnimatedStyle } from "react-native-reanimated";
+import { MutableRefObject, memo, useEffect, useRef, useState } from "react";
+import {
+  Dimensions,
+  Pressable,
+  Text,
+  View,
+  StyleSheet,
+  Alert,
+} from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+} from "react-native-reanimated";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-// import placeholderImage from "../../assets/images/1709686840466-42B3F6F8-4E3E-4058-9ED5-D1870BB1FE87.jpeg";
-// import { Image } from "expo-image";
+import useStore from "@/store/useStore";
+import uuid from "react-native-uuid";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
@@ -31,6 +43,8 @@ interface AnimatedMemoryProps {
   memoryId: string;
   color?: string;
   frame?: ViewStyleKey;
+  displayModeRef?: MutableRefObject<boolean>;
+  isDisplay?: boolean;
 }
 
 const AnimatedMemory = ({
@@ -41,15 +55,47 @@ const AnimatedMemory = ({
   memoryId,
   frame = "polaroid",
   color = "#FFF",
+  displayModeRef = useRef(true),
+  isDisplay,
 }: AnimatedMemoryProps) => {
   const [isEnlarged, setIsEnlarged] = useState(false);
+  const [tempMemoryId, setTempMemoryId] = useState<string>(); // change the name
+  const isMemoryActive = useSharedValue<boolean>(false);
+  const [isPhotoVisible, setIsPhotoVisible] = useState<boolean>(true);
+  const queryClient = useQueryClient();
+
+  const memoryContext = useSharedValue({ x: positionX, y: positionY });
+  const posX = useSharedValue<number>(positionX);
+  const posY = useSharedValue<number>(positionY);
+
   const postStyle = useAnimatedStyle(() => ({
     position: "absolute",
-    transform: [{ translateX: positionX }, { translateY: positionY }],
+    transform: [{ translateX: posX.value }, { translateY: posY.value }],
     // backgroundColor: "#FFF",
   }));
   const router = useRouter();
   const { user } = useUser();
+
+  const { addMemory, updateMemory } = useStore((state) => ({
+    addMemory: state.addMemory,
+    updateMemory: state.updateMemory,
+  }));
+
+  useEffect(() => {
+    const memoryTempId = memoryId || uuid.v4();
+
+    setTempMemoryId(memoryTempId as string);
+
+    if (!isDisplay) {
+      addMemory({
+        id: memoryTempId as string,
+        postX: posX.value,
+        postY: posY.value,
+        scale: 1,
+        rotation: 0,
+      });
+    }
+  }, []);
 
   const fetchHangout = async () => {
     return axios
@@ -62,6 +108,56 @@ const AnimatedMemory = ({
     queryFn: fetchHangout,
     staleTime: 1000 * 60 * 5,
   });
+
+  useEffect(() => {
+    return () => {
+      if (!isPhotoVisible) {
+        queryClient
+          .invalidateQueries({ queryKey: ["memories", user?.id] })
+          .then(() => {
+            console.log("Memories data refreshed after deleting a photo.");
+          });
+      }
+    };
+  }, [isPhotoVisible, queryClient, user?.id]);
+
+  const handleLongPress = () => {
+    if (!displayModeRef.current) {
+      Alert.alert(
+        "Confirm Delete",
+        "Are you sure you want to delete this photo?",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            onPress: async () => {
+              try {
+                const response = await axios.delete(
+                  `${process.env.EXPO_PUBLIC_API_URL}/memories/${memoryId}`
+                );
+                console.log("Photo deleted successfully:", response.data);
+                setIsPhotoVisible(false);
+                // queryClient.setQueryData(["memories", user?.id], (old: any) => {
+                //   return old.filter((m: any) => m.memoryId !== memoryId);
+                // });
+              } catch (error: any) {
+                console.error(
+                  "Failed to delete photo:",
+                  error.response ? error.response.data : error.message
+                );
+              }
+            },
+            style: "destructive",
+          },
+        ],
+        { cancelable: true }
+      );
+    }
+  };
+
+  if (!isPhotoVisible) {
+    return <View />;
+  }
 
   if (isPending) {
     return <View />;
@@ -149,32 +245,62 @@ const AnimatedMemory = ({
     });
   };
 
+  console.log("Animated display mode: " + displayModeRef.current);
+
+  const panGesture = Gesture.Pan()
+    .enabled(!displayModeRef.current)
+    .onStart(() => {
+      isMemoryActive.value = true;
+      memoryContext.value = {
+        x: posX.value,
+        y: posY.value,
+      };
+    })
+    .onUpdate((e) => {
+      posX.value = e.translationX + memoryContext.value.x;
+      posY.value = e.translationY + memoryContext.value.y;
+    })
+    .onEnd(() => {
+      isMemoryActive.value = false;
+      if (tempMemoryId) {
+        runOnJS(updateMemory)(tempMemoryId, {
+          postX: posX.value,
+          postY: posY.value,
+        });
+      } else {
+        console.log("Memory id is undefined, cannot update.");
+      }
+    });
+
   return (
-    <Animated.View style={postStyle}>
-      <View style={[styles.baseImageStyle, viewStyles[frame].view]}>
-        {/* work around pls fix*/}
-        {postId && photoData ? (
-          <View
-            style={[styles.baseImageStyle, viewStyles[frame].imageContainer]}
+    <GestureDetector gesture={panGesture}>
+      <Animated.View style={postStyle}>
+        <View style={[styles.baseImageStyle, viewStyles[frame].view]}>
+          {/* work around pls fix*/}
+          {postId && photoData ? (
+            <View
+              style={[styles.baseImageStyle, viewStyles[frame].imageContainer]}
+            >
+              <Animated.View>
+                <Image
+                  source={{ uri: photoData.result.photoUrls[0].fileUrl }}
+                  style={[styles.baseImageStyle, viewStyles[frame].image]}
+                />
+              </Animated.View>
+            </View>
+          ) : (
+            <Animated.View />
+          )}
+          <Pressable
+            onPress={handlePress}
+            onLongPress={handleLongPress}
+            style={{ position: "absolute", width: "100%", height: "100%" }}
           >
-            <Animated.View>
-              <Image
-                source={{ uri: photoData.result.photoUrls[0].fileUrl }}
-                style={[styles.baseImageStyle, viewStyles[frame].image]}
-              />
-            </Animated.View>
-          </View>
-        ) : (
-          <Animated.View />
-        )}
-        <Pressable
-          onPress={handlePress}
-          style={{ position: "absolute", width: "100%", height: "100%" }}
-        >
-          <View />
-        </Pressable>
-      </View>
-    </Animated.View>
+            <View />
+          </Pressable>
+        </View>
+      </Animated.View>
+    </GestureDetector>
   );
 };
 

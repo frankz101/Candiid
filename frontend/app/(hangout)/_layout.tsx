@@ -10,7 +10,10 @@ const Layout = () => {
       <Stack.Screen name="[hangoutId]" />
       <Stack.Screen name="PreviewPost" />
       <Stack.Screen name="MemoriesScreen" />
-      <Stack.Screen name="FullScreenImage" />
+      <Stack.Screen
+        name="FullScreenImage"
+        options={{ presentation: "transparentModal", animation: "fade" }}
+      />
       <Stack.Screen name="SharedAlbumScreen" />
       <Stack.Screen name="SelectPhotosScreen" />
     </Stack>

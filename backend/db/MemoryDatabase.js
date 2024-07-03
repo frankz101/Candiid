@@ -10,6 +10,7 @@ import {
   where,
   query,
   updateDoc,
+  deleteDoc,
 } from "firebase/firestore";
 import { db } from "../firebase.js";
 
@@ -64,8 +65,48 @@ const updateMemoryInDatabase = async (memoryId, memoryData) => {
   }
 };
 
+const updateMemoriesInDatabase = async (memoryData) => {
+  try {
+    if (
+      !Array.isArray(memoryData.modifiedMemories) ||
+      memoryData.modifiedMemories.length === 0
+    ) {
+      throw new Error("No memories provided for update.");
+    }
+
+    for (const memory of memoryData.modifiedMemories) {
+      if (!memory.id) {
+        throw new Error("Memory missing an id, cannot update.");
+      }
+
+      const memoryDocRef = doc(db, "memories", memory.id);
+      const { id, ...updateFields } = memory;
+
+      await updateDoc(memoryDocRef, updateFields);
+      console.log(`Memory ${memory.id} updated successfully.`);
+    }
+  } catch (error) {
+    console.error("Error updating memories:", error);
+    throw new Error("Failed to update memories");
+  }
+};
+
+const deleteMemoryFromDatabase = async (memoryId) => {
+  try {
+    const memoryDocRef = doc(db, "memories", memoryId);
+    await deleteDoc(memoryDocRef);
+    console.log(`Memory ${memoryId} deleted successfully.`);
+    return true;
+  } catch (error) {
+    console.error("Error deleting memory:", error);
+    throw new Error(`Failed to delete memory with ID ${memoryId}`);
+  }
+};
+
 export {
   createMemoryInDatabase,
   fetchMemoriesFromDatabase,
   updateMemoryInDatabase,
+  updateMemoriesInDatabase,
+  deleteMemoryFromDatabase,
 };

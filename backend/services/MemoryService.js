@@ -2,6 +2,7 @@ import {
   createMemoryInDatabase,
   fetchMemoriesFromDatabase,
   updateMemoryInDatabase,
+  updateMemoriesInDatabase,
 } from "../db/MemoryDatabase.js";
 
 const createMemory = async (memoryData) => {
@@ -22,4 +23,9 @@ const updateMemory = async (memoryId, memoryData) => {
   return result;
 };
 
-export { createMemory, fetchMemories, updateMemory };
+const updateMemories = async (memoryData) => {
+  const result = await updateMemoriesInDatabase(memoryData);
+  return result;
+};
+
+export { createMemory, fetchMemories, updateMemory, updateMemories };

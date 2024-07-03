@@ -6,7 +6,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
-import { StyleSheet, View } from "react-native";
+import { Alert, Pressable, StyleSheet, View } from "react-native";
 import { GiphyMedia, GiphyMediaView } from "@giphy/react-native-sdk";
 import {
   widthPercentageToDP as wp,
@@ -16,6 +16,9 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import useStore from "@/store/useStore";
 import { MutableRefObject, useEffect, useState } from "react";
 import uuid from "react-native-uuid";
+import axios from "axios";
+import { useQueryClient } from "@tanstack/react-query";
+import { useUser } from "@clerk/clerk-expo";
 
 interface MediaComponentProps {
   id?: string;
@@ -25,6 +28,8 @@ interface MediaComponentProps {
   scale?: SharedValue<number>;
   mediaType: string;
   displayModeRef: MutableRefObject<boolean>;
+  isNew?: boolean;
+  isDisplay?: boolean;
 }
 
 const MediaComponent: React.FC<MediaComponentProps> = ({
@@ -35,14 +40,19 @@ const MediaComponent: React.FC<MediaComponentProps> = ({
   scale,
   mediaType,
   displayModeRef,
+  isNew,
+  isDisplay,
 }) => {
   const mediaContext = useSharedValue({ x: positionX, y: positionY });
   const [stickerId, setStickerId] = useState<string>();
+  const queryClient = useQueryClient();
+  const { user } = useUser();
 
   const posX = useSharedValue<number>(positionX);
   const posY = useSharedValue<number>(positionY);
 
   const isMediaActive = useSharedValue<boolean>(false);
+  const [isStickerVisible, setIsStickerVisible] = useState<boolean>(true);
 
   const { addSticker, updateSticker } = useStore((state) => ({
     addSticker: state.addSticker,
@@ -51,18 +61,32 @@ const MediaComponent: React.FC<MediaComponentProps> = ({
 
   useEffect(() => {
     const stickerTempId = id || uuid.v4();
-
     setStickerId(stickerTempId as string);
-
-    addSticker({
-      id: stickerTempId as string,
-      x: posX.value,
-      y: posY.value,
-      media: media,
-      scale: 1,
-      rotation: 0,
-    });
+    console.log("Mounted");
+    if (!isDisplay) {
+      addSticker({
+        id: stickerTempId as string,
+        x: posX.value,
+        y: posY.value,
+        media: media,
+        scale: 1,
+        rotation: 0,
+        isNew: isNew,
+      });
+    }
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (!isStickerVisible) {
+        queryClient
+          .invalidateQueries({ queryKey: ["stickers", user?.id] })
+          .then(() => {
+            console.log("Stickers data refreshed after deleting a photo.");
+          });
+      }
+    };
+  }, [isStickerVisible, queryClient, user?.id]);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -82,14 +106,19 @@ const MediaComponent: React.FC<MediaComponentProps> = ({
       case "gif":
       case "sticker":
         return (
-          <GiphyMediaView
-            media={media}
-            style={{
-              width: "100%",
-              height: "100%",
-              aspectRatio: media.aspectRatio,
-            }}
-          />
+          <Pressable
+            onLongPress={handleLongPress}
+            style={{ position: "absolute", width: "100%", height: "100%" }}
+          >
+            <GiphyMediaView
+              media={media}
+              style={{
+                width: "100%",
+                height: "100%",
+                aspectRatio: media.aspectRatio,
+              }}
+            />
+          </Pressable>
         );
       default:
         return null;
@@ -97,6 +126,7 @@ const MediaComponent: React.FC<MediaComponentProps> = ({
   };
 
   console.log("DISPLAY: " + displayModeRef.current);
+  console.log("IsNew: " + isNew);
 
   const panGesture = Gesture.Pan()
     .enabled(!displayModeRef.current)
@@ -122,6 +152,44 @@ const MediaComponent: React.FC<MediaComponentProps> = ({
         console.log("Sticker id is undefined, cannot update.");
       }
     });
+
+  const handleLongPress = () => {
+    if (!displayModeRef.current && id) {
+      Alert.alert(
+        "Confirm Delete",
+        "Are you sure you want to delete this sticker?",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            onPress: async () => {
+              try {
+                const response = await axios.delete(
+                  `${process.env.EXPO_PUBLIC_API_URL}/stickers/${id}`
+                );
+                console.log("Sticker deleted successfully:", response.data);
+                setIsStickerVisible(false);
+                // queryClient.setQueryData(["memories", user?.id], (old: any) => {
+                //   return old.filter((m: any) => m.memoryId !== memoryId);
+                // });
+              } catch (error: any) {
+                console.error(
+                  "Failed to delete sticker:",
+                  error.response ? error.response.data : error.message
+                );
+              }
+            },
+            style: "destructive",
+          },
+        ],
+        { cancelable: true }
+      );
+    }
+  };
+
+  if (!isStickerVisible) {
+    return <View />;
+  }
 
   return (
     <GestureDetector gesture={panGesture}>

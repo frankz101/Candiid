@@ -1,3 +1,4 @@
+import { deleteStickerFromDatabase } from "../db/StickerDatabase.js";
 import {
   createStickers,
   fetchStickers,
@@ -27,6 +28,7 @@ const getStickers = async (req, res) => {
 
 const putStickers = async (req, res) => {
   try {
+    console.log(req.body);
     const result = await updateStickers(req.body);
     res.status(200).json(result);
   } catch (err) {
@@ -35,4 +37,19 @@ const putStickers = async (req, res) => {
   }
 };
 
-export { postStickers, getStickers, putStickers };
+const deleteSticker = async (req, res) => {
+  const { stickerId } = req.params;
+  try {
+    const wasDeleted = await deleteStickerFromDatabase(stickerId);
+    if (wasDeleted) {
+      res.status(204).send();
+    } else {
+      res.status(404).send({ message: "Sticker not found" });
+    }
+  } catch (err) {
+    console.error("Error while deleting sticker: ", err);
+    res.status(500).send({ message: "Internal server error" });
+  }
+};
+
+export { postStickers, getStickers, putStickers, deleteSticker };

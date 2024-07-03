@@ -52,7 +52,6 @@ import MediaComponent from "@/components/photo/MediaComponent";
 import { StickerDetails } from "@/store/createStickerSlice";
 import ColorPicker, { Panel5 } from "reanimated-color-picker";
 import type { returnedResults } from "reanimated-color-picker";
-import BackButton from "@/components/utils/BackButton";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
@@ -81,18 +80,24 @@ const MemoriesScreen = () => {
   const { newPost, frameColor, hangoutId } = useLocalSearchParams();
   const isNewPost = newPost === "true";
   const [isPostPlacementMode, setIsPostPlacementMode] = useState(false);
-  const [isMediaPlacementMode, setIsMediaPlacementMode] = useState(false);
+  // const [isMediaPlacementMode, setIsMediaPlacementMode] = useState(false);
   const setHangoutDetails = useStore((state) => state.setHangoutDetails);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [media, setMedia] = useState<GiphyMedia | null>(null);
+
   const [stickers, setStickers] = useState<Sticker[]>([]);
   const stickerArray = useStore((state) => state.stickers);
-  const [activeStickerIndex, setActiveStickerIndex] = useState<number | null>(
-    null
-  );
+  const memoryArray = useStore((state) => state.memories);
+
+  // const [memories, setMemories] = useState<
+
+  // const [activeStickerIndex, setActiveStickerIndex] = useState<number | null>(
+  //   null
+  // );
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
-  const [isEditBackgroundMode, setIsEditBackgroundMode] =
-    useState<boolean>(false);
+  const [editMode, setEditMode] = useState("");
+  const [initialBackgroundColor, setInitialBackgroundColor] = useState("");
+
   const [modalContent, setModalContent] = useState("");
   const [viewStyle, setViewStyle] = useState<ViewStyleKey>("polaroid");
   const displayModeRef = useRef(true); // SAVE THIS FOR IS EDIT MODE
@@ -102,137 +107,19 @@ const MemoriesScreen = () => {
   const [color, setColor] = useState("#FFF");
   const selectedColor = useSharedValue(color);
 
-  const queryClient = useQueryClient();
-
   useEffect(() => {
     if (isNewPost) {
       setIsPostPlacementMode(true);
     }
   }, [isNewPost]);
 
-  useEffect(() => {
-    if (media) {
-      setIsMediaPlacementMode(true);
-    }
-  }, [media]);
+  // useEffect(() => {
+  //   if (media) {
+  //     setIsMediaPlacementMode(true);
+  //   }
+  // }, [media]);
 
-  const fetchMemories = async () => {
-    console.log("Fetching Memories in Memories");
-    return axios
-      .get(`${process.env.EXPO_PUBLIC_API_URL}/memories/${user?.id}`)
-      .then((res) => res.data);
-  };
-
-  const fetchStickers = async () => {
-    console.log("Fetching Stickers in Memories");
-    return axios
-      .get(`${process.env.EXPO_PUBLIC_API_URL}/stickers/${user?.id}`)
-      .then((res) => res.data);
-  };
-
-  const fetchUser = async () => {
-    console.log("Fetching User Information in Memories");
-    return axios
-      .get(`${process.env.EXPO_PUBLIC_API_URL}/users/${user?.id}/${user?.id}`)
-      .then((res) => res.data);
-  };
-
-  const [memories, fetchedStickers, profile] = useQueries({
-    queries: [
-      {
-        queryKey: ["memories", user?.id],
-        queryFn: fetchMemories,
-        staleTime: 1000 * 60 * 5,
-      },
-      {
-        queryKey: ["stickers", user?.id],
-        queryFn: fetchStickers,
-        staleTime: 1000 * 60 * 5,
-      },
-      {
-        queryKey: ["profile", user?.id],
-        queryFn: fetchUser,
-        staleTime: 1000 * 60 * 5,
-      },
-    ],
-  });
-
-  const { data: memoriesData, isPending: isPendingMemories } = memories;
-  const { data: stickersData, isPending: isPendingStickers } = fetchedStickers;
-  const { data: profileDetails, isPending: isPendingProfile } = profile;
-
-  const handleBackgroundSubmit = async () => {
-    setIsEditBackgroundMode(false);
-
-    try {
-      const backgroundChangeResponse = await axios.put(
-        `${process.env.EXPO_PUBLIC_API_URL}/user/${user?.id}/background`,
-        { backgroundColor: selectedColor.value }
-      );
-      console.log(backgroundChangeResponse);
-    } catch {
-      console.log("Error changing background");
-    }
-  };
-
-  const handleStickerSubmit = async () => {
-    setIsEditMode(false);
-    displayModeRef.current = true;
-    const newStickers: StickerDetails[] = [];
-    // console.log("New Stickers: " + newStickers);
-    const existingStickers: StickerDetails[] = [];
-    // console.log("Sticker Array: " + stickerArray);
-
-    stickerArray.forEach((sticker) => {
-      if (sticker.id && sticker.id.length > 20) {
-        newStickers.push(sticker);
-      } else if (sticker.id) {
-        existingStickers.push(sticker);
-      } else {
-        console.error("Sticker has no ID: ", sticker);
-      }
-    });
-
-    const newStickerRequestBody = {
-      userId: user?.id,
-      newStickers,
-    };
-
-    const existingStickerRequestBody = {
-      userId: user?.id,
-      existingStickers,
-    };
-
-    try {
-      const newStickersResponse = await axios.post(
-        `${process.env.EXPO_PUBLIC_API_URL}/stickers`,
-        newStickerRequestBody
-      );
-      // console.log(newStickersResponse);
-
-      const existingStickersResponse = await axios.put(
-        `${process.env.EXPO_PUBLIC_API_URL}/stickers`,
-        existingStickerRequestBody
-      );
-      // console.log(existingStickersResponse);
-    } catch {}
-    console.log("All operations done");
-  };
-
-  if (!isPendingProfile) {
-    selectedColor.value =
-      profileDetails.result.backgroundDetails.backgroundColor;
-  }
-
-  const backgroundColorStyle = useAnimatedStyle(() => ({
-    backgroundColor: selectedColor.value,
-  }));
-
-  const onColorSelect = (color: returnedResults) => {
-    "worklet";
-    selectedColor.value = color.hex;
-  };
-
+  /* Board Animation */
   const screenX = useSharedValue<number>(0);
   const screenY = useSharedValue<number>(0);
 
@@ -248,7 +135,6 @@ const MemoriesScreen = () => {
   const screenContext = useSharedValue({ x: 0, y: 0 });
 
   const postContext = useSharedValue({ x: 0, y: 0 });
-  const mediaContext = useSharedValue({ x: 0, y: 0 });
 
   const isPostActive = useSharedValue<boolean>(false);
   const isMediaActive = useSharedValue<boolean>(false);
@@ -362,11 +248,240 @@ const MemoriesScreen = () => {
     };
   });
 
-  const mediaStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ translateX: mediaX.value }, { translateY: mediaY.value }],
-    };
+  /* React Query */
+
+  const fetchMemories = async () => {
+    console.log("Fetching Memories in Memories");
+    return axios
+      .get(`${process.env.EXPO_PUBLIC_API_URL}/memories/${user?.id}`)
+      .then((res) => res.data);
+  };
+
+  const fetchStickers = async () => {
+    console.log("Fetching Stickers in Memories");
+    return axios
+      .get(`${process.env.EXPO_PUBLIC_API_URL}/stickers/${user?.id}`)
+      .then((res) => res.data);
+  };
+
+  const fetchUser = async () => {
+    console.log("Fetching User Information in Memories");
+    return axios
+      .get(`${process.env.EXPO_PUBLIC_API_URL}/users/${user?.id}/${user?.id}`)
+      .then((res) => res.data);
+  };
+
+  const [memories, fetchedStickers, profile] = useQueries({
+    queries: [
+      {
+        queryKey: ["memories", user?.id],
+        queryFn: fetchMemories,
+        staleTime: 1000 * 60 * 5,
+      },
+      {
+        queryKey: ["stickers", user?.id],
+        queryFn: fetchStickers,
+        staleTime: 1000 * 60 * 5,
+      },
+      {
+        queryKey: ["profile", user?.id],
+        queryFn: fetchUser,
+        staleTime: 1000 * 60 * 5,
+      },
+    ],
   });
+
+  const { data: memoriesData, isPending: isPendingMemories } = memories;
+  const { data: stickersData, isPending: isPendingStickers } = fetchedStickers;
+  const { data: profileDetails, isPending: isPendingProfile } = profile;
+
+  /* Edit Mode */
+
+  const handleEditMode = useCallback((mode: string) => {
+    setIsEditMode(true);
+    setEditMode(mode);
+    if (mode === "background") {
+      setModalContent("colorPicker");
+    } else if (mode === "stickers") {
+      setModalContent("stickers");
+    }
+    bottomSheetModalRef.current?.present();
+  }, []);
+
+  const prepareStickersForUpdate = () => {
+    // console.log("Sticker Array: ", JSON.stringify(stickerArray, null, 2));
+    const newStickers = stickerArray.filter((sticker) => sticker.isNew);
+    const modifiedStickers = stickerArray.filter(
+      (sticker) => sticker.modified && !sticker.isNew
+    );
+
+    console.log("New Stickers: " + newStickers);
+    console.log("Modified Stickers: " + modifiedStickers);
+
+    return { newStickers, modifiedStickers };
+  };
+
+  const prepareMemoriesForUpdate = () => {
+    // console.log("Sticker Array: ", JSON.stringify(stickerArray, null, 2));
+    const modifiedMemories = memoryArray.filter((memory) => memory.modified);
+
+    console.log("Modified Memories: " + modifiedMemories);
+
+    return { modifiedMemories };
+  };
+
+  const handleEditSubmit = async () => {
+    if (
+      editMode === "colorPicker" &&
+      selectedColor.value !== initialBackgroundColor
+    ) {
+      try {
+        displayModeRef.current = true;
+        const backgroundChangeResponse = await axios.put(
+          `${process.env.EXPO_PUBLIC_API_URL}/user/${user?.id}/background`,
+          { backgroundColor: selectedColor.value }
+        );
+        console.log(backgroundChangeResponse);
+        setInitialBackgroundColor(selectedColor.value);
+      } catch {
+        console.log("Error changing background");
+      }
+    } else if (editMode === "stickers" && stickerArray.length > 0) {
+      displayModeRef.current = true;
+
+      const { newStickers, modifiedStickers } = prepareStickersForUpdate();
+      const { modifiedMemories } = prepareMemoriesForUpdate();
+
+      // Modify memories
+      if (modifiedMemories.length > 0) {
+        const modifiedMemoriesRequestBody = {
+          userId: user?.id,
+          modifiedMemories,
+        };
+
+        try {
+          console.log("Modified memories" + modifiedMemories);
+          if (modifiedMemories.length > 0) {
+            const modifiedMemoriesResponse = await axios.put(
+              `${process.env.EXPO_PUBLIC_API_URL}/memories`,
+              modifiedMemoriesRequestBody
+            );
+            console.log(
+              "Modified memories updated:",
+              modifiedMemoriesResponse.data
+            );
+          }
+        } catch (error: any) {
+          console.error(
+            "Error updating memories",
+            error.response ? error.response.data : error.message
+          );
+        }
+      }
+
+      // Only make requests if there are new or modified stickers
+      if (newStickers.length > 0 || modifiedStickers.length > 0) {
+        const newStickerRequestBody = {
+          userId: user?.id,
+          newStickers,
+        };
+
+        const modifiedStickerRequestBody = {
+          userId: user?.id,
+          modifiedStickers,
+        };
+
+        try {
+          console.log("Modified stickers" + modifiedStickers);
+          if (newStickers.length > 0) {
+            const newStickersResponse = await axios.post(
+              `${process.env.EXPO_PUBLIC_API_URL}/stickers`,
+              newStickerRequestBody
+            );
+            console.log("New stickers added:", newStickersResponse.data);
+          }
+          if (modifiedStickers.length > 0) {
+            const modifiedStickersResponse = await axios.put(
+              `${process.env.EXPO_PUBLIC_API_URL}/stickers`,
+              modifiedStickerRequestBody
+            );
+            console.log(
+              "Modified stickers updated:",
+              modifiedStickersResponse.data
+            );
+          }
+        } catch (error: any) {
+          console.error(
+            "Error updating stickers",
+            error.response ? error.response.data : error.message
+          );
+        }
+      }
+    }
+    setStickers(
+      stickers.map((sticker) => ({
+        ...sticker,
+        isNew: false,
+        lastModified: undefined,
+      }))
+    );
+
+    setIsEditMode(false);
+    setEditMode("");
+  };
+  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+
+  const snapPoints = useMemo(() => ["25%", "50%", "90%"], []);
+
+  const handleSheetChanges = useCallback((index: number) => {
+    console.log("handleSheetChanges", index);
+  }, []);
+
+  const handleEditPress = () => {
+    setIsEditMode(true);
+    setEditMode("stickers");
+    displayModeRef.current = false;
+  };
+
+  const handleStickerSelect = (e: any) => {
+    setIsEditMode(true);
+    displayModeRef.current = false;
+
+    const newMedia = e.nativeEvent.media;
+
+    const newSticker: Sticker = {
+      media: newMedia,
+      positionX: mediaX,
+      positionY: mediaY,
+      mediaType: "sticker",
+    };
+
+    // setActiveStickerIndex(stickers.length);
+
+    setStickers((prevStickers) => [...prevStickers, newSticker]);
+
+    bottomSheetModalRef.current?.close();
+  };
+
+  if (!isPendingProfile) {
+    selectedColor.value =
+      profileDetails.result.backgroundDetails.backgroundColor;
+  }
+
+  // if (!isPendingMemories) {
+  //   console.log("Memories Data: " + memoriesData);
+  // }
+
+  const backgroundColorStyle = useAnimatedStyle(() => ({
+    backgroundColor: selectedColor.value,
+  }));
+
+  const onColorSelect = (color: returnedResults) => {
+    "worklet";
+    selectedColor.value = color.hex;
+  };
+
+  /* Hangout Submit */
 
   const handleHangoutSubmit = async () => {
     try {
@@ -427,49 +542,6 @@ const MemoriesScreen = () => {
     }
   };
 
-  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-
-  const snapPoints = useMemo(() => ["25%", "50%", "90%"], []);
-
-  const handleOpenStickerModal = useCallback(() => {
-    setModalContent("stickers");
-    bottomSheetModalRef.current?.present();
-  }, []);
-
-  const handleOpenColorPickerModal = useCallback(() => {
-    setIsEditBackgroundMode(true);
-    setModalContent("colorPicker");
-    bottomSheetModalRef.current?.present();
-  }, []);
-
-  const handleSheetChanges = useCallback((index: number) => {
-    console.log("handleSheetChanges", index);
-  }, []);
-
-  const handleStickerSelect = (e: any) => {
-    setIsEditMode(true);
-    displayModeRef.current = false;
-
-    const newMedia = e.nativeEvent.media;
-
-    const newSticker: Sticker = {
-      media: newMedia,
-      positionX: mediaX,
-      positionY: mediaY,
-      mediaType: "sticker",
-    };
-
-    setActiveStickerIndex(stickers.length);
-
-    setStickers((prevStickers) => [...prevStickers, newSticker]);
-
-    bottomSheetModalRef.current?.close();
-  };
-
-  // if (!isPendingStickers) {
-  //   console.log(stickersData);
-  // }
-
   return isPendingMemories && isPendingStickers && isPendingProfile ? (
     <Text>Loading...</Text>
   ) : (
@@ -481,22 +553,35 @@ const MemoriesScreen = () => {
         <Pressable style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={32} color="#FFF" />
         </Pressable>
-        <Pressable
-          style={styles.stickerButton}
-          onPress={handleOpenStickerModal}
-        >
-          <MaterialCommunityIcons
-            name="sticker-emoji"
-            size={32}
-            color="white"
-          />
-        </Pressable>
-        <Pressable
-          style={styles.colorPickerButton}
-          onPress={handleOpenColorPickerModal}
-        >
-          <Ionicons name="color-palette-outline" size={32} color="white" />
-        </Pressable>
+        {!isEditMode && (
+          <Pressable onPress={handleEditPress} style={styles.editButton}>
+            <MaterialCommunityIcons
+              name="pencil-box-outline"
+              size={48}
+              color="#FFF"
+            />
+          </Pressable>
+        )}
+        {isEditMode && (
+          <Pressable
+            style={styles.stickerButton}
+            onPress={() => handleEditMode("stickers")}
+          >
+            <MaterialCommunityIcons
+              name="sticker-emoji"
+              size={32}
+              color="white"
+            />
+          </Pressable>
+        )}
+        {isEditMode && (
+          <Pressable
+            style={styles.colorPickerButton}
+            onPress={() => handleEditMode("colorPicker")}
+          >
+            <Ionicons name="color-palette-outline" size={32} color="white" />
+          </Pressable>
+        )}
         <GestureDetector gesture={combinedGesture}>
           <Animated.View style={[styles.container, containerStyle]}>
             <DotGrid width={screenWidth} height={screenHeight} />
@@ -511,6 +596,7 @@ const MemoriesScreen = () => {
                   positionY={hangout.postY}
                   frame={hangout.frame}
                   color={hangout.color}
+                  displayModeRef={displayModeRef}
                 />
               ))
             ) : (
@@ -533,33 +619,15 @@ const MemoriesScreen = () => {
               <View />
             )}
 
-            {/* TEMPORARY STICKERS */}
+            {/*TEMPORARY STICKERS */}
             {stickers.length > 0 ? (
               stickers.map((sticker, index: number) => (
-                // <GestureDetector gesture={mediaPan} key={index}>
-                //   <Animated.View
-                //     style={[
-                //       mediaStyle,
-                //       {
-                //         position: "absolute",
-                //         zIndex: 1,
-                //       },
-                //     ]}
-                //   >
-                //     <MediaComponent
-                //       key={index}
-                //       media={sticker.media}
-                //       positionX={sticker.positionX}
-                //       positionY={sticker.positionY}
-                //       mediaType={sticker.mediaType}
-                //     />
-                //   </Animated.View>
-                // </GestureDetector>
                 <MediaComponent
                   key={index}
                   media={sticker.media}
                   mediaType={sticker.mediaType}
                   displayModeRef={displayModeRef}
+                  isNew={true}
                 />
               ))
             ) : (
@@ -585,26 +653,6 @@ const MemoriesScreen = () => {
                 </Animated.View>
               </GestureDetector>
             )}
-            {/* {isMediaPlacementMode && media && (
-              <GestureDetector gesture={mediaPan}>
-                <Animated.View
-                  style={[
-                    mediaStyle,
-                    {
-                      position: "absolute",
-                      zIndex: 1,
-                    },
-                  ]}
-                >
-                  <MediaComponent
-                    media={media}
-                    positionX={mediaX}
-                    positionY={mediaY}
-                    mediaType="sticker"
-                  />
-                </Animated.View>
-              </GestureDetector>
-            )} */}
           </Animated.View>
         </GestureDetector>
         {isPostPlacementMode && (
@@ -617,16 +665,8 @@ const MemoriesScreen = () => {
         )}
         {isEditMode && (
           <Pressable
-            onPress={handleStickerSubmit}
+            onPress={handleEditSubmit}
             style={{ position: "absolute", right: 16, bottom: 75 }}
-          >
-            <Ionicons name="checkmark-circle" size={64} color="#FFF" />
-          </Pressable>
-        )}
-        {isEditBackgroundMode && (
-          <Pressable
-            onPress={handleBackgroundSubmit}
-            style={{ position: "absolute", right: 30, bottom: 75 }}
           >
             <Ionicons name="checkmark-circle" size={64} color="#FFF" />
           </Pressable>
@@ -708,6 +748,12 @@ const styles = StyleSheet.create({
     zIndex: 2,
     top: hp(6),
     left: wp(6),
+  },
+  editButton: {
+    position: "absolute",
+    right: wp(6),
+    top: hp(6),
+    zIndex: 2,
   },
   stickerButton: {
     position: "absolute",

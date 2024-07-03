@@ -16,6 +16,7 @@ import PhotoSquare from "@/components/photo/PhotoSquare";
 import BackButton from "@/components/utils/BackButton";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import BaseScreen from "@/components/utils/BaseScreen";
+import Animated from "react-native-reanimated";
 
 const screenHeight = Dimensions.get("window").height;
 const headerHeight = 140;
@@ -63,7 +64,7 @@ const SharedAlbumScreen = () => {
   }
 
   const renderPhoto = ({ item, index }: { item: Photo; index: number }) => (
-    <PhotoSquare imageUrl={item.fileUrl} />
+    <PhotoSquare imageUrl={item.fileUrl} index={index} />
   );
 
   const onRefresh = async () => {

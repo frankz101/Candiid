@@ -60,8 +60,6 @@ const Hangout = () => {
     );
   }
 
-  console.log(hangoutData);
-
   const latestPhotos = hangoutData.sharedAlbum?.slice(-6) || [];
 
   return (
