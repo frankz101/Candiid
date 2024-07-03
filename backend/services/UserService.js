@@ -74,36 +74,52 @@ const searchUser = async (friendId, userId) => {
 
 const searchUsers = async (username, userId) => {
   try {
-    const usersIds = await searchUsersInDatabase(username);
-
-    const friends = await fetchFriends(userId);
-    const friendIds = friends.map((friend) => friend.userId);
-
-    const friendRequests = await retrieveFriendRequestsSent(userId);
-    const friendRequestsIds = friendRequests.map(
-      (friendRequest) => friendRequest.receiverId
+    const [usersIds, friends, friendRequests, blockedUsers] = await Promise.all(
+      [
+        searchUsersInDatabase(username),
+        fetchFriends(userId),
+        retrieveFriendRequestsSent(userId),
+        fetchBlocks(userId),
+      ]
     );
 
-    const blockedUsers = await fetchBlocks(userId);
-    const blockedUsersIds = blockedUsers.map((user) => user.userId);
+    const friendIds = new Set(friends.map((friend) => friend.userId));
+    const friendRequestsIds = new Set(
+      friendRequests.map((friendRequest) => friendRequest.receiverId)
+    );
+    const blockedUsersIds = new Set(blockedUsers.map((user) => user.userId));
 
     const filteredUserIds = usersIds.filter(
-      (user) => !blockedUsersIds.includes(user.userId)
+      (user) => !blockedUsersIds.has(user.userId)
     );
+
     const usersWithFriendshipStatus = await Promise.all(
       filteredUserIds.map(async (user) => {
-        const friendsRequests = await retrieveFriendRequestsSent(user.userId);
-        const incomingFriendRequest = friendsRequests.some(
+        // Skip users who have blocked the current user
+        const userBlocked = await fetchBlocks(user.userId);
+        const userBlockedIds = new Set(userBlocked.map((user) => user.userId));
+        if (userBlockedIds.has(userId)) {
+          return null;
+        }
+
+        // Check incoming friend requests
+        const incomingFriendRequests = await retrieveFriendRequestsSent(
+          user.userId
+        );
+        const incomingFriendRequest = incomingFriendRequests.some(
           (request) => request.receiverId === userId
         );
+
+        // Determine friendship status
         let friendStatus = "Not Friends";
-        if (friendIds.includes(user.userId)) {
+        if (friendIds.has(user.userId)) {
           friendStatus = "Already Friends";
-        } else if (friendRequestsIds.includes(user.userId)) {
+        } else if (friendRequestsIds.has(user.userId)) {
           friendStatus = "Friend Requested";
         } else if (incomingFriendRequest) {
           friendStatus = "Incoming Request";
         }
+
         return {
           ...user,
           friendStatus,
@@ -111,7 +127,7 @@ const searchUsers = async (username, userId) => {
       })
     );
 
-    return usersWithFriendshipStatus;
+    return usersWithFriendshipStatus.filter((user) => user !== null);
   } catch (error) {
     console.error("Error searching users:", error);
     throw error;

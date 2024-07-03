@@ -1,19 +1,8 @@
-import {
-  FlatList,
-  ListRenderItem,
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
-import React, { useCallback, useEffect, useState } from "react";
+import { FlatList, ListRenderItem, StyleSheet, Text, View } from "react-native";
+import React, { useState } from "react";
 import SearchBar from "@/components/utils/SearchBar";
-import BackButton from "@/components/utils/BackButton";
 import { useUser } from "@clerk/clerk-expo";
 import axios from "axios";
-import { useFocusEffect, useRouter } from "expo-router";
 import UserBanner from "@/components/friends/UserBanner";
 import BaseScreen from "@/components/utils/BaseScreen";
 import ContactsList from "./ContactsList";

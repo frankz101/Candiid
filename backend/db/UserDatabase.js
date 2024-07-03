@@ -13,6 +13,7 @@ import {
   deleteDoc,
   or,
   arrayRemove,
+  limit,
 } from "firebase/firestore";
 import { db } from "../firebase.js";
 import { deleteObject, ref } from "firebase/storage";
@@ -61,6 +62,7 @@ const searchUsersInDatabase = async (username) => {
       usersRef,
       where("username", ">=", prefixLowerCase),
       where("username", "<=", endValue),
+      limit(8),
       orderBy("username")
     );
 
