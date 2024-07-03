@@ -550,9 +550,12 @@ const MemoriesScreen = () => {
         style={[styles.background, backgroundColorStyle]}
         // sharedTransitionTag="MemoriesScreen"
       >
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={32} color="#FFF" />
-        </Pressable>
+        {!isEditMode && (
+          <Pressable style={styles.backButton} onPress={() => router.back()}>
+            <Ionicons name="chevron-back" size={32} color="#FFF" />
+          </Pressable>
+        )}
+
         {!isEditMode && (
           <Pressable onPress={handleEditPress} style={styles.editButton}>
             <MaterialCommunityIcons

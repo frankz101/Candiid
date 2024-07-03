@@ -124,6 +124,9 @@ const Profile = () => {
     name: "Unknown User",
     username: "unknown_user",
     profilePhoto: null,
+    backgroundDetails: {
+      backgroundColor: "#FFF",
+    },
   };
 
   return (
