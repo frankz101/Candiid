@@ -12,6 +12,7 @@ import {
   getFreshHangouts,
   postJoinHangoutRequest,
   getJoinHangoutRequests,
+  putLeaveHangout,
 } from "../controllers/HangoutController.js";
 
 var router = express.Router();
@@ -31,5 +32,6 @@ router.post("/hangout/:hangoutId/requests", postHangoutRequests);
 router.put("/hangout/:hangoutId/requests", putHangoutRequest);
 router.post("/hangout/join-hangout-requests", postJoinHangoutRequest);
 router.get("/hangout/join-requests/:userId", getJoinHangoutRequests);
+router.put("/hangout/leave", putLeaveHangout);
 
 export default router;

@@ -4,10 +4,13 @@ import {
   View,
   ActivityIndicator,
   Dimensions,
+  Pressable,
+  Modal,
+  Alert,
 } from "react-native";
-import React from "react";
-import { useLocalSearchParams } from "expo-router";
-import { useQuery } from "@tanstack/react-query";
+import React, { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import BackButton from "@/components/utils/BackButton";
 import SharedAlbumPreview from "@/components/hangoutDetail/SharedAlbumPreview";
@@ -19,7 +22,8 @@ import {
 import ParticipantsList from "@/components/hangoutDetail/ParticipantsList";
 import CompleteHangoutButton from "@/components/hangoutDetail/CompleteHangoutButton";
 import HangoutDetailCard from "@/components/hangoutDetail/HangoutDetailCard";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useUser } from "@clerk/clerk-expo";
 
 const screenHeight = Dimensions.get("window").height;
 const headerHeight = 140;
@@ -29,6 +33,10 @@ const scrollViewHeight = screenHeight - headerHeight - bottomPadding;
 
 const Hangout = () => {
   const { hangoutId, memoryId } = useLocalSearchParams();
+  const [modalVisible, setModalVisible] = useState(false);
+  const router = useRouter();
+  const { user } = useUser();
+  const queryClient = useQueryClient();
   console.log("Memory ID Hangout: " + memoryId);
 
   const fetchHangout = async () => {
@@ -68,6 +76,36 @@ const Hangout = () => {
     console.log(hangoutData);
   }
 
+  const leaveHangout = () => {
+    Alert.alert(
+      "Are you sure you want to leave this hangout?",
+      "You will no longer be able to access associated photos.",
+      [
+        {
+          text: "No",
+          style: "cancel",
+        },
+        {
+          text: "Yes",
+          style: "destructive",
+          onPress: async () => {
+            router.back();
+            const res = await axios.put(
+              `${process.env.EXPO_PUBLIC_API_URL}/hangout/leave`,
+              {
+                userId: user?.id,
+                hangoutId,
+              }
+            );
+            queryClient.invalidateQueries({ queryKey: ["hangouts"] });
+            console.log(res.data.result);
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
   return (
     <BaseScreen>
       <View
@@ -80,9 +118,35 @@ const Hangout = () => {
       >
         <BackButton />
 
-        <View style={{ flexDirection: "row" }}>
-          <MaterialCommunityIcons name="share" size={32} color="#FFF" />
-          <MaterialCommunityIcons name="dots-vertical" size={32} color="#FFF" />
+        <View style={{ flexDirection: "row", gap: wp(2) }}>
+          <MaterialCommunityIcons name="share" size={30} color="#FFF" />
+          <Pressable onPress={() => setModalVisible(true)}>
+            <Ionicons name="ellipsis-horizontal" size={30} color="#FFF" />
+          </Pressable>
+          <Modal transparent={true} animationType="fade" visible={modalVisible}>
+            <Pressable
+              style={styles.overlay}
+              onPress={() => setModalVisible(false)}
+            >
+              <View style={styles.modalContainer}>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.modalButton,
+                    pressed
+                      ? { backgroundColor: "#3a3a3d" }
+                      : { backgroundColor: "#2a2a2d" },
+                  ]}
+                  onPress={() => {
+                    setModalVisible(false);
+                    leaveHangout();
+                  }}
+                >
+                  <Text style={styles.modalButtonText}>Leave Hangout</Text>
+                  <Ionicons name="exit-outline" color="red" size={24} />
+                </Pressable>
+              </View>
+            </Pressable>
+          </Modal>
         </View>
       </View>
 
@@ -162,16 +226,35 @@ const styles = StyleSheet.create({
     // justifyContent: "center",
     // alignItems: "center",
   },
-  greyPost: {
-    width: 100,
-    height: 100,
-    backgroundColor: "grey",
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 10,
-  },
   scrollViewContainer: {
     flexGrow: 1,
     height: scrollViewHeight,
+  },
+  modalContainer: {
+    width: wp(50),
+    maxWidth: wp(90),
+    backgroundColor: "#d9d9d9",
+    borderRadius: 10,
+    overflow: "hidden",
+  },
+  modalButton: {
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(1),
+    borderBottomColor: "#4a4a4d",
+    borderBottomWidth: 0.5,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  modalButtonText: {
+    color: "red",
+    fontSize: 16,
+  },
+  overlay: {
+    flex: 1,
+    justifyContent: "flex-start",
+    alignItems: "flex-end",
+    paddingTop: hp(11),
+    paddingRight: wp(3),
   },
 });

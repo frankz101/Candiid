@@ -10,6 +10,7 @@ import {
   fetchFreshHangouts,
   createJoinHangoutRequest,
   fetchJoinhangoutRequests,
+  leaveHangout,
 } from "../services/HangoutService.js";
 
 const postHangout = async (req, res) => {
@@ -138,6 +139,16 @@ const getJoinHangoutRequests = async (req, res) => {
   }
 };
 
+const putLeaveHangout = async (req, res) => {
+  try {
+    const { userId, hangoutId } = req.body;
+    const result = await leaveHangout(hangoutId, userId);
+    res.status(201).send({ result });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export {
   postHangout,
   postPhotoToHangout,
@@ -150,4 +161,5 @@ export {
   getFreshHangouts,
   postJoinHangoutRequest,
   getJoinHangoutRequests,
+  putLeaveHangout,
 };

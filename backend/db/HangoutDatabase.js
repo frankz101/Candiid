@@ -283,7 +283,6 @@ const handleHangoutRequestInDatabase = async (hangoutId, hangoutRequest) => {
 
       if (hangoutRequest.type === "request") {
         updateDoc(hangoutDocRef, {
-          pendingRequests: arrayRemove(hangoutRequest.receiverId),
           participantIds: arrayUnion(hangoutRequest.receiverId),
         })
           .then(() => {
@@ -419,6 +418,20 @@ const fetchJoinHangoutRequestsInDatabase = async (userId) => {
   }
 };
 
+const leaveHangoutInDatabase = async (hangoutId, userId) => {
+  try {
+    const hangoutDocRef = doc(db, "hangouts", hangoutId);
+    await updateDoc(hangoutDocRef, {
+      participantIds: arrayRemove(userId),
+    });
+
+    return "left hangout successfully";
+  } catch (error) {
+    console.error("Error leaving hangout: ", error);
+    throw error;
+  }
+};
+
 export {
   createHangoutInDatabase,
   addPhotoToHangoutInDatabase,
@@ -431,4 +444,5 @@ export {
   fetchFreshHangoutsInDatabase,
   createJoinHangoutRequestInDatabase,
   fetchJoinHangoutRequestsInDatabase,
+  leaveHangoutInDatabase,
 };

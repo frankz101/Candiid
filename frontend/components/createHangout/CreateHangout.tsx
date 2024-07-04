@@ -56,7 +56,6 @@ const CreateHangout = () => {
     const hangoutData = {
       userId: user?.id,
       completed: false,
-      pendingRequests: [],
       hangoutName: hangoutName,
       hangoutDescription: hangoutDescription,
     };

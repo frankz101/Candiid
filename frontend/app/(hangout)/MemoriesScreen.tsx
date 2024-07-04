@@ -465,7 +465,7 @@ const MemoriesScreen = () => {
 
   if (!isPendingProfile) {
     selectedColor.value =
-      profileDetails.result.backgroundDetails.backgroundColor;
+      profileDetails.result.backgroundDetails?.backgroundColor;
   }
 
   // if (!isPendingMemories) {
