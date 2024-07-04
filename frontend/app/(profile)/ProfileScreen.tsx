@@ -7,6 +7,8 @@ import {
   ScrollView,
   RefreshControl,
   Dimensions,
+  Modal,
+  Alert,
 } from "react-native";
 import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useState } from "react";
@@ -25,6 +27,7 @@ import {
 } from "react-native-responsive-screen";
 import BaseScreen from "@/components/utils/BaseScreen";
 import FriendshipButton from "@/components/friends/FriendshipButton";
+import BackButton from "@/components/utils/BackButton";
 
 const screenHeight = Dimensions.get("window").height;
 const headerHeight = 120;
@@ -32,13 +35,22 @@ const bottomPadding = 20;
 
 const scrollViewHeight = screenHeight - headerHeight - bottomPadding;
 
+//STATE DOES NOT UPDATE WHEN PRESSING BACK BUTTON ONTO SEARCH SCREEN
 const ProfileScreen = () => {
   const { user } = useUser();
   const router = useRouter();
-  const { userId } = useLocalSearchParams();
+  const { userId, username, name, profilePhoto, friendStatus } =
+    useLocalSearchParams();
+  const userIdStr = Array.isArray(userId) ? userId[0] : userId;
+  const profilePhotoStr = Array.isArray(profilePhoto)
+    ? profilePhoto[0]
+    : profilePhoto;
+  const friendStatusStr = Array.isArray(friendStatus)
+    ? friendStatus[0]
+    : friendStatus;
   const [refreshing, setRefreshing] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
   const queryClient = useQueryClient();
-
   const fetchMemories = async () => {
     console.log("Fetching Memories");
     return axios
@@ -46,55 +58,137 @@ const ProfileScreen = () => {
       .then((res) => res.data);
   };
 
-  const fetchUser = async () => {
-    console.log("Fetching User Information");
-    return axios
-      .get(`${process.env.EXPO_PUBLIC_API_URL}/users/${userId}/${user?.id}`)
-      .then((res) => res.data);
-  };
-
-  const [memories, profile] = useQueries({
-    queries: [
-      { queryKey: ["memories", userId], queryFn: fetchMemories },
-      { queryKey: ["profile", userId], queryFn: fetchUser },
-    ],
+  const { data: memoriesData, isPending } = useQuery({
+    queryKey: ["memories", userId],
+    queryFn: fetchMemories,
   });
-
-  const { data: memoriesData, isPending: isPendingMemories } = memories;
-  const { data: profileDetails, isPending: isPendingProfile } = profile;
 
   const onRefresh = async () => {
     setRefreshing(true);
     await queryClient.invalidateQueries({ queryKey: ["memories", userId] });
-    await queryClient.invalidateQueries({ queryKey: ["profile", userId] });
     setRefreshing(false);
   };
 
-  if (isPendingMemories || isPendingProfile) {
+  if (isPending) {
     return <Text>Is Loading...</Text>;
   }
-  if (profileDetails) {
-    console.log(profileDetails);
-  }
+
+  const blockUser = async () => {
+    try {
+      if (user) {
+        Alert.alert(
+          "Are you sure you want to block this user?",
+          "You will no longer be able to view their profile",
+          [
+            {
+              text: "No",
+              style: "cancel",
+            },
+            {
+              text: "Yes",
+              style: "destructive",
+              onPress: async () => {
+                router.back();
+                setModalVisible(false);
+                const details = {
+                  userId: user.id,
+                  blockedUserId: userIdStr,
+                };
+                const res = await axios.post(
+                  `${process.env.EXPO_PUBLIC_API_URL}/user/block`,
+                  {
+                    details,
+                  }
+                );
+                queryClient.invalidateQueries({ queryKey: ["searchResults"] });
+                console.log(res.data.result);
+              },
+            },
+          ],
+          { cancelable: true }
+        );
+      }
+    } catch (err) {
+      console.error("Error blocking user: ", err);
+    }
+  };
 
   return (
     <BaseScreen style={styles.container}>
       <View style={styles.navOptions}>
-        <Ionicons
-          // onPress={() => router.push("/(profile)/AddFriendsScreen")}
-          name="people-outline"
-          size={32}
-          color={"white"}
-        />
-        <Text
-          style={styles.userDetailText}
-        >{`@${profileDetails.result.username}`}</Text>
-        <Ionicons
-          onPress={() => router.push("/(profile)/SettingsScreen")}
-          name="reorder-three-outline"
-          size={32}
-          color={"white"}
-        />
+        <BackButton />
+        <Text style={styles.userDetailText}>{`@${username}`}</Text>
+        <View>
+          <Pressable onPress={() => setModalVisible(true)}>
+            <Ionicons
+              name="ellipsis-horizontal-outline"
+              size={30}
+              color="white"
+            />
+          </Pressable>
+          <Modal transparent={true} animationType="fade" visible={modalVisible}>
+            <Pressable
+              style={styles.overlay}
+              onPress={() => setModalVisible(false)}
+            >
+              <View style={styles.modalContainer}>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.modalButton,
+                    pressed
+                      ? { backgroundColor: "#3a3a3d" }
+                      : { backgroundColor: "#2a2a2d" },
+                  ]}
+                  onPress={() => {
+                    setModalVisible(false);
+                    router.push({
+                      pathname: "/ReportScreen",
+                      params: {
+                        userId,
+                        username,
+                      },
+                    });
+                  }}
+                >
+                  <Text style={styles.modalButtonText}>Report {username}</Text>
+                  <Ionicons name="alert-circle-outline" color="red" size={24} />
+                </Pressable>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.modalButton,
+                    pressed
+                      ? { backgroundColor: "#3a3a3d" }
+                      : { backgroundColor: "#2a2a2d" },
+                  ]}
+                  onPress={blockUser}
+                >
+                  <Text style={styles.modalButtonText}>Block {username}</Text>
+                  <Ionicons name="ban-outline" color="red" size={24} />
+                </Pressable>
+
+                {friendStatus === "Already Friends" && (
+                  <Pressable
+                    style={({ pressed }) => [
+                      styles.modalButton,
+                      pressed
+                        ? { backgroundColor: "#3a3a3d" }
+                        : { backgroundColor: "#2a2a2d" },
+                    ]}
+                  >
+                    <Text style={styles.modalButtonText}>
+                      Remove friendship
+                    </Text>
+                    <Ionicons
+                      name="person-remove-outline"
+                      color="red"
+                      size={24}
+                    />
+                  </Pressable>
+                )}
+              </View>
+            </Pressable>
+          </Modal>
+        </View>
       </View>
       <ScrollView
         contentContainerStyle={styles.scrollViewContainer}
@@ -103,23 +197,21 @@ const ProfileScreen = () => {
         }
       >
         <View style={styles.userDetails}>
-          {profileDetails &&
-          profileDetails.result &&
-          profileDetails.result.profilePhoto ? (
+          {profilePhotoStr !== "undefined" && profilePhotoStr !== "null" ? (
             <Image
-              source={{ uri: profileDetails.result.profilePhoto.fileUrl }}
+              source={{ uri: profilePhotoStr }}
               style={styles.profilePhoto}
             />
           ) : (
-            <Ionicons name="person-circle" size={64} />
+            <Ionicons name="person-circle" size={wp(25)} color="white" />
           )}
-          <Text style={styles.userText}>{profileDetails.result.name}</Text>
-          <FriendshipButton user={profileDetails} />
+          <Text style={styles.userText}>{name}</Text>
+          <FriendshipButton userId={userIdStr} status={friendStatusStr} />
         </View>
         {/* <Text style={styles.headerText}>Memoryboard</Text> */}
         <Animated.View style={styles.animatedView}>
           <Pressable onPress={() => router.push("/(hangout)/MemoriesScreen")}>
-            <MemoriesView hangouts={memoriesData} />
+            {/* <MemoriesView hangouts={memoriesData} /> */}
           </Pressable>
         </Animated.View>
         {/* DEFAULT PROFILE PIC NOT CENTERED AND SIZE IS WRONG */}
@@ -243,7 +335,7 @@ const styles = StyleSheet.create({
   navOptions: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingHorizontal: wp(4),
+    paddingRight: wp(2),
     paddingBottom: hp(1),
   },
   userDetails: {
@@ -257,6 +349,10 @@ const styles = StyleSheet.create({
     marginVertical: hp(1),
   },
   userDetailText: {
+    position: "absolute",
+    left: wp(20),
+    right: wp(20),
+    textAlign: "center",
     color: "#FFF",
     fontFamily: "Inter",
     fontSize: 14,
@@ -330,5 +426,40 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  modalContainer: {
+    width: wp(70),
+    maxWidth: wp(90),
+    backgroundColor: "#d9d9d9",
+    borderRadius: 10,
+    overflow: "hidden",
+  },
+  modalButton: {
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(1),
+    borderBottomColor: "#4a4a4d",
+    borderBottomWidth: 0.5,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  modalButtonText: {
+    color: "red",
+    fontSize: 16,
+  },
+  overlay: {
+    flex: 1,
+    justifyContent: "flex-start",
+    alignItems: "flex-end",
+    paddingTop: hp(11),
+    paddingRight: wp(3),
+  },
+  modalContent: {
+    padding: 20,
+    alignItems: "center",
+  },
+  modalText: {
+    marginBottom: 15,
+    fontSize: 18,
   },
 });

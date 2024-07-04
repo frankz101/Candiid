@@ -71,21 +71,22 @@ const getFriendRequestSentInDatabase = async (userId) => {
     const friendRequestRef = collection(db, "friendRequests");
     const q = query(friendRequestRef, where("senderId", "==", userId));
     const friendRequestsDocSnap = await getDocs(q);
+    const friendRequests = friendRequestsDocSnap.docs.map((doc) => doc.data());
 
-    const usersPromises = friendRequestsDocSnap.docs.map(async (document) => {
-      const docRef = doc(db, "users", document.data().receiverId);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        return docSnap.data();
-      } else {
-        console.log("No friend request receiver exists");
-        return null;
-      }
-    });
+    // const usersPromises = friendRequestsDocSnap.docs.map(async (document) => {
+    //   const docRef = doc(db, "users", document.data().receiverId);
+    //   const docSnap = await getDoc(docRef);
+    //   if (docSnap.exists()) {
+    //     return docSnap.data();
+    //   } else {
+    //     console.log("No friend request receiver exists");
+    //     return null;
+    //   }
+    // });
 
-    const usersResults = await Promise.all(usersPromises);
-    const users = usersResults.filter((user) => user !== null);
-    return users;
+    // const usersResults = await Promise.all(usersPromises);
+    // const users = usersResults.filter((user) => user !== null);
+    return friendRequests;
   } catch (error) {
     console.error("Error getting friend requests: ", error);
     throw error;

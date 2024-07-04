@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -16,9 +16,11 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import { useFocusEffect } from "expo-router";
 
 const FriendsScreen = () => {
   const [isSearch, setIsSearch] = useState(true);
+
   const animation = useRef(new Animated.Value(0)).current; // Initialize animated value
 
   const toggle = (toSearch: boolean) => {

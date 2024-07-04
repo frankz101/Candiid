@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 5,
     height: hp(6),
-    width: hp(30),
+    width: wp(60),
     display: "flex",
     justifyContent: "center",
     alignItems: "center",

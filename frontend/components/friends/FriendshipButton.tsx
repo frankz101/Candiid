@@ -4,7 +4,7 @@ import axios from "axios";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -26,26 +26,30 @@ type FriendUpdateAction = {
   friendId: string;
 };
 
+// interface FriendshipButtonProps {
+//   user: User;
+//   onHandleRequest?: (userId: string) => void;
+// }
 interface FriendshipButtonProps {
-  user: User;
+  userId: string;
+  status: string;
   onHandleRequest?: (userId: string) => void;
 }
 
 const FriendshipButton: React.FC<FriendshipButtonProps> = ({
-  user,
+  userId,
+  status,
   onHandleRequest,
 }) => {
   const { user: currentUser } = useUser();
   const [pendingUpdates, setPendingUpdates] = useState<FriendUpdateAction[]>(
     []
   );
-  const [friendStatus, setFriendStatus] = useState(user.friendStatus);
+  const [friendStatus, setFriendStatus] = useState(status);
   const router = useRouter();
 
   useEffect(() => {
-    return () => {
-      applyUpdates();
-    };
+    applyUpdates();
   }, [pendingUpdates]);
 
   const applyUpdates = async () => {
@@ -102,8 +106,8 @@ const FriendshipButton: React.FC<FriendshipButtonProps> = ({
         await axios.post(
           `${process.env.EXPO_PUBLIC_API_URL}/friendRequest/handle`,
           {
-            senderId: user.userId,
-            receiverId: currentUser?.id,
+            senderId: currentUser?.id,
+            receiverId: userId,
             status: "reject",
           }
         );
@@ -111,7 +115,7 @@ const FriendshipButton: React.FC<FriendshipButtonProps> = ({
     });
   };
 
-  const addFriend = (friendId: string) => {
+  const addFriend = async (friendId: string) => {
     setPendingUpdates((currentUpdates) => [
       ...currentUpdates,
       { action: "add", friendId },
@@ -120,11 +124,28 @@ const FriendshipButton: React.FC<FriendshipButtonProps> = ({
   };
 
   const removeFriend = (friendId: string) => {
-    setPendingUpdates((currentUpdates) => [
-      ...currentUpdates,
-      { action: "removeFriend", friendId },
-    ]);
-    setFriendStatus("Not Friends");
+    Alert.alert(
+      "Remove Friend",
+      "Are you sure you want to remove this friend?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "OK",
+          style: "destructive",
+          onPress: () => {
+            setPendingUpdates((currentUpdates) => [
+              ...currentUpdates,
+              { action: "removeFriend", friendId },
+            ]);
+            setFriendStatus("Not Friends");
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   const removeRequest = (friendId: string) => {
@@ -135,23 +156,31 @@ const FriendshipButton: React.FC<FriendshipButtonProps> = ({
     setFriendStatus("Not Friends");
   };
 
+  const handleRequest = async (status: string) => {
+    try {
+      if (status === "reject") {
+        setFriendStatus("Not Friends");
+      } else {
+        setFriendStatus("Already Friends");
+      }
+      const res = await axios.post(
+        `${process.env.EXPO_PUBLIC_API_URL}/friendRequest/handle`,
+        {
+          senderId: userId,
+          receiverId: currentUser?.id,
+          status,
+        }
+      );
+    } catch (err) {
+      console.error("Error handling friend request: ", err);
+    }
+  };
+
   return (
     <View>
       <View style={styles.centerRow}>
         {friendStatus === "Already Friends" ? (
-          <Pressable
-            style={({ pressed }) => [
-              {
-                backgroundColor: pressed ? "#ddd" : "#ccc",
-                padding: 10,
-                borderRadius: 5,
-              },
-              styles.centerRow,
-            ]}
-            onPress={() => removeFriend(user.userId)}
-          >
-            <Text style={{ color: "#000" }}>Remove Friend</Text>
-          </Pressable>
+          <View></View>
         ) : friendStatus === "Friend Requested" ? (
           <Pressable
             style={({ pressed }) => [
@@ -159,13 +188,46 @@ const FriendshipButton: React.FC<FriendshipButtonProps> = ({
                 backgroundColor: pressed ? "#ddd" : "#ccc",
                 padding: 10,
                 borderRadius: 5,
+                width: wp("95%"),
+                aspectRatio: 8,
               },
               styles.centerRow,
             ]}
-            onPress={() => removeRequest(user.userId)}
+            onPress={() => removeRequest(userId)}
           >
             <Text style={{ color: "#000" }}>Remove Request</Text>
           </Pressable>
+        ) : friendStatus === "Incoming Request" ? (
+          <View style={{ flexDirection: "row" }}>
+            <Pressable
+              style={({ pressed }) => [
+                {
+                  backgroundColor: pressed ? "#ddd" : "#ccc",
+                  borderRadius: 5,
+                  width: wp("40%"),
+                  aspectRatio: 8,
+                },
+                styles.centerRow,
+              ]}
+              onPress={() => handleRequest("reject")}
+            >
+              <Text style={{ color: "#000" }}>Reject</Text>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [
+                {
+                  backgroundColor: pressed ? "#ddd" : "#ccc",
+                  borderRadius: 5,
+                  width: wp("40%"),
+                  aspectRatio: 8,
+                },
+                styles.centerRow,
+              ]}
+              onPress={() => handleRequest("accept")}
+            >
+              <Text style={{ color: "#000" }}>Accept</Text>
+            </Pressable>
+          </View>
         ) : (
           <Pressable
             style={({ pressed }) => [
@@ -178,7 +240,7 @@ const FriendshipButton: React.FC<FriendshipButtonProps> = ({
               },
               styles.centerRow,
             ]}
-            onPress={() => addFriend(user.userId)}
+            onPress={() => addFriend(userId)}
           >
             <Text style={{ color: "#000" }}>Add Friend</Text>
           </Pressable>

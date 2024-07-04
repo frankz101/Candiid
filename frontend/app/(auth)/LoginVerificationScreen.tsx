@@ -1,14 +1,15 @@
 import BackButton from "@/components/utils/BackButton";
 import BaseScreen from "@/components/utils/BaseScreen";
-import { useSignIn, useUser } from "@clerk/clerk-expo";
+import { useSignIn, useSignUp, useUser } from "@clerk/clerk-expo";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Pressable,
   TextInput,
   Text,
   StyleSheet,
   SafeAreaView,
+  View,
 } from "react-native";
 import { OtpInput } from "react-native-otp-entry";
 import {
@@ -18,40 +19,104 @@ import {
 
 const LoginVerificationScreen = () => {
   const { signIn, setActive } = useSignIn();
-  const { phoneNumberId, phoneNumber } = useLocalSearchParams();
+  const { phoneNumberId, phoneNumber: rawPhoneNumber } = useLocalSearchParams();
+  const [resendTimer, setResendTimer] = useState(60);
+  const [error, setError] = useState(false);
+
+  const phoneNumber = Array.isArray(rawPhoneNumber)
+    ? rawPhoneNumber[0]
+    : rawPhoneNumber;
 
   const verifyCode = async (text: string) => {
-    if (phoneNumberId && signIn) {
-      const result = await signIn.attemptFirstFactor({
-        strategy: "phone_code",
-        code: text,
-      });
-      if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
-      } else {
-        console.log("Error Signing In with Phone SMS");
+    try {
+      if (phoneNumberId && signIn) {
+        const result = await signIn.attemptFirstFactor({
+          strategy: "phone_code",
+          code: text,
+        });
+        if (result.status === "complete") {
+          await setActive({ session: result.createdSessionId });
+        } else {
+          console.log("Error Signing In with Phone SMS");
+        }
       }
+    } catch (err: any) {
+      setError(true);
+    }
+  };
+
+  useEffect(() => {
+    if (resendTimer > 0) {
+      const timer = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [resendTimer]);
+
+  const handleResendCode = async () => {
+    try {
+      if (signIn) {
+        const { supportedFirstFactors } = await signIn.create({
+          identifier: phoneNumber,
+        });
+        const firstPhoneFactor = supportedFirstFactors.find(
+          (factor) => factor.strategy === "phone_code"
+        ) as any;
+
+        if (firstPhoneFactor) {
+          await signIn.prepareFirstFactor({
+            strategy: "phone_code",
+            phoneNumberId: firstPhoneFactor.phoneNumberId,
+          });
+          setResendTimer(60);
+        }
+      }
+    } catch (err: any) {
+      console.error(err);
     }
   };
 
   return (
     <BaseScreen>
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <BackButton />
-        <Text style={styles.header}>
-          Enter the 6-digit code sent to the number: {"\n"}
-          ******{phoneNumber.slice(-4)}
-        </Text>
-        <OtpInput
-          numberOfDigits={6}
-          focusColor="green"
-          focusStickBlinkingDuration={500}
-          onFilled={(text) => verifyCode(text)}
-          theme={{
-            pinCodeTextStyle: styles.pinCodeText,
-          }}
-        />
-      </SafeAreaView>
+        <View style={styles.otp}>
+          <Text style={styles.title}>
+            Enter the 6-digit code sent to the number: {"\n"}
+            ******{phoneNumber.slice(-4)}
+          </Text>
+          <OtpInput
+            numberOfDigits={6}
+            focusColor="green"
+            focusStickBlinkingDuration={500}
+            onFilled={(text) => verifyCode(text)}
+            theme={{
+              pinCodeTextStyle: styles.pinCodeText,
+            }}
+          />
+          {error && <Text style={styles.error}>The code is incorrect</Text>}
+          {resendTimer > 0 ? (
+            <Text style={styles.timer}>
+              Resend code in {resendTimer} seconds
+            </Text>
+          ) : (
+            <Pressable onPress={handleResendCode}>
+              {({ pressed }) => (
+                <Text
+                  style={[
+                    styles.resendText,
+                    pressed ? { color: "#1e7e34" } : { color: "#28a745" },
+                  ]}
+                >
+                  Resend Verification Code
+                </Text>
+              )}
+            </Pressable>
+          )}
+        </View>
+      </View>
     </BaseScreen>
   );
 };
@@ -60,14 +125,21 @@ export default LoginVerificationScreen;
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: wp(5),
+    flex: 1,
+    paddingHorizontal: wp(5),
+    paddingBottom: hp(10),
   },
-  header: {
-    color: "white",
+  otp: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  title: {
+    fontSize: 18,
     fontFamily: "Inter",
-    fontSize: 26,
-    marginTop: hp(10),
-    marginBottom: hp(5),
+    color: "white",
+    marginBottom: hp(3),
+    textAlign: "center",
   },
   input: {
     borderWidth: 1,
@@ -79,17 +151,6 @@ const styles = StyleSheet.create({
     color: "white",
     marginBottom: hp(2),
   },
-  button: {
-    borderColor: "white",
-    borderWidth: 1,
-    borderRadius: 5,
-    height: hp(5),
-    width: hp(16),
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    alignSelf: "flex-end",
-  },
   text: {
     color: "white",
     fontFamily: "Inter",
@@ -97,5 +158,20 @@ const styles = StyleSheet.create({
   },
   pinCodeText: {
     color: "white",
+  },
+  timer: {
+    marginTop: hp(1),
+    color: "#555",
+  },
+  resendText: {
+    marginTop: hp(1),
+    color: "#fff",
+    fontFamily: "Inter",
+    textAlign: "center",
+  },
+  error: {
+    color: "#FF0000",
+    marginTop: hp(1),
+    marginBottom: hp(-1),
   },
 });

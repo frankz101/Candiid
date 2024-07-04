@@ -13,6 +13,8 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import React from "react";
 import * as SplashScreen from "expo-splash-screen";
 import { ImageBackground } from "react-native";
+import Toast from "react-native-toast-message";
+import toastConfig from "@/toastConfig";
 import axios from "axios";
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
@@ -100,6 +102,7 @@ const RootLayout = React.memo(() => {
         <GestureHandlerRootView style={{ flex: 1 }}>
           <SheetProvider>
             <InitialLayout />
+            <Toast config={toastConfig} />
           </SheetProvider>
         </GestureHandlerRootView>
       </QueryClientProvider>

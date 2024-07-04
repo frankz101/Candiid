@@ -35,7 +35,7 @@ const PhoneNumberScreen = () => {
           ]}
           onPress={() => {
             router.push({
-              pathname: "/FirstNameScreen",
+              pathname: "/NameScreen",
               params: {
                 phoneNumber,
               },
@@ -53,7 +53,7 @@ export default PhoneNumberScreen;
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: wp(5),
+    paddingHorizontal: wp(5),
   },
   header: {
     color: "white",
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 5,
     height: hp(5),
-    width: hp(16),
+    width: wp(35),
     display: "flex",
     justifyContent: "center",
     alignItems: "center",

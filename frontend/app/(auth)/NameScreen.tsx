@@ -16,7 +16,7 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
-const FirstNameScreen = () => {
+const NameScreen = () => {
   const [firstName, setFirstName] = useState("");
   const router = useRouter();
 
@@ -26,7 +26,7 @@ const FirstNameScreen = () => {
     <BaseScreen>
       <View style={styles.container}>
         <BackButton />
-        <Text style={styles.header}>What's your first {"\n"}name?</Text>
+        <Text style={styles.header}>{"\n"}What's your name?</Text>
         <TextInput
           style={styles.input}
           value={firstName}
@@ -59,11 +59,11 @@ const FirstNameScreen = () => {
   );
 };
 
-export default FirstNameScreen;
+export default NameScreen;
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: wp(5),
+    paddingHorizontal: wp(5),
   },
   header: {
     color: "white",
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 5,
     height: hp(5),
-    width: hp(16),
+    width: wp(35),
     display: "flex",
     justifyContent: "center",
     alignItems: "center",

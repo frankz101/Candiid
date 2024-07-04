@@ -11,6 +11,13 @@ import {
   fetchFriendsPosts,
   fetchProfilePics,
   updateBackground,
+  fetchContacts,
+  removeUser,
+  createSupport,
+  createReport,
+  createBlock,
+  fetchBlocks,
+  removeBlock,
 } from "../services/UserService.js";
 
 const postUser = async (req, res) => {
@@ -132,7 +139,6 @@ const getPosts = async (req, res) => {
 const getProfilePics = async (req, res) => {
   try {
     const users = req.body.users;
-    console.log(req.body.users);
     const result = await fetchProfilePics(users);
     res.status(201).send({ result });
   } catch (err) {
@@ -150,6 +156,77 @@ const putUserBackground = async (req, res) => {
   }
 };
 
+const getContacts = async (req, res) => {
+  try {
+    const batch = req.body.phoneNumbers;
+    const userId = req.body.userId;
+    const result = await fetchContacts(batch, userId);
+    res.status(201).send({ result });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+const deleteUser = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const result = await removeUser(userId);
+    res.status(201).send({ result });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+const postSupport = async (req, res) => {
+  try {
+    const ticketDetails = req.body.ticketDetails;
+    const result = await createSupport(ticketDetails);
+    res.status(201).send({ result });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+const postReport = async (req, res) => {
+  try {
+    const ticketDetails = req.body.ticketDetails;
+    const result = await createReport(ticketDetails);
+    res.status(201).send({ result });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+const postBlock = async (req, res) => {
+  try {
+    const details = req.body.details;
+    const result = await createBlock(details);
+    res.status(201).send({ result });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+const getBlocks = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const result = await fetchBlocks(userId);
+    res.status(201).send({ result });
+  } catch (error) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+const deleteBlock = async (req, res) => {
+  try {
+    const blockId = req.params.id;
+    const result = await removeBlock(blockId);
+    res.status(201).send({ result });
+  } catch (error) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export {
   postUser,
   putUserProfilePhoto,
@@ -163,4 +240,11 @@ export {
   getPosts,
   putUserBackground,
   getProfilePics,
+  getContacts,
+  deleteUser,
+  postSupport,
+  postReport,
+  postBlock,
+  getBlocks,
+  deleteBlock,
 };

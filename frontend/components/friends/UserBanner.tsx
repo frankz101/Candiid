@@ -45,6 +45,11 @@ const UserBanner: React.FC<UserBannerProps> = ({
   const router = useRouter();
 
   useEffect(() => {
+    if (type === "friends") setFriendStatus("Already Friends");
+    else if (type === "friendRequests") setFriendStatus("Incoming Request");
+  }, []);
+
+  useEffect(() => {
     return () => {
       applyUpdates();
     };
@@ -104,8 +109,8 @@ const UserBanner: React.FC<UserBannerProps> = ({
         await axios.post(
           `${process.env.EXPO_PUBLIC_API_URL}/friendRequest/handle`,
           {
-            senderId: user.userId,
-            receiverId: currentUser?.id,
+            senderId: currentUser?.id,
+            receiverId: user.userId,
             status: "reject",
           }
         );
@@ -114,6 +119,11 @@ const UserBanner: React.FC<UserBannerProps> = ({
   };
 
   const handleRequest = async (status: string) => {
+    if (status === "reject") {
+      setFriendStatus("Not Friends");
+    } else {
+      setFriendStatus("Already Friends");
+    }
     const res = await axios.post(
       `${process.env.EXPO_PUBLIC_API_URL}/friendRequest/handle`,
       {
@@ -193,11 +203,17 @@ const UserBanner: React.FC<UserBannerProps> = ({
   return (
     <Pressable
       onPress={async () => {
+        await applyUpdates();
         router.push({
           pathname: "/(profile)/ProfileScreen",
-          params: { userId: user.userId },
+          params: {
+            userId: user.userId,
+            name: user.name,
+            username: user.username,
+            profilePhoto: encodeURIComponent(user.profilePhoto?.fileUrl),
+            friendStatus: friendStatus ? friendStatus : "",
+          },
         });
-        await applyUpdates();
       }}
     >
       <View
@@ -256,6 +272,35 @@ const UserBanner: React.FC<UserBannerProps> = ({
               >
                 <Text style={{ color: "#000" }}>Remove Request</Text>
               </Pressable>
+            ) : friendStatus === "Incoming Request" ? (
+              <View style={{ flexDirection: "row" }}>
+                <Pressable
+                  style={({ pressed }) => [
+                    {
+                      backgroundColor: pressed ? "#ddd" : "#ccc",
+                      padding: 10,
+                      borderRadius: 5,
+                    },
+                    styles.centerRow,
+                  ]}
+                  onPress={() => handleRequest("reject")}
+                >
+                  <Text style={{ color: "#000" }}>Reject</Text>
+                </Pressable>
+                <Pressable
+                  style={({ pressed }) => [
+                    {
+                      backgroundColor: pressed ? "#ddd" : "#ccc",
+                      padding: 10,
+                      borderRadius: 5,
+                    },
+                    styles.centerRow,
+                  ]}
+                  onPress={() => handleRequest("accept")}
+                >
+                  <Text style={{ color: "#000" }}>Accept</Text>
+                </Pressable>
+              </View>
             ) : (
               <Pressable
                 style={({ pressed }) => [

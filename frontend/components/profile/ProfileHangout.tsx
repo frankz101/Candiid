@@ -29,18 +29,20 @@ const ProfileHangout: React.FC<ProfileHangoutProps> = ({ hangout }) => {
         </View>
 
         <View style={styles.participants}>
-          {hangout.participants.map((participant: Participant) =>
-            participant.profilePhoto ? (
-              <Image
-                key={participant.userId}
-                source={{ uri: participant.profilePhoto.fileUrl }}
-                style={styles.participantPhoto}
-              />
-            ) : (
-              <View key={participant.userId} style={styles.participantPhoto}>
-                <Ionicons name="person-circle" size={40} color="white" />
-              </View>
-            )
+          {hangout.participants.map(
+            (participant: Participant, index: number) => {
+              return participant.profilePhoto ? (
+                <Image
+                  key={participant.userId}
+                  source={{ uri: participant.profilePhoto.fileUrl }}
+                  style={styles.participantPhoto}
+                />
+              ) : (
+                <View key={participant.userId} style={styles.participantPhoto}>
+                  <Ionicons name="person-circle" size={40} color="white" />
+                </View>
+              );
+            }
           )}
           {hangout.participantIds.length > 2 && (
             <View style={styles.additionalParticipants}>
@@ -80,8 +82,10 @@ const styles = StyleSheet.create({
     color: "#FFF",
   },
   participants: {
+    flexDirection: "row",
     alignSelf: "flex-end",
     padding: wp(4),
+    gap: -wp(4),
   },
   participantPhoto: {
     height: 36,
