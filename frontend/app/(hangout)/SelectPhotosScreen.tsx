@@ -67,6 +67,7 @@ const SelectPhotosScreen = () => {
       imageUrl={item.fileUrl}
       onPhotoSelect={() => handleImageSelect(index)}
       isSelected={selectedPhotos.includes(index)}
+      index={index}
     />
   );
 

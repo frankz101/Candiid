@@ -40,13 +40,13 @@ interface Sticker {
 interface MemoriesViewProps {
   hangouts?: Hangout[];
   stickers?: Sticker[];
-  color: string;
+  color?: string;
 }
 
 const MemoriesView: React.FC<MemoriesViewProps> = ({
   hangouts,
   stickers,
-  color,
+  color = "#FFF",
 }) => {
   const screenX = useSharedValue<number>(0);
   const screenY = useSharedValue<number>(0);

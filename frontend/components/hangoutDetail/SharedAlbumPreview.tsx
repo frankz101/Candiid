@@ -41,7 +41,19 @@ const SharedAlbumPreview: React.FC<SharedAlbumPreviewProps> = ({
 
   const renderPhoto = ({ item, index }: { item: Photo; index: number }) => (
     <View style={styles.imageContainer}>
-      <Image source={{ uri: item.fileUrl }} style={styles.image} />
+      <Pressable
+        onPress={() => {
+          router.push({
+            pathname: "/(hangout)/FullScreenImage",
+            params: {
+              imageUrl: item.fileUrl,
+              index,
+            },
+          });
+        }}
+      >
+        <Image source={{ uri: item.fileUrl }} style={styles.image} />
+      </Pressable>
     </View>
   );
 
@@ -53,6 +65,7 @@ const SharedAlbumPreview: React.FC<SharedAlbumPreviewProps> = ({
         renderItem={renderPhoto}
         keyExtractor={(item, index) => index.toString()}
         numColumns={3}
+        scrollEnabled={false}
         ListEmptyComponent={
           <View style={styles.emptyAlbumContainer}>
             <View style={styles.greyPost}>

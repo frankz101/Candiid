@@ -23,51 +23,21 @@ const FeedPost: React.FC<FeedPostProps> = ({
   caption,
   photoUrls,
 }) => {
-  const polaroidWidth = screenWidth - wp(4);
+  const postWidth = screenWidth - wp(17);
   return (
     <View style={{ marginTop: hp(1), marginBottom: hp(2) }}>
-      {/* Post Header*/}
-      <View style={styles.itemContainer}>
-        <View style={styles.postHeader}>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: wp(2),
-            }}
-          >
-            <Image source={{ uri: profilePhoto }} style={styles.icon} />
-            <Text style={styles.postHeaderTextStyle}>{username}</Text>
-          </View>
-          <View />
-        </View>
-      </View>
-
-      {/* Post Content */}
-      {/* <View style={styles.itemContainer}>
-        <View style={styles.postContainer}></View>
-      </View> */}
-      <View style={styles.itemContainer}>
-        <PostCarousel
-          images={photoUrls}
-          width={polaroidWidth}
-          height={polaroidWidth}
-        />
-      </View>
-
-      {/* Post Caption*/}
-      <View style={styles.captionContainer}>
-        <View style={styles.captionContent}>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Text style={styles.captionTextStyle}>{caption}</Text>
-          </View>
+      {/* Post Header */}
+      <View style={styles.postHeader}>
+        <Image source={{ uri: profilePhoto }} style={styles.icon} />
+        <View style={styles.headerContent}>
+          <Text style={styles.username}>{username}</Text>
+          <Text style={styles.caption}>I went to the beach</Text>
+          <PostCarousel
+            images={photoUrls}
+            width={postWidth}
+            height={postWidth}
+          />
+          {/* <Text style={styles.caption}>{caption}</Text> */}
         </View>
       </View>
     </View>
@@ -77,50 +47,34 @@ const FeedPost: React.FC<FeedPostProps> = ({
 export default FeedPost;
 
 const styles = StyleSheet.create({
-  postHeaderTextStyle: {
-    color: "#FFF",
-    fontFamily: "Inter",
-    fontSize: 14,
-    paddingLeft: 8,
+  postHeader: {
+    flexDirection: "row",
+    paddingHorizontal: wp(2),
+    alignItems: "center",
   },
   icon: {
-    width: 40,
-    height: 40,
+    width: wp(10),
+    height: wp(10),
     borderRadius: 20,
     borderWidth: 2,
     borderColor: "#FFF",
+    marginRight: wp(2),
+    alignSelf: "flex-start",
   },
-  captionTextStyle: {
+  headerContent: {
+    flex: 1,
+  },
+  username: {
     color: "#FFF",
     fontFamily: "Inter",
     fontSize: 16,
+    fontWeight: "bold",
+    paddingBottom: hp(0.5),
   },
-  itemContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  postHeader: {
-    width: wp("95"),
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  postContainer: {
-    width: wp("95"),
-    aspectRatio: 1,
-    backgroundColor: "blue",
-    alignSelf: "center",
-    borderRadius: 5,
-  },
-  captionContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    padding: wp(2),
-  },
-  captionContent: {
-    width: wp("95"),
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  caption: {
+    color: "#FFF",
+    fontFamily: "Inter",
+    fontSize: 14,
+    paddingBottom: hp(1),
   },
 });

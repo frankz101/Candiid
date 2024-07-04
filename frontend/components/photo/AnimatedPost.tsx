@@ -76,8 +76,8 @@ const AnimatedPost = ({
         shadowRadius: 3,
       },
       image: {
-        width: "100%",
-        height: "100%",
+        width: imageWidth,
+        aspectRatio: 4 / 5,
         borderRadius: 8,
       },
     },

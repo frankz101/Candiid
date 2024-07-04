@@ -1,3 +1,5 @@
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 import React from "react";
 import {
   FlatList,
@@ -21,10 +23,27 @@ interface ParticipantsListProps {
   //   iconUrl: string;
   // }[];
   participants: string[];
+  hangoutId: string;
 }
 const ParticipantsList: React.FC<ParticipantsListProps> = ({
   participants,
+  hangoutId,
 }) => {
+  const users = participants.slice(0, MAX_VISIBLE_PARTICIPANTS + 1);
+
+  const getProfilePics = async () => {
+    return axios
+      .post(`${process.env.EXPO_PUBLIC_API_URL}/user/profile-pics`, {
+        users,
+      })
+      .then((res) => res.data.result);
+  };
+
+  const { data: profilePics, isPending } = useQuery({
+    queryKey: ["participants", hangoutId],
+    queryFn: getProfilePics,
+  });
+
   const renderItem = ({ item, index }: { item: any; index: any }) => {
     if (index === MAX_VISIBLE_PARTICIPANTS) {
       return (
@@ -40,16 +59,20 @@ const ParticipantsList: React.FC<ParticipantsListProps> = ({
     } else {
       return (
         <View style={styles.participantContainer}>
-          <Image source={{ uri: item.iconUrl }} style={styles.icon} />
+          <Image source={{ uri: item.profilePhoto }} style={styles.icon} />
         </View>
       );
     }
   };
 
+  if (isPending) {
+    return <View />;
+  }
+
   return (
     <View style={styles.mainContainer}>
       <FlatList
-        data={participants.slice(0, MAX_VISIBLE_PARTICIPANTS + 1)}
+        data={profilePics}
         renderItem={renderItem}
         keyExtractor={(item) => item}
         horizontal={true}

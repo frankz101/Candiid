@@ -32,6 +32,7 @@ const CompletedHangouts: React.FC<CompletedHangoutsProps> = ({
   const { data: posts, isPending } = useQuery({
     queryKey: ["postsData", user?.id],
     queryFn: fetchFriendsPosts,
+    staleTime: 1000 * 60 * 5,
   });
 
   if (!isPending) {
@@ -41,7 +42,7 @@ const CompletedHangouts: React.FC<CompletedHangoutsProps> = ({
     <View>
       <FlatList
         data={posts}
-        keyExtractor={(item) => item.postId}
+        keyExtractor={(item) => item.hangoutId}
         ListHeaderComponent={<CreateHangoutButton />}
         ListHeaderComponentStyle={styles.main}
         refreshControl={

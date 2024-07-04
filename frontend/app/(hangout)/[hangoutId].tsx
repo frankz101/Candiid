@@ -18,6 +18,8 @@ import {
 } from "react-native-responsive-screen";
 import ParticipantsList from "@/components/hangoutDetail/ParticipantsList";
 import CompleteHangoutButton from "@/components/hangoutDetail/CompleteHangoutButton";
+import HangoutDetailCard from "@/components/hangoutDetail/HangoutDetailCard";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const screenHeight = Dimensions.get("window").height;
 const headerHeight = 140;
@@ -62,6 +64,10 @@ const Hangout = () => {
 
   const latestPhotos = hangoutData.sharedAlbum?.slice(-6) || [];
 
+  if (!isPending) {
+    console.log(hangoutData);
+  }
+
   return (
     <BaseScreen>
       <View
@@ -69,12 +75,22 @@ const Hangout = () => {
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "space-between",
-          paddingBottom: 28,
+          paddingHorizontal: wp(1),
         }}
       >
         <BackButton />
+
+        <View style={{ flexDirection: "row" }}>
+          <MaterialCommunityIcons name="share" size={32} color="#FFF" />
+          <MaterialCommunityIcons name="dots-vertical" size={32} color="#FFF" />
+        </View>
+      </View>
+
+      <View style={{ alignItems: "center", padding: wp(2) }}>
         <Text style={styles.headerText}>{hangoutData.hangoutName}</Text>
-        <View style={{ width: 32 }} />
+        <Text style={styles.descriptionText}>
+          {hangoutData.hangoutDescription}
+        </Text>
       </View>
 
       <View>
@@ -92,7 +108,10 @@ const Hangout = () => {
       </View>
       {hangoutData && hangoutData.participantIds ? (
         <View>
-          <ParticipantsList participants={hangoutData.participantIds} />
+          <ParticipantsList
+            participants={hangoutData.participantIds}
+            hangoutId={hangoutId as string}
+          />
         </View>
       ) : null}
       <View
@@ -110,10 +129,17 @@ export default Hangout;
 
 const styles = StyleSheet.create({
   headerText: {
-    fontSize: 20,
+    fontSize: 30,
     fontFamily: "inter",
     fontWeight: "700",
     color: "#FFF",
+  },
+  descriptionText: {
+    fontSize: 14,
+    fontFamily: "inter",
+    fontWeight: "500",
+    color: "#FFF",
+    padding: wp(1),
   },
   sectionText: {
     fontSize: 14,
@@ -126,7 +152,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: "inter",
     fontWeight: "700",
-    paddingVertical: wp(4),
+    paddingTop: wp(4),
+    paddingBottom: wp(2),
     paddingHorizontal: wp(2),
     color: "#FFF",
   },

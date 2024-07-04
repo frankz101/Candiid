@@ -171,7 +171,7 @@ const Profile = () => {
             <MemoriesView
               hangouts={memoriesData}
               stickers={stickersData}
-              color={userProfile.backgroundDetails.backgroundColor}
+              color={userProfile.backgroundDetails?.backgroundColor || null}
             />
           </Pressable>
         </Animated.View>
@@ -237,6 +237,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     overflow: "hidden",
+    height: hp("60%"),
     borderRadius: 15,
   },
   upcomingHangouts: {

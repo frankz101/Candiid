@@ -26,6 +26,7 @@ import useStore from "@/store/useStore";
 
 const { width: screenWidth } = Dimensions.get("window");
 const postWidth = screenWidth;
+const postHeight = (screenWidth * 5) / 4;
 
 const PreviewPost = () => {
   const { user } = useUser();
@@ -130,7 +131,7 @@ const PreviewPost = () => {
           <BackButton />
         </View>
 
-        <Text style={styles.headerText}>Select Photos</Text>
+        <Text style={styles.headerText}>PreviewPost</Text>
         <Pressable onPress={handleNextPress}>
           <View style={{ width: 64 }}>
             <Text style={styles.nextButton}>Next</Text>
@@ -144,15 +145,15 @@ const PreviewPost = () => {
           alignItems: "center",
         }}
       >
-        <View style={[styles.polaroidFrame, { backgroundColor: frameColor }]}>
-          <PostCarousel
-            images={selectedPhotos}
-            width={polaroidWidth}
-            height={polaroidWidth}
-          />
-        </View>
+        {/* <View style={[styles.polaroidFrame, { backgroundColor: frameColor }]}> */}
+        <PostCarousel
+          images={selectedPhotos}
+          width={postWidth}
+          height={postWidth}
+        />
+        {/* </View> */}
       </View>
-      <View
+      {/* <View
         style={{
           height: wp(12),
           marginTop: hp(2),
@@ -167,7 +168,7 @@ const PreviewPost = () => {
           showsHorizontalScrollIndicator={false}
           scrollEnabled={false}
         />
-      </View>
+      </View> */}
       <View style={styles.captionContainer}>
         <TextInput
           placeholder="caption"
@@ -235,6 +236,8 @@ const styles = StyleSheet.create({
     height: hp("10%"),
     borderRadius: 5,
     marginTop: hp(2),
+    margin: hp(1),
+
     backgroundColor: "rgba(44, 44, 48, 0.50)",
   },
   captionInput: {
