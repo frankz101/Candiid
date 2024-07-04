@@ -19,12 +19,26 @@ import { Image } from "expo-image";
 import MemoriesView from "@/components/profile/MemoriesView";
 import Animated from "react-native-reanimated";
 import { BlurView } from "expo-blur";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+import BaseScreen from "@/components/utils/BaseScreen";
+import MemoriesScreen from "../(hangout)/MemoriesScreen";
+import ProfileHangout from "@/components/profile/ProfileHangout";
 
-const screenHeight = Dimensions.get("window").height;
-const headerHeight = 120;
-const bottomPadding = 20;
+export interface Hangout {
+  hangoutName: string;
+  hangoutDescription: string;
+  id: string;
+  participantIds: string[];
+  participants: Participant[];
+}
 
-const scrollViewHeight = screenHeight - headerHeight - bottomPadding;
+export interface Participant {
+  userId: string;
+  profilePhoto: null | { fileUrl: string };
+}
 
 const Profile = () => {
   const router = useRouter();
@@ -40,26 +54,61 @@ const Profile = () => {
   };
 
   const fetchUser = async () => {
-    console.log("Fetching User Information");
+    console.log("Fetching User Information in Profile Tab");
     return axios
       .get(`${process.env.EXPO_PUBLIC_API_URL}/users/${user?.id}/${user?.id}`)
       .then((res) => res.data);
   };
 
-  const [memories, profile] = useQueries({
+  const fetchUpcomingHangouts = async () => {
+    return axios
+      .get(`${process.env.EXPO_PUBLIC_API_URL}/hangout/upcoming/${user?.id}`)
+      .then((res) => res.data);
+  };
+
+  const fetchStickers = async () => {
+    console.log("Fetching Stickers");
+    return axios
+      .get(`${process.env.EXPO_PUBLIC_API_URL}/stickers/${user?.id}`)
+      .then((res) => res.data);
+  };
+
+  const [memories, profile, hangouts, fetchedStickers] = useQueries({
     queries: [
-      { queryKey: ["memories", user?.id], queryFn: fetchMemories },
-      { queryKey: ["profile", user?.id], queryFn: fetchUser },
+      {
+        queryKey: ["memories", user?.id],
+        queryFn: fetchMemories,
+        staleTime: 1000 * 60 * 5,
+      },
+      {
+        queryKey: ["profile", user?.id],
+        queryFn: fetchUser,
+        staleTime: 1000 * 60 * 5,
+      },
+      {
+        queryKey: ["hangouts", user?.id],
+        queryFn: fetchUpcomingHangouts,
+        staleTime: 1000 * 60 * 5,
+      },
+      {
+        queryKey: ["stickers", user?.id],
+        queryFn: fetchStickers,
+        staleTime: 1000 * 60 * 5,
+      },
     ],
   });
 
   const { data: memoriesData, isPending: isPendingMemories } = memories;
   const { data: profileDetails, isPending: isPendingProfile } = profile;
+  const { data: upcomingHangouts, isPending: isPendingHangouts } = hangouts;
+  const { data: stickersData, isPending: isPendingStickers } = fetchedStickers;
 
   const onRefresh = async () => {
     setRefreshing(true);
     await queryClient.invalidateQueries({ queryKey: ["memories", user?.id] });
     await queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
+    await queryClient.invalidateQueries({ queryKey: ["hangouts", user?.id] });
+    await queryClient.invalidateQueries({ queryKey: ["stickers", user?.id] });
     setRefreshing(false);
   };
 
@@ -67,94 +116,74 @@ const Profile = () => {
     SheetManager.show("change-photo");
   };
 
-  if (isPendingMemories || isPendingProfile) {
-    return <Text>Is Loading...</Text>;
-  }
+  // if (isPendingMemories || isPendingProfile) {
+  //   return <Text>Is Loading...</Text>;
+  // }
 
-  console.log(profileDetails.result);
+  const userProfile = profileDetails?.result || {
+    name: "Unknown User",
+    username: "unknown_user",
+    profilePhoto: null,
+    backgroundDetails: {
+      backgroundColor: "#FFF",
+    },
+  };
 
   return (
-    <SafeAreaView>
-      <View // Turn this into one component later
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          paddingHorizontal: 18,
-          paddingVertical: 10,
-        }}
-      >
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Pressable
-            onPress={openChangePhotoSheet}
-            style={{ paddingRight: 10 }}
-          >
-            {profileDetails &&
-            profileDetails.result &&
-            profileDetails.result.profilePhoto ? (
-              <Image
-                source={{ uri: profileDetails.result.profilePhoto.fileUrl }}
-                style={styles.profilePhoto}
-              />
-            ) : (
-              <Ionicons name="person-circle" size={64} />
-            )}
-          </Pressable>
-          <View>
-            <Text style={styles.name}>{profileDetails.result.name}</Text>
-            <Text
-              style={styles.username}
-            >{`@${profileDetails.result.username}`}</Text>
-          </View>
-        </View>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Pressable
-            onPress={() => router.push("/(profile)/AddFriendsScreen")}
-            style={{ paddingRight: 10 }}
-          >
-            <Ionicons name="people" size={32} />
-          </Pressable>
-          <Pressable
-            onPress={() => router.push("/(profile)/NotificationsScreen")}
-            style={{ paddingRight: 10 }}
-          >
-            <Ionicons name="heart" size={32} />
-          </Pressable>
-          <Pressable onPress={() => router.push("/(profile)/SettingsScreen")}>
-            <Ionicons name="menu" size={32} />
-          </Pressable>
-        </View>
+    <BaseScreen style={styles.container}>
+      <View style={styles.navOptions}>
+        <Ionicons
+          onPress={() => router.push("/(profile)/FriendsScreen")}
+          name="people-outline"
+          size={32}
+          color={"white"}
+        />
+        <Text style={styles.userDetailText}>{`@${userProfile.username}`}</Text>
+        <Ionicons
+          onPress={() => router.push("/(settings)/SettingsScreen")}
+          name="reorder-three-outline"
+          size={32}
+          color={"white"}
+        />
       </View>
-
       <ScrollView
         contentContainerStyle={styles.scrollViewContainer}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        <Animated.View
-          style={styles.animatedView}
-          sharedTransitionTag="MemoriesScreen"
-        >
+        <View style={styles.userDetails}>
+          <Pressable onPress={openChangePhotoSheet}>
+            {profileDetails && userProfile && userProfile.profilePhoto ? (
+              <Image
+                source={{ uri: userProfile.profilePhoto.fileUrl }}
+                style={styles.profilePhoto}
+              />
+            ) : (
+              <Ionicons name="person-circle" size={108} color={"white"} />
+            )}
+          </Pressable>
+          <Text style={styles.userText}>{userProfile.name}</Text>
+        </View>
+        {/* <Text style={styles.headerText}>Memoryboard</Text> */}
+        <Animated.View style={styles.animatedView}>
           <Pressable onPress={() => router.push("/(hangout)/MemoriesScreen")}>
-            <MemoriesView hangouts={memoriesData} />
+            <MemoriesView
+              hangouts={memoriesData}
+              stickers={stickersData}
+              color={userProfile.backgroundDetails?.backgroundColor}
+            />
           </Pressable>
         </Animated.View>
-
-        <View>
-          <Pressable
-            onPress={() => router.push("/(hangout)/CreateHangoutScreen")}
-          >
-            <Ionicons name="add-circle-outline" size={64} />
-          </Pressable>
-        </View>
-        <View>
-          <Pressable onPress={() => router.push("/(hangout)/MemoriesScreen")}>
-            <MaterialIcons name="photo" size={64} />
-          </Pressable>
+        {/* DEFAULT PROFILE PIC NOT CENTERED AND SIZE IS WRONG */}
+        <Text style={styles.headerText}>Upcoming Hangouts</Text>
+        <View style={styles.upcomingHangouts}>
+          {upcomingHangouts?.map((hangout: Hangout) => {
+            return <ProfileHangout key={hangout.id} hangout={hangout} />;
+          })}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </BaseScreen>
   );
 };
 
@@ -163,33 +192,99 @@ export default Profile;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#141417",
+  },
+  navOptions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: wp(4),
+    marginBottom: hp(1),
+  },
+  userDetails: {
+    alignItems: "center",
+  },
+  userText: {
+    color: "#FFF",
+    fontFamily: "Inter",
+    fontSize: 18,
+    fontWeight: "bold",
+    marginTop: hp(1),
+    marginBottom: hp(2),
+  },
+  userDetailText: {
+    color: "#FFF",
+    fontFamily: "Inter",
+    fontSize: 14,
+    alignSelf: "center",
+  },
+  profilePhoto: {
+    width: wp(25),
+    height: wp(25),
+    borderRadius: wp(25),
   },
   scrollViewContainer: {
     flexGrow: 1,
-    height: scrollViewHeight,
+    marginHorizontal: wp(2),
+  },
+  headerText: {
+    marginTop: hp(2),
+    color: "#FFF",
+    fontFamily: "Inter",
+    fontSize: 14,
+    fontWeight: "bold",
   },
   animatedView: {
     justifyContent: "center",
     alignItems: "center",
-    height: 300,
-    borderWidth: 1,
-    borderColor: "black",
-    borderRadius: 10,
     overflow: "hidden",
-    marginVertical: 10,
+    height: hp("60%"),
+    borderRadius: 15,
   },
-
-  profilePhoto: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+  upcomingHangouts: {
+    marginTop: hp(1),
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
   },
-  name: {
-    fontSize: 20,
+  hangoutBanner: {
+    marginTop: hp(1),
+    height: hp(8),
+    flexDirection: "row",
+    gap: wp(40),
+    backgroundColor: "#202023",
+    borderRadius: 5,
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  hangoutText: {
+    paddingLeft: wp(4),
+    color: "#FFF",
+    fontFamily: "Inter",
+    fontSize: 18,
     fontWeight: "bold",
   },
-  username: {
-    fontSize: 14,
-    opacity: 0.8,
+  participants: {
+    flexDirection: "row",
+    marginRight: wp(4),
+    gap: -wp(5),
+  },
+  participantPhoto: {
+    height: 36,
+    width: 36,
+    borderRadius: 18,
+    borderColor: "white",
+    borderWidth: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  additionalParticipants: {
+    height: 36,
+    width: 36,
+    borderRadius: 18,
+    backgroundColor: "#D9D9D9",
+    borderColor: "white",
+    borderWidth: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

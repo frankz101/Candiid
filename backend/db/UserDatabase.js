@@ -10,6 +10,10 @@ import {
   getDocs,
   query,
   orderBy,
+  deleteDoc,
+  or,
+  arrayRemove,
+  limit,
 } from "firebase/firestore";
 import { db } from "../firebase.js";
 import { deleteObject, ref } from "firebase/storage";
@@ -58,6 +62,7 @@ const searchUsersInDatabase = async (username) => {
       usersRef,
       where("username", ">=", prefixLowerCase),
       where("username", "<=", endValue),
+      limit(8),
       orderBy("username")
     );
 
@@ -183,9 +188,12 @@ const fetchFriendsFromDatabase = async (userId) => {
           const friendData = friendSnapshot.data();
           const profilePhotoUrl = friendData.profilePhoto?.fileUrl || null;
           friendsData.push({
-            id: friendId,
-            profilePhoto: profilePhotoUrl,
-            firstName: friendData.name,
+            userId: friendId,
+            profilePhoto: {
+              fileUrl: profilePhotoUrl,
+            },
+            name: friendData.name,
+            username: friendData.username,
           });
         }
       }
@@ -225,7 +233,7 @@ const fetchFriendsPostsFromDatabase = async (userId) => {
       const oneWeekAgo = new Date();
       oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
-      for (const friendId of friends) {
+      const postsPromises = friends.map(async (friendId) => {
         const q = query(
           collection(db, "posts"),
           where("userId", "==", friendId),
@@ -234,10 +242,19 @@ const fetchFriendsPostsFromDatabase = async (userId) => {
         );
 
         const querySnapshot = await getDocs(q);
-        querySnapshot.forEach((doc) => {
-          friendsPosts.push(doc.data());
-        });
-      }
+        const posts = await Promise.all(
+          querySnapshot.docs.map(async (doc) => {
+            const postData = doc.data();
+            const userInfo = await searchUserInDatabase(postData.userId);
+            return { ...postData, userInfo };
+          })
+        );
+
+        return posts;
+      });
+
+      const allFriendsPosts = await Promise.all(postsPromises);
+      allFriendsPosts.forEach((posts) => friendsPosts.push(...posts));
 
       return friendsPosts;
     } else {
@@ -246,6 +263,375 @@ const fetchFriendsPostsFromDatabase = async (userId) => {
     }
   } catch (error) {
     console.error("Error fetching friends' posts from database: ", error);
+    throw error;
+  }
+};
+
+const updateBackgroundFromDatabase = async (userId, backgroundDetails) => {
+  try {
+    const userDocRef = doc(db, "users", userId);
+
+    await updateDoc(userDocRef, {
+      backgroundDetails,
+    });
+
+    return userId;
+    console.log("Background details updated successfully.");
+  } catch (error) {
+    console.error("Error updating background details:", error);
+    throw new Error("Failed to update background details");
+  }
+};
+const fetchProfilePicsInDatabase = async (users) => {
+  try {
+    const userInfoPromises = users.map(async (userId) => {
+      const userDoc = await getDoc(doc(db, "users", userId));
+      let fileUrl = "";
+      if (userDoc.exists() && userDoc.data().profilePhoto?.fileUrl) {
+        fileUrl = userDoc.data().profilePhoto.fileUrl;
+      } else if (userDoc.exists()) {
+        fileUrl = null;
+      }
+      return { id: userId, name: userDoc.data().name, profilePhoto: fileUrl };
+    });
+
+    const userInfo = await Promise.all(userInfoPromises);
+    return userInfo;
+  } catch (error) {
+    console.error("Error fetching profile pictures: ", error);
+    throw error;
+  }
+};
+
+const fetchContactsInDatabase = async (phoneNumbers) => {
+  try {
+    if (!phoneNumbers || !Array.isArray(phoneNumbers)) {
+      return [];
+    }
+
+    // Batch the phone number queries if Firestore has a limit on array size
+    const batchSize = 10; // Adjust the batch size according to Firestore limits
+    let registeredUsers = [];
+
+    const normalizePhoneNumber = (phoneNumber) => {
+      const cleaned = phoneNumber.replace(/\D/g, "");
+
+      if (cleaned.length === 10) {
+        return `+1${cleaned}`;
+      }
+
+      return `+${cleaned}`;
+    };
+
+    const normalizedPhoneNumbers = phoneNumbers.map(normalizePhoneNumber);
+
+    for (let i = 0; i < normalizedPhoneNumbers.length; i += batchSize) {
+      const batch = normalizedPhoneNumbers.slice(i, i + batchSize);
+      const usersSnapshot = await getDocs(
+        query(collection(db, "users"), where("phoneNumber", "in", batch))
+      );
+
+      const users = usersSnapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          name: data.name,
+          userId: data.userId,
+          username: data.username,
+          profilePhoto: {
+            fileUrl: data.profilePhoto?.fileUrl || null,
+          },
+        };
+      });
+      registeredUsers = registeredUsers.concat(users);
+    }
+
+    return registeredUsers;
+  } catch (error) {
+    console.error("Error checking contacts: ", error);
+    throw error;
+  }
+};
+
+const deleteUserInDatabase = async (userId) => {
+  try {
+    const userDoc = doc(db, "users", userId);
+    if (userDoc) {
+      deleteDoc(userDoc);
+    }
+
+    const friendRequestQuery = query(
+      collection(db, "friendRequests"),
+      or(where("senderId", "==", userId), where("receiverId", "==", userId))
+    );
+    const friendRequestSnapshot = await getDocs(friendRequestQuery);
+    const friendRequests = friendRequestSnapshot.docs.map((doc) => doc.id);
+    await Promise.all(
+      friendRequests.map(async (requestId) => {
+        const requestDocRef = doc(db, "friendRequests", requestId);
+        await deleteDoc(requestDocRef);
+      })
+    );
+
+    const hangoutRequestQuery = query(
+      collection(db, "hangoutRequests"),
+      or(where("userId", "==", userId), where("receiverId", "==", userId))
+    );
+    const hangoutRequestSnapshot = await getDocs(hangoutRequestQuery);
+    const hangoutRequests = hangoutRequestSnapshot.docs.map((doc) => doc.id);
+    await Promise.all(
+      hangoutRequests.map(async (requestId) => {
+        const requestDocRef = doc(db, "hangoutRequests", requestId);
+        await deleteDoc(requestDocRef);
+      })
+    );
+
+    const joinHangoutRequestQuery = query(
+      collection(db, "joinHangoutRequests"),
+      or(where("userId", "==", userId), where("receiverId", "==", userId))
+    );
+    const joinHangoutRequestSnapshot = await getDocs(joinHangoutRequestQuery);
+    const joinHangoutRequests = joinHangoutRequestSnapshot.docs.map(
+      (doc) => doc.id
+    );
+    await Promise.all(
+      joinHangoutRequests.map(async (requestId) => {
+        const requestDocRef = doc(db, "joinHangoutRequests", requestId);
+        await deleteDoc(requestDocRef);
+      })
+    );
+
+    const hangoutQuery = query(
+      collection(db, "hangouts"),
+      where("userId", "==", userId)
+    );
+    const hangoutSnapshot = await getDocs(hangoutQuery);
+    const hangouts = hangoutSnapshot.docs.map((doc) => doc.id);
+    await Promise.all(
+      hangouts.map(async (requestId) => {
+        const requestDocRef = doc(db, "hangouts", requestId);
+        await deleteDoc(requestDocRef);
+      })
+    );
+
+    const hangoutParticipantQuery = query(
+      collection(db, "hangouts"),
+      where("participantIds", "array-contains", userId)
+    );
+    const hangoutParticipantSnapshot = await getDocs(hangoutParticipantQuery);
+    const hangoutParticipants = hangoutParticipantSnapshot.docs.map(
+      (doc) => doc.id
+    );
+    await Promise.all(
+      hangoutParticipants.map(async (requestId) => {
+        const requestDocRef = doc(db, "hangouts", requestId);
+        await updateDoc(requestDocRef, {
+          participantIds: arrayRemove(userId),
+        });
+      })
+    );
+
+    const memoriesQuery = query(
+      collection(db, "memories"),
+      where("userId", "==", userId)
+    );
+    const memoriesSnapshot = await getDocs(memoriesQuery);
+    const memories = memoriesSnapshot.docs.map((doc) => doc.id);
+    await Promise.all(
+      memories.map(async (requestId) => {
+        const requestDocRef = doc(db, "memories", requestId);
+        await deleteDoc(requestDocRef);
+      })
+    );
+
+    const postQuery = query(
+      collection(db, "posts"),
+      where("userId", "==", userId)
+    );
+    const postSnapshot = await getDocs(postQuery);
+    const posts = postSnapshot.docs.map((doc) => doc.id);
+    await Promise.all(
+      posts.map(async (requestId) => {
+        const requestDocRef = doc(db, "posts", requestId);
+        await deleteDoc(requestDocRef);
+      })
+    );
+
+    const stickerQuery = query(
+      collection(db, "stickers"),
+      where("userId", "==", userId)
+    );
+    const stickerSnapshot = await getDocs(stickerQuery);
+    const stickers = stickerSnapshot.docs.map((doc) => doc.id);
+    await Promise.all(
+      stickers.map(async (requestId) => {
+        const requestDocRef = doc(db, "stickers", requestId);
+        await deleteDoc(requestDocRef);
+      })
+    );
+
+    const supportQuery = query(
+      collection(db, "support"),
+      where("userId", "==", userId)
+    );
+    const supportSnapshot = await getDocs(supportQuery);
+    const supports = supportSnapshot.docs.map((doc) => doc.id);
+    await Promise.all(
+      supports.map(async (requestId) => {
+        const requestDocRef = doc(db, "support", requestId);
+        await deleteDoc(requestDocRef);
+      })
+    );
+
+    return "User deleted";
+  } catch (error) {
+    console.error("Error deleting user: ", error);
+    throw error;
+  }
+};
+
+const createSupportInDatabase = async (ticketDetails) => {
+  try {
+    const supportCollectionRef = collection(db, "support");
+    const docRef = await addDoc(supportCollectionRef, ticketDetails);
+    return docRef.id;
+  } catch (error) {
+    console.error("Error creating support ticket: ", error);
+    throw error;
+  }
+};
+
+const createReportInDatabase = async (ticketDetails) => {
+  try {
+    const reportCollectionRef = collection(db, "reports");
+    const docRef = await addDoc(reportCollectionRef, ticketDetails);
+    return docRef.id;
+  } catch (error) {
+    console.error("Error creating report ticket: ", error);
+    throw error;
+  }
+};
+
+const createBlockInDatabase = async (details) => {
+  try {
+    const userId = details.userId;
+    const blockedUserId = details.blockedUserId;
+    const friendRequestQuery = query(
+      collection(db, "friendRequests"),
+      or(
+        (where("senderId", "==", userId),
+        where("receiverId", "==", blockedUserId)),
+        (where("senderId", "==", blockedUserId),
+        where("receiverId", "==", userId))
+      )
+    );
+    const friendRequestSnapshot = await getDocs(friendRequestQuery);
+    const friendRequests = friendRequestSnapshot.docs.map((doc) => doc.id);
+    await Promise.all(
+      friendRequests.map(async (requestId) => {
+        const requestDocRef = doc(db, "friendRequests", requestId);
+        await deleteDoc(requestDocRef);
+      })
+    );
+
+    const hangoutRequestQuery = query(
+      collection(db, "hangoutRequests"),
+      or(
+        (where("userId", "==", userId),
+        where("receiverId", "==", blockedUserId)),
+        (where("userId", "==", blockedUserId),
+        where("receiverId", "==", userId))
+      )
+    );
+    const hangoutRequestSnapshot = await getDocs(hangoutRequestQuery);
+    const hangoutRequests = hangoutRequestSnapshot.docs.map((doc) => doc.id);
+    await Promise.all(
+      hangoutRequests.map(async (requestId) => {
+        const requestDocRef = doc(db, "hangoutRequests", requestId);
+        await deleteDoc(requestDocRef);
+      })
+    );
+
+    const joinHangoutRequestQuery = query(
+      collection(db, "joinHangoutRequests"),
+      or(
+        (where("userId", "==", userId),
+        where("receiverId", "==", blockedUserId)),
+        (where("userId", "==", blockedUserId),
+        where("receiverId", "==", userId))
+      )
+    );
+    const joinHangoutRequestSnapshot = await getDocs(joinHangoutRequestQuery);
+    const joinHangoutRequests = joinHangoutRequestSnapshot.docs.map(
+      (doc) => doc.id
+    );
+    await Promise.all(
+      joinHangoutRequests.map(async (requestId) => {
+        const requestDocRef = doc(db, "joinHangoutRequests", requestId);
+        await deleteDoc(requestDocRef);
+      })
+    );
+
+    const userDocRef = doc(db, "users", userId);
+    await updateDoc(userDocRef, {
+      friends: arrayRemove(blockedUserId),
+    });
+    const blockedUserDocRef = doc(db, "users", blockedUserId);
+    await updateDoc(blockedUserDocRef, {
+      friends: arrayRemove(userId),
+    });
+    const blockedCollectionRef = collection(db, "blocked");
+    const docRef = await addDoc(blockedCollectionRef, details);
+
+    return docRef.id;
+  } catch (error) {
+    console.error("Error blocking user: ", error);
+    throw error;
+  }
+};
+
+const fetchBlocksInDatabase = async (userId) => {
+  try {
+    const blockedCollectionRef = collection(db, "blocked");
+    const docSnapshot = await getDocs(
+      query(blockedCollectionRef, where("userId", "==", userId))
+    );
+    const result = await Promise.all(
+      docSnapshot.docs.map(async (blockedDoc) => {
+        const blockedUserDocRef = doc(
+          db,
+          "users",
+          blockedDoc.data().blockedUserId
+        );
+        const blockedUserDoc = await getDoc(blockedUserDocRef);
+
+        if (blockedUserDoc.exists()) {
+          return {
+            id: blockedDoc.id,
+            userId: blockedUserDoc.data().userId,
+            username: blockedUserDoc.data().username,
+          };
+        } else {
+          console.log(
+            `No such document for user ID: ${blockedDoc.data().blockedUserId}`
+          );
+          return null;
+        }
+      })
+    );
+    return result;
+  } catch (error) {
+    console.error("Error getting blocked users: ", error);
+    throw error;
+  }
+};
+
+const removeBlockInDatabase = async (blockId) => {
+  try {
+    const docRef = doc(db, "blocked", blockId);
+    await deleteDoc(docRef);
+    return "success";
+  } catch (error) {
+    console.error("Error deleting block: ", error);
     throw error;
   }
 };
@@ -261,4 +647,13 @@ export {
   searchUserInDatabase,
   editUserDetailsInDatabase,
   fetchFriendsPostsFromDatabase,
+  updateBackgroundFromDatabase,
+  fetchProfilePicsInDatabase,
+  fetchContactsInDatabase,
+  deleteUserInDatabase,
+  createSupportInDatabase,
+  createReportInDatabase,
+  createBlockInDatabase,
+  fetchBlocksInDatabase,
+  removeBlockInDatabase,
 };

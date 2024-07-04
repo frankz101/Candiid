@@ -2,21 +2,28 @@ import {
   StyleSheet,
   Text,
   View,
-  Pressable,
-  FlatList,
-  ScrollView,
+  ActivityIndicator,
   Dimensions,
-  RefreshControl,
+  Pressable,
+  Modal,
+  Alert,
 } from "react-native";
-import { Image } from "expo-image";
 import React, { useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { AntDesign, Feather, Ionicons } from "@expo/vector-icons";
-import PhotoSquare from "@/components/photo/PhotoSquare";
 import BackButton from "@/components/utils/BackButton";
+import SharedAlbumPreview from "@/components/hangoutDetail/SharedAlbumPreview";
+import BaseScreen from "@/components/utils/BaseScreen";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+import ParticipantsList from "@/components/hangoutDetail/ParticipantsList";
+import CompleteHangoutButton from "@/components/hangoutDetail/CompleteHangoutButton";
+import HangoutDetailCard from "@/components/hangoutDetail/HangoutDetailCard";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useUser } from "@clerk/clerk-expo";
 
 const screenHeight = Dimensions.get("window").height;
 const headerHeight = 140;
@@ -26,11 +33,11 @@ const scrollViewHeight = screenHeight - headerHeight - bottomPadding;
 
 const Hangout = () => {
   const { hangoutId, memoryId } = useLocalSearchParams();
-  console.log("Memory ID Hangout: " + memoryId);
-  const [selectedPhotos, setSelectedPhotos] = useState<number[]>([]);
-  const [refreshing, setRefreshing] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
   const router = useRouter();
+  const { user } = useUser();
   const queryClient = useQueryClient();
+  console.log("Memory ID Hangout: " + memoryId);
 
   const fetchHangout = async () => {
     return axios
@@ -44,175 +51,210 @@ const Hangout = () => {
   });
 
   if (isPending) {
-    return <Text>LOADING...</Text>;
+    return (
+      <BaseScreen>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingBottom: 28,
+          }}
+        >
+          <BackButton />
+          <Text style={styles.headerText}>Loading...</Text>
+          <View style={{ width: 32 }} />
+        </View>
+        <ActivityIndicator size="large" color="#FFF" />
+      </BaseScreen>
+    );
   }
 
-  const handleImageSelect = async (index: number) => {
-    setSelectedPhotos((currentSelected: any) => {
-      if (currentSelected.includes(index)) {
-        return currentSelected.filter((num: number) => num !== index);
-      } else if (currentSelected.length < 10) {
-        return [...currentSelected, index];
-      }
-      return currentSelected;
-    });
-  };
+  const latestPhotos = hangoutData.sharedAlbum?.slice(-6) || [];
 
-  interface Photo {
-    fileUrl: string;
+  if (!isPending) {
+    console.log(hangoutData);
   }
 
-  const renderPhoto = ({ item, index }: { item: Photo; index: number }) => (
-    <PhotoSquare
-      imageUrl={item.fileUrl}
-      onPhotoSelect={() => handleImageSelect(index)}
-      isSelected={selectedPhotos.includes(index)}
-    />
-  );
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await queryClient.invalidateQueries({
-      queryKey: ["hangoutPhotos", hangoutId],
-    });
-    setRefreshing(false);
+  const leaveHangout = () => {
+    Alert.alert(
+      "Are you sure you want to leave this hangout?",
+      "You will no longer be able to access associated photos.",
+      [
+        {
+          text: "No",
+          style: "cancel",
+        },
+        {
+          text: "Yes",
+          style: "destructive",
+          onPress: async () => {
+            router.back();
+            const res = await axios.put(
+              `${process.env.EXPO_PUBLIC_API_URL}/hangout/leave`,
+              {
+                userId: user?.id,
+                hangoutId,
+              }
+            );
+            queryClient.invalidateQueries({ queryKey: ["hangouts"] });
+            console.log(res.data.result);
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <BaseScreen>
       <View
         style={{
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "space-between",
-          paddingBottom: 28,
+          paddingHorizontal: wp(1),
         }}
       >
         <BackButton />
-        <Text style={{ fontSize: 24 }}>{hangoutData.hangoutName}</Text>
-        <View style={{ width: 32 }} />
+
+        <View style={{ flexDirection: "row", gap: wp(2) }}>
+          <MaterialCommunityIcons name="share" size={30} color="#FFF" />
+          <Pressable onPress={() => setModalVisible(true)}>
+            <Ionicons name="ellipsis-horizontal" size={30} color="#FFF" />
+          </Pressable>
+          <Modal transparent={true} animationType="fade" visible={modalVisible}>
+            <Pressable
+              style={styles.overlay}
+              onPress={() => setModalVisible(false)}
+            >
+              <View style={styles.modalContainer}>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.modalButton,
+                    pressed
+                      ? { backgroundColor: "#3a3a3d" }
+                      : { backgroundColor: "#2a2a2d" },
+                  ]}
+                  onPress={() => {
+                    setModalVisible(false);
+                    leaveHangout();
+                  }}
+                >
+                  <Text style={styles.modalButtonText}>Leave Hangout</Text>
+                  <Ionicons name="exit-outline" color="red" size={24} />
+                </Pressable>
+              </View>
+            </Pressable>
+          </Modal>
+        </View>
       </View>
 
-      {/* <ScrollView
-        contentContainerStyle={styles.scrollViewContainer}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
-        {isAlbumEmpty ? (
-          <View style={styles.emptyAlbumContainer}>
-            <View style={styles.greyPost}>
-              <Pressable
-                onPress={() => {
-                  router.push({
-                    pathname: "/(camera)/CameraScreen",
-                    params: { id: hangoutId },
-                  });
-                }}
-              >
-                <Ionicons name="add" size={32} color="white" />
-              </Pressable>
-            </View>
-          </View>
-        ) : (
-          <FlatList
-            data={hangoutData.sharedAlbum}
-            renderItem={renderPhoto}
-            keyExtractor={(item, index) => index.toString()}
-            numColumns={3}
-            // style={{ backgroundColor: "grey" }}
-            contentContainerStyle={{
-              justifyContent: "center",
-              flexGrow: 1,
-            }}
+      <View style={{ alignItems: "center", padding: wp(2) }}>
+        <Text style={styles.headerText}>{hangoutData.hangoutName}</Text>
+        <Text style={styles.descriptionText}>
+          {hangoutData.hangoutDescription}
+        </Text>
+      </View>
+
+      <View>
+        <Text style={styles.sectionText}>All Photos</Text>
+      </View>
+      <View>
+        <SharedAlbumPreview
+          sharedAlbum={latestPhotos}
+          hangoutId={hangoutId as string}
+          hangoutName={hangoutData.hangoutName}
+        />
+      </View>
+      <View>
+        <Text style={styles.sectionTwoText}>Participants</Text>
+      </View>
+      {hangoutData && hangoutData.participantIds ? (
+        <View>
+          <ParticipantsList
+            participants={hangoutData.participantIds}
+            hangoutId={hangoutId as string}
           />
-        )}
-      </ScrollView> */}
-
-      <FlatList
-        data={hangoutData.sharedAlbum}
-        renderItem={renderPhoto}
-        keyExtractor={(item, index) => index.toString()}
-        numColumns={3}
-        contentContainerStyle={styles.scrollViewContainer}
-        ListEmptyComponent={
-          <View style={styles.emptyAlbumContainer}>
-            <View style={styles.greyPost}>
-              <Pressable
-                onPress={() => {
-                  router.push({
-                    pathname: "/(camera)/CameraScreen",
-                    params: { id: hangoutId },
-                  });
-                }}
-              >
-                <Ionicons name="add" size={32} color="white" />
-              </Pressable>
-            </View>
-          </View>
-        }
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      />
-
-      {selectedPhotos?.length > 0 && (
-        <Pressable
-          onPress={() => {
-            router.push({
-              pathname: "/(hangout)/PreviewPost",
-              params: {
-                hangoutId: hangoutId,
-                memoryId: memoryId,
-                photoIndexes: selectedPhotos,
-              },
-            });
-          }}
-          style={{ position: "absolute", right: 20, bottom: 75 }}
-        >
-          <Feather name="arrow-right-circle" size={64} />
-        </Pressable>
-      )}
-      <Pressable
-        onPress={() =>
-          router.push({
-            pathname: "/(camera)/CameraScreen",
-            params: { id: hangoutId },
-          })
-        }
-        style={{ position: "absolute", alignSelf: "center", bottom: 75 }}
+        </View>
+      ) : null}
+      <View
+        style={{
+          alignSelf: "center",
+        }}
       >
-        <Ionicons name="camera" size={64} />
-      </Pressable>
-    </SafeAreaView>
+        <CompleteHangoutButton hangoutId={hangoutId as string} />
+      </View>
+    </BaseScreen>
   );
 };
 
 export default Hangout;
 
 const styles = StyleSheet.create({
-  gridContainer: {
-    // flexDirection: "row",
-    // flexWrap: "wrap",
-    // justifyContent: "space-between", // This will ensure even spacing between the images
-    // padding: 8, // Add padding around the whole grid
+  headerText: {
+    fontSize: 30,
+    fontFamily: "inter",
+    fontWeight: "700",
+    color: "#FFF",
+  },
+  descriptionText: {
+    fontSize: 14,
+    fontFamily: "inter",
+    fontWeight: "500",
+    color: "#FFF",
+    padding: wp(1),
+  },
+  sectionText: {
+    fontSize: 14,
+    fontFamily: "inter",
+    fontWeight: "700",
+    padding: wp(2),
+    color: "#FFF",
+  },
+  sectionTwoText: {
+    fontSize: 14,
+    fontFamily: "inter",
+    fontWeight: "700",
+    paddingTop: wp(4),
+    paddingBottom: wp(2),
+    paddingHorizontal: wp(2),
+    color: "#FFF",
   },
   emptyAlbumContainer: {
     flex: 1,
     // justifyContent: "center",
     // alignItems: "center",
   },
-  greyPost: {
-    width: 100,
-    height: 100,
-    backgroundColor: "grey",
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 10,
-  },
-
   scrollViewContainer: {
     flexGrow: 1,
     height: scrollViewHeight,
+  },
+  modalContainer: {
+    width: wp(50),
+    maxWidth: wp(90),
+    backgroundColor: "#d9d9d9",
+    borderRadius: 10,
+    overflow: "hidden",
+  },
+  modalButton: {
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(1),
+    borderBottomColor: "#4a4a4d",
+    borderBottomWidth: 0.5,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  modalButtonText: {
+    color: "red",
+    fontSize: 16,
+  },
+  overlay: {
+    flex: 1,
+    justifyContent: "flex-start",
+    alignItems: "flex-end",
+    paddingTop: hp(11),
+    paddingRight: wp(3),
   },
 });

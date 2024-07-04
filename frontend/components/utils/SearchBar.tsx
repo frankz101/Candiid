@@ -9,6 +9,10 @@ import {
   Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 type SearchBarProps = {
   clicked: boolean;
@@ -38,19 +42,21 @@ const SearchBar: React.FC<SearchBarProps> = ({
           <Ionicons
             name="search"
             size={20}
-            color="black"
+            color="#F2F2F2"
             style={{ marginLeft: 1 }}
           />
         </Pressable>
         <TextInput
           style={styles.input}
           placeholder={placeholder}
+          placeholderTextColor="#F2F2F2"
           value={searchPhrase}
           onChangeText={setSearchPhrase}
           onFocus={() => {
             setClicked(true);
           }}
           onSubmitEditing={() => onSubmit}
+          accessibilityLabel="search-bar"
         />
       </View>
       {clicked && (
@@ -62,7 +68,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
               setSearchPhrase("");
             }}
           >
-            <Text>Cancel</Text>
+            <Text style={{ color: "#FFF" }}>Cancel</Text>
           </Pressable>
         </View>
       )}
@@ -71,35 +77,35 @@ const SearchBar: React.FC<SearchBarProps> = ({
 };
 export default SearchBar;
 
-// styles
 const styles = StyleSheet.create({
   container: {
-    margin: 15,
-    justifyContent: "space-between",
+    marginTop: hp(2),
+    justifyContent: "center",
     alignItems: "center",
     flexDirection: "row",
-    width: "90%",
+    width: wp(100),
   },
   searchBar__unclicked: {
-    padding: 10,
+    padding: 14,
     flexDirection: "row",
-    width: "100%",
-    backgroundColor: "#d9dbda",
-    borderRadius: 15,
+    width: wp(95),
+    backgroundColor: "#252525",
+    borderRadius: 5,
     alignItems: "center",
   },
   searchBar__clicked: {
-    padding: 10,
+    padding: 14,
     flexDirection: "row",
-    width: "80%",
-    backgroundColor: "#d9dbda",
-    borderRadius: 15,
+    width: wp(83.5),
+    backgroundColor: "#252525",
+    borderRadius: 5,
     alignItems: "center",
     justifyContent: "flex-start",
   },
   input: {
-    fontSize: 20,
-    marginLeft: 10,
-    width: "90%",
+    fontSize: 14,
+    color: "white",
+    marginLeft: wp(3),
+    width: wp(90),
   },
 });

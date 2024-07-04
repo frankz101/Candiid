@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   Dimensions,
   Pressable,
   RefreshControl,
@@ -16,6 +17,7 @@ import UserBanner from "@/components/friends/UserBanner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import HangoutRequestBanner from "@/components/friends/HangoutRequestBanner";
 import { useRouter } from "expo-router";
+import BaseScreen from "@/components/utils/BaseScreen";
 
 interface User {
   id: number;
@@ -37,6 +39,7 @@ const scrollViewHeight = screenHeight - headerHeight - bottomPadding;
 const NotificationsScreen = () => {
   const [friendRequests, setFriendRequests] = useState<User[]>([]);
   const [hangoutRequests, setHangoutRequests] = useState([]);
+  const [joinHangoutRequests, setJoinHangoutRequests] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const { user } = useUser();
   const router = useRouter();
@@ -53,19 +56,27 @@ const NotificationsScreen = () => {
       currentRequests?.filter((request: User) => request.userId !== userId)
     );
   };
-  const updateHangoutRequests = (hangoutId: string, status: string) => {
-    setHangoutRequests((currentRequests) =>
-      currentRequests.filter((request: any) => request.hangoutId !== hangoutId)
-    );
+  const updateHangoutRequests = (
+    hangoutId: string,
+    status: string,
+    type: string
+  ) => {
+    if (type === "request") {
+      setHangoutRequests((currentRequests) =>
+        currentRequests.filter(
+          (request: any) => request.hangoutId !== hangoutId
+        )
+      );
+    }
+    if (type === "join") {
+      setJoinHangoutRequests((currentRequests) =>
+        currentRequests.filter(
+          (request: any) => request.hangoutId !== hangoutId
+        )
+      );
+    }
+
     console.log(status);
-    if (status === "accept")
-      router.push({
-        pathname: "/(hangout)/MemoriesScreen",
-        params: {
-          newPost: "true",
-          hangoutId: hangoutId,
-        },
-      });
   };
 
   useEffect(() => {
@@ -85,6 +96,19 @@ const NotificationsScreen = () => {
     queryFn: fetchHangoutRequests,
   });
 
+  const fetchJoinHangoutRequests = async () => {
+    return axios
+      .get(
+        `${process.env.EXPO_PUBLIC_API_URL}/hangout/join-requests/${user?.id}`
+      )
+      .then((res) => res.data);
+  };
+  const { data: joinHangoutRequestsData, isPending: joinRequestsPending } =
+    useQuery({
+      queryKey: ["joinHangoutRequestsData", user?.id],
+      queryFn: fetchJoinHangoutRequests,
+    });
+
   const onRefresh = async () => {
     setRefreshing(true);
     await queryClient.invalidateQueries({
@@ -99,9 +123,34 @@ const NotificationsScreen = () => {
       setHangoutRequests(hangoutRequestsData.result);
     }
   }, [hangoutRequestsData]);
+  useEffect(() => {
+    if (joinHangoutRequestsData) {
+      setJoinHangoutRequests(joinHangoutRequestsData.result);
+    }
+  }, [joinHangoutRequestsData]);
+
+  console.log(joinHangoutRequests);
+  if (isPending) {
+    return (
+      <BaseScreen>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <BackButton />
+          <Text style={styles.headerText}>Notifications</Text>
+          <View style={{ width: 32 }} />
+        </View>
+        <ActivityIndicator size="large" color="#FFF" />
+      </BaseScreen>
+    );
+  }
 
   return (
-    <SafeAreaView>
+    <BaseScreen>
       <View
         style={{
           flexDirection: "row",
@@ -110,7 +159,7 @@ const NotificationsScreen = () => {
         }}
       >
         <BackButton />
-        <Text style={{ fontSize: 24 }}>Notifications</Text>
+        <Text style={styles.headerText}>Notifications</Text>
         <View style={{ width: 32 }} />
       </View>
       <ScrollView
@@ -130,15 +179,33 @@ const NotificationsScreen = () => {
         {hangoutRequests?.map((item: any, index: number) => (
           <HangoutRequestBanner
             key={"Hangout Request" + index}
+            type="request"
+            senderName={item.userInfo.username}
+            senderId={item.userInfo.userId}
+            senderProfilePhoto={item.userInfo.profilePhoto?.fileUrl}
             hangoutId={item.hangoutId}
             hangoutName={item.hangoutName}
             onHandleRequest={(hangoutId: string, status: string) =>
-              updateHangoutRequests(hangoutId, status)
+              updateHangoutRequests(hangoutId, status, "request")
+            }
+          />
+        ))}
+        {joinHangoutRequests?.map((item: any, index: number) => (
+          <HangoutRequestBanner
+            key={index}
+            type="join"
+            senderName={item.userInfo.username}
+            senderId={item.userInfo.userId}
+            senderProfilePhoto={item.userInfo.profilePhoto?.fileUrl}
+            hangoutId={item.hangoutId}
+            hangoutName={item.hangoutName}
+            onHandleRequest={(hangoutId: string, status: string) =>
+              updateHangoutRequests(hangoutId, status, "join")
             }
           />
         ))}
       </ScrollView>
-    </SafeAreaView>
+    </BaseScreen>
   );
 };
 
@@ -147,6 +214,12 @@ export default NotificationsScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  headerText: {
+    fontSize: 20,
+    fontFamily: "inter",
+    fontWeight: "700",
+    color: "#FFF",
   },
   scrollViewContainer: {
     flexGrow: 1,

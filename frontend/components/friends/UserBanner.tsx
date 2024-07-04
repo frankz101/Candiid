@@ -1,20 +1,24 @@
 import { useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
+import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 interface User {
-  id: number;
   name: string;
   username: string;
   profilePhoto: {
     fileUrl: string;
   };
   userId: string;
-  friendStatus: string;
+  friendStatus?: string;
 }
 
 type FriendUpdateAction = {
@@ -39,6 +43,11 @@ const UserBanner: React.FC<UserBannerProps> = ({
   );
   const [friendStatus, setFriendStatus] = useState(user.friendStatus);
   const router = useRouter();
+
+  useEffect(() => {
+    if (type === "friends") setFriendStatus("Already Friends");
+    else if (type === "friendRequests") setFriendStatus("Incoming Request");
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -100,8 +109,8 @@ const UserBanner: React.FC<UserBannerProps> = ({
         await axios.post(
           `${process.env.EXPO_PUBLIC_API_URL}/friendRequest/handle`,
           {
-            senderId: user.userId,
-            receiverId: currentUser?.id,
+            senderId: currentUser?.id,
+            receiverId: user.userId,
             status: "reject",
           }
         );
@@ -110,6 +119,11 @@ const UserBanner: React.FC<UserBannerProps> = ({
   };
 
   const handleRequest = async (status: string) => {
+    if (status === "reject") {
+      setFriendStatus("Not Friends");
+    } else {
+      setFriendStatus("Already Friends");
+    }
     const res = await axios.post(
       `${process.env.EXPO_PUBLIC_API_URL}/friendRequest/handle`,
       {
@@ -133,11 +147,28 @@ const UserBanner: React.FC<UserBannerProps> = ({
   };
 
   const removeFriend = (friendId: string) => {
-    setPendingUpdates((currentUpdates) => [
-      ...currentUpdates,
-      { action: "removeFriend", friendId },
-    ]);
-    setFriendStatus("Not Friends");
+    Alert.alert(
+      "Remove Friend",
+      "Are you sure you want to remove this friend?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "OK",
+          style: "destructive",
+          onPress: () => {
+            setPendingUpdates((currentUpdates) => [
+              ...currentUpdates,
+              { action: "removeFriend", friendId },
+            ]);
+            setFriendStatus("Not Friends");
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   const removeRequest = (friendId: string) => {
@@ -148,39 +179,67 @@ const UserBanner: React.FC<UserBannerProps> = ({
     setFriendStatus("Not Friends");
   };
 
+  const removeFriendList = (friendId: string) => {
+    if (onHandleRequest) {
+      Alert.alert(
+        "Remove Friend",
+        "Are you sure you want to remove this friend?",
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+          {
+            text: "OK",
+            style: "destructive",
+            onPress: () => onHandleRequest(friendId),
+          },
+        ],
+        { cancelable: true }
+      );
+    }
+  };
+
   return (
     <Pressable
       onPress={async () => {
+        await applyUpdates();
         router.push({
           pathname: "/(profile)/ProfileScreen",
-          params: { userId: user.userId },
+          params: {
+            userId: user.userId,
+            name: user.name,
+            username: user.username,
+            profilePhoto: encodeURIComponent(user.profilePhoto?.fileUrl),
+            friendStatus: friendStatus ? friendStatus : "",
+          },
         });
-        await applyUpdates();
       }}
     >
       <View
         style={[
-          { padding: 10, flexDirection: "row", alignItems: "flex-start" },
+          {
+            padding: wp(3),
+            flexDirection: "row",
+            alignItems: "flex-start",
+          },
         ]}
       >
+        {user.profilePhoto && user.profilePhoto.fileUrl ? (
+          <Image
+            source={{ uri: user.profilePhoto.fileUrl }}
+            style={styles.profilePhoto}
+          />
+        ) : (
+          <Ionicons name="person-circle" color="white" size={40} />
+        )}
         <View
           style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
+            marginLeft: wp(3),
+            flex: 1,
           }}
         >
-          {user.profilePhoto && user.profilePhoto.fileUrl ? (
-            <Image
-              source={{ uri: user.profilePhoto.fileUrl }}
-              style={styles.profilePhoto}
-            />
-          ) : (
-            <Ionicons name="person-circle" size={40} />
-          )}
-        </View>
-        <View style={{ marginLeft: 10, flex: 1 }}>
-          <Text style={{ fontSize: 16 }}>{user.name}</Text>
+          <Text style={{ fontSize: 16, color: "white" }}>{user.name}</Text>
           <Text style={{ color: "#777" }}>{"@" + user.username}</Text>
         </View>
         {type === "searchResults" && (
@@ -213,6 +272,35 @@ const UserBanner: React.FC<UserBannerProps> = ({
               >
                 <Text style={{ color: "#000" }}>Remove Request</Text>
               </Pressable>
+            ) : friendStatus === "Incoming Request" ? (
+              <View style={{ flexDirection: "row" }}>
+                <Pressable
+                  style={({ pressed }) => [
+                    {
+                      backgroundColor: pressed ? "#ddd" : "#ccc",
+                      padding: 10,
+                      borderRadius: 5,
+                    },
+                    styles.centerRow,
+                  ]}
+                  onPress={() => handleRequest("reject")}
+                >
+                  <Text style={{ color: "#000" }}>Reject</Text>
+                </Pressable>
+                <Pressable
+                  style={({ pressed }) => [
+                    {
+                      backgroundColor: pressed ? "#ddd" : "#ccc",
+                      padding: 10,
+                      borderRadius: 5,
+                    },
+                    styles.centerRow,
+                  ]}
+                  onPress={() => handleRequest("accept")}
+                >
+                  <Text style={{ color: "#000" }}>Accept</Text>
+                </Pressable>
+              </View>
             ) : (
               <Pressable
                 style={({ pressed }) => [
@@ -260,6 +348,14 @@ const UserBanner: React.FC<UserBannerProps> = ({
               <Text style={{ color: "#000" }}>Accept</Text>
             </Pressable>
           </View>
+        )}
+        {type === "friends" && (
+          <Pressable
+            style={{ alignSelf: "center" }}
+            onPress={() => removeFriendList(user.userId)}
+          >
+            <Ionicons name="close-outline" color="gray" size={20} />
+          </Pressable>
         )}
       </View>
     </Pressable>

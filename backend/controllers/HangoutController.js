@@ -3,9 +3,14 @@ import {
   createHangout,
   fetchHangout,
   fetchRecentHangouts,
+  fetchUpcomingHangouts,
   fetchHangoutRequests,
   createHangoutRequests,
   handleHangoutRequest,
+  fetchFreshHangouts,
+  createJoinHangoutRequest,
+  fetchJoinhangoutRequests,
+  leaveHangout,
 } from "../services/HangoutService.js";
 
 const postHangout = async (req, res) => {
@@ -40,6 +45,17 @@ const getRecentHangouts = async (req, res) => {
     const userId = req.params.userId;
 
     const result = await fetchRecentHangouts(userId);
+    res.status(200).json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send({ message: err.message });
+  }
+};
+
+const getUpcomingHangouts = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const result = await fetchUpcomingHangouts(userId);
     res.status(200).json(result);
   } catch (err) {
     console.log(err);
@@ -88,12 +104,62 @@ const putHangoutRequest = async (req, res) => {
   }
 };
 
+const getFreshHangouts = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const result = await fetchFreshHangouts(userId);
+    res.status(201).send({ result });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+const postJoinHangoutRequest = async (req, res) => {
+  try {
+    const { userId, recipientId, hangoutName, hangoutId } = req.body;
+    const result = await createJoinHangoutRequest(
+      userId,
+      recipientId,
+      hangoutName,
+      hangoutId
+    );
+    res.status(201).send({ result });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+const getJoinHangoutRequests = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const result = await fetchJoinhangoutRequests(userId);
+    res.status(201).send({ result });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+const putLeaveHangout = async (req, res) => {
+  try {
+    const { userId, hangoutId } = req.body;
+    const result = await leaveHangout(hangoutId, userId);
+    res.status(201).send({ result });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export {
   postHangout,
   postPhotoToHangout,
   getRecentHangouts,
   getHangout,
   getHangoutRequests,
+  getUpcomingHangouts,
   postHangoutRequests,
   putHangoutRequest,
+  getFreshHangouts,
+  postJoinHangoutRequest,
+  getJoinHangoutRequests,
+  putLeaveHangout,
 };

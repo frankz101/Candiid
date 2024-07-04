@@ -11,6 +11,15 @@ import {
   getUserWithId,
   putUserDetails,
   getPosts,
+  putUserBackground,
+  getProfilePics,
+  getContacts,
+  deleteUser,
+  postSupport,
+  postReport,
+  postBlock,
+  getBlocks,
+  deleteBlock,
 } from "../controllers/UserController.js";
 
 var router = express.Router();
@@ -31,5 +40,14 @@ router.get("/user/search/:username/users/:userId", getUsers);
 router.get("/user/:id/friends", getFriends);
 router.put("/user/:id/details", putUserDetails);
 router.get("/user/:id/feed", getPosts);
+router.put("/user/:id/background", putUserBackground);
+router.post("/user/profile-pics", getProfilePics);
+router.post("/user/check-contacts", getContacts);
+router.delete("/user/delete/:userId", deleteUser);
+router.post("/user/support", postSupport);
+router.post("/user/report", postReport);
+router.post("/user/block", postBlock);
+router.get("/user/block/:userId", getBlocks);
+router.delete("/user/unblock/:id", deleteBlock);
 
 export default router;

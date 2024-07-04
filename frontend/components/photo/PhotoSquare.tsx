@@ -2,45 +2,60 @@ import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import React, { useState } from "react";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
+import { Link, useRouter } from "expo-router";
+import Animated from "react-native-reanimated";
+import placeholderImage from "../../assets/images/1709686840466-42B3F6F8-4E3E-4058-9ED5-D1870BB1FE87.jpeg";
 
 const screenWidth = Dimensions.get("window").width;
 const padding = 2;
 const imageWidth = (screenWidth - padding * 6) / 3; // Subtract total padding and divide by 3
 
-interface PhotoSquareProps {
+interface PhotoSquareSelectProps {
   imageUrl: string;
-  onPhotoSelect: (isSelected: boolean) => void;
-  isSelected: boolean;
+  index: number;
 }
 
-const PhotoSquare: React.FC<PhotoSquareProps> = ({
+const PhotoSquareSelect: React.FC<PhotoSquareSelectProps> = ({
   imageUrl,
-  onPhotoSelect,
-  isSelected,
+  index,
 }) => {
-  const handlePhotoPress = () => {
-    onPhotoSelect(!isSelected);
-  };
+  const router = useRouter();
 
   return (
     <View style={styles.imageContainer}>
-      <Image source={{ uri: imageUrl }} style={styles.image} />
-      <Pressable style={styles.icon} onPress={handlePhotoPress}>
-        {isSelected ? (
-          <Ionicons name="checkmark-circle-outline" size={28} color="green" />
-        ) : (
-          <Ionicons
-            name="add-circle"
-            size={28}
-            color="rgba(100, 100, 100, 0.6)"
-          />
-        )}
-      </Pressable>
+      <Link
+        href={{
+          pathname: "/(hangout)/FullScreenImage",
+          params: { imageUrl, index },
+        }}
+        asChild
+      >
+        <Pressable
+        // onPress={() => {
+        //   router.push({
+        //     pathname: "/(hangout)/FullScreenImage",
+        //     params: {
+        //       imageUrl,
+        //       index,
+        //     },
+        //   });
+        // }}
+        >
+          <Animated.View>
+            <Image
+              source={{
+                uri: imageUrl,
+              }}
+              style={styles.image}
+            />
+          </Animated.View>
+        </Pressable>
+      </Link>
     </View>
   );
 };
 
-export default PhotoSquare;
+export default PhotoSquareSelect;
 
 const styles = StyleSheet.create({
   imageContainer: {
@@ -52,10 +67,5 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     aspectRatio: 1,
-  },
-  icon: {
-    position: "absolute",
-    top: 2,
-    right: 2,
   },
 });

@@ -2,10 +2,10 @@ import { create, StateCreator } from "zustand";
 
 export interface HangoutDetails {
   hangoutName: string;
+  hangoutDescription: string;
   postPositionX?: number;
   postPositionY?: number;
   selectedFriends: string[];
-  // Add more like friends, locations, etc
 }
 
 export interface HangoutSlice {
@@ -18,6 +18,7 @@ export interface HangoutSlice {
 export const createHangoutSlice: StateCreator<HangoutSlice> = (set) => ({
   hangoutDetails: {
     hangoutName: "",
+    hangoutDescription: "",
     selectedFriends: [],
   },
   setHangoutDetails: (details) => set({ hangoutDetails: details }),

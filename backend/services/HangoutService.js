@@ -5,8 +5,13 @@ import {
   fetchHangoutFromDatabase,
   fetchRecentHangoutsFromDatabase,
   fetchHangoutRequestsInDatabase,
+  fetchUpcomingHangoutsFromDatabase,
   createHangoutRequestsInDatabase,
   handleHangoutRequestInDatabase,
+  fetchFreshHangoutsInDatabase,
+  createJoinHangoutRequestInDatabase,
+  fetchJoinHangoutRequestsInDatabase,
+  leaveHangoutInDatabase,
 } from "../db/HangoutDatabase.js";
 import { storage } from "../firebase.js";
 
@@ -49,6 +54,10 @@ const fetchRecentHangouts = async (userId) => {
   const result = await fetchRecentHangoutsFromDatabase(userId);
   return result;
 };
+const fetchUpcomingHangouts = async (userId) => {
+  const result = await fetchUpcomingHangoutsFromDatabase(userId);
+  return result;
+};
 
 const fetchHangout = async (hangoutId) => {
   console.log(hangoutId);
@@ -62,11 +71,12 @@ const fetchHangoutRequests = async (userId) => {
 };
 
 const createHangoutRequests = async (hangoutId, hangoutRequestData) => {
-  const { selectedFriends, hangoutName } = hangoutRequestData;
+  const { selectedFriends, hangoutName, userId } = hangoutRequestData;
   const result = await createHangoutRequestsInDatabase(
     hangoutId,
     selectedFriends,
-    hangoutName
+    hangoutName,
+    userId
   );
   return result;
 };
@@ -79,12 +89,47 @@ const handleHangoutRequest = async (hangoutId, handleRequestData) => {
   return result;
 };
 
+const fetchFreshHangouts = async (userId) => {
+  const result = await fetchFreshHangoutsInDatabase(userId);
+  return result;
+};
+
+const createJoinHangoutRequest = async (
+  userId,
+  recipientId,
+  hangoutName,
+  hangoutId
+) => {
+  const result = await createJoinHangoutRequestInDatabase(
+    userId,
+    recipientId,
+    hangoutName,
+    hangoutId
+  );
+  return result;
+};
+
+const fetchJoinhangoutRequests = async (userId) => {
+  const result = await fetchJoinHangoutRequestsInDatabase(userId);
+  return result;
+};
+
+const leaveHangout = async (hangoutId, userId) => {
+  const result = await leaveHangoutInDatabase(hangoutId, userId);
+  return result;
+};
+
 export {
   createHangout,
   addPhotoToHangout,
   fetchRecentHangouts,
   fetchHangout,
   fetchHangoutRequests,
+  fetchUpcomingHangouts,
   createHangoutRequests,
   handleHangoutRequest,
+  fetchFreshHangouts,
+  createJoinHangoutRequest,
+  fetchJoinhangoutRequests,
+  leaveHangout,
 };
