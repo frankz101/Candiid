@@ -19,14 +19,14 @@ const createStickersInDatabase = async (stickers) => {
   const createdDocRefs = [];
 
   try {
-    for (const sticker of stickers.newStickers) {
-      const { id, ...stickerData } = sticker;
+    for (const sticker of stickers.addedStickers) {
+      const { ...stickerData } = sticker;
       const docRef = await addDoc(stickerCollection, {
         userId: stickers.userId,
         ...stickerData,
         createdAt: serverTimestamp(),
       });
-      createdDocRefs.push({ tempId: id, id: docRef.id });
+      createdDocRefs.push({ id: docRef.id });
     }
     return createdDocRefs;
   } catch (error) {

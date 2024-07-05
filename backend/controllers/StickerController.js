@@ -7,6 +7,7 @@ import {
 
 const postStickers = async (req, res) => {
   try {
+    console.log(req.body);
     const result = await createStickers(req.body);
     res.status(201).send({ result });
   } catch (err) {

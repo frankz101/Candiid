@@ -40,7 +40,6 @@ const searchUserInDatabase = async (userId) => {
   try {
     const userDocSnap = await getDoc(userDocRef);
     if (userDocSnap.exists()) {
-      console.log("User document data:", userDocSnap.data());
       return userDocSnap.data();
     } else {
       console.log("No such user document!");

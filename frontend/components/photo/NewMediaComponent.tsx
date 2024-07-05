@@ -1,4 +1,3 @@
-import { Image } from "expo-image";
 import Animated, {
   SharedValue,
   runOnJS,
@@ -20,8 +19,8 @@ import axios from "axios";
 import { useQueryClient } from "@tanstack/react-query";
 import { useUser } from "@clerk/clerk-expo";
 
-interface MediaComponentProps {
-  id?: string;
+interface NewMediaComponentProps {
+  id: string;
   media: GiphyMedia;
   positionX?: number;
   positionY?: number;
@@ -32,7 +31,7 @@ interface MediaComponentProps {
   isDisplay?: boolean;
 }
 
-const MediaComponent: React.FC<MediaComponentProps> = ({
+const NewMediaComponent: React.FC<NewMediaComponentProps> = ({
   id,
   media,
   positionX = 0,
@@ -44,9 +43,10 @@ const MediaComponent: React.FC<MediaComponentProps> = ({
   isDisplay,
 }) => {
   const mediaContext = useSharedValue({ x: positionX, y: positionY });
-  const [stickerId, setStickerId] = useState<string>();
   const queryClient = useQueryClient();
   const { user } = useUser();
+
+  console.log("New Media Component");
 
   const posX = useSharedValue<number>(positionX);
   const posY = useSharedValue<number>(positionY);
@@ -59,28 +59,20 @@ const MediaComponent: React.FC<MediaComponentProps> = ({
   //   updateSticker: state.updateSticker,
   // }));
 
-  const { updateSticker } = useStore((state) => ({
-    updateSticker: state.updateSticker,
+  const { addTempSticker, updateTempSticker } = useStore((state) => ({
+    addTempSticker: state.addTempSticker,
+    updateTempSticker: state.updateTempSticker,
   }));
 
-  console.log("Rendering Sticker ID: " + id);
-
-  useEffect(() => {
-    const stickerTempId = id || uuid.v4();
-    setStickerId(stickerTempId as string);
-
-    // if (!isDisplay) {
-    //   addSticker({
-    //     id: stickerTempId as string,
-    //     x: posX.value,
-    //     y: posY.value,
-    //     media: media,
-    //     scale: 1,
-    //     rotation: 0,
-    //     isNew: isNew,
-    //   });
-    // }
-  }, []);
+  // useEffect(() => {
+  //   if (!isDisplay) {
+  //     addTempSticker({
+  //       x: posX.value,
+  //       y: posY.value,
+  //       media: media,
+  //     });
+  //   }
+  // }, []);
 
   useEffect(() => {
     return () => {
@@ -146,46 +138,14 @@ const MediaComponent: React.FC<MediaComponentProps> = ({
     })
     .onEnd(() => {
       isMediaActive.value = false;
-      if (stickerId) {
-        runOnJS(updateSticker)(stickerId, posX.value, posY.value);
+      if (id) {
+        runOnJS(updateTempSticker)(id, posX.value, posY.value);
       } else {
         console.log("Sticker id is undefined, cannot update.");
       }
     });
 
-  const handleLongPress = () => {
-    if (!displayModeRef.current && id) {
-      Alert.alert(
-        "Confirm Delete",
-        "Are you sure you want to delete this sticker?",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Delete",
-            onPress: async () => {
-              try {
-                const response = await axios.delete(
-                  `${process.env.EXPO_PUBLIC_API_URL}/stickers/${id}`
-                );
-                console.log("Sticker deleted successfully:", response.data);
-                setIsStickerVisible(false);
-                // queryClient.setQueryData(["memories", user?.id], (old: any) => {
-                //   return old.filter((m: any) => m.memoryId !== memoryId);
-                // });
-              } catch (error: any) {
-                console.error(
-                  "Failed to delete sticker:",
-                  error.response ? error.response.data : error.message
-                );
-              }
-            },
-            style: "destructive",
-          },
-        ],
-        { cancelable: true }
-      );
-    }
-  };
+  const handleLongPress = () => {};
 
   if (!isStickerVisible) {
     return <View />;
@@ -209,4 +169,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MediaComponent;
+export default NewMediaComponent;
