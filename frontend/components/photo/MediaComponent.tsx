@@ -59,10 +59,12 @@ const MediaComponent: React.FC<MediaComponentProps> = ({
     updateSticker: state.updateSticker,
   }));
 
+  console.log("Sticker ID: " + id);
+
   useEffect(() => {
     const stickerTempId = id || uuid.v4();
     setStickerId(stickerTempId as string);
-    console.log("Mounted");
+
     if (!isDisplay) {
       addSticker({
         id: stickerTempId as string,
@@ -124,9 +126,6 @@ const MediaComponent: React.FC<MediaComponentProps> = ({
         return null;
     }
   };
-
-  console.log("DISPLAY: " + displayModeRef.current);
-  console.log("IsNew: " + isNew);
 
   const panGesture = Gesture.Pan()
     .enabled(!displayModeRef.current)

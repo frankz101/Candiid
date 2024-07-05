@@ -89,6 +89,11 @@ const MemoriesScreen = () => {
   const stickerArray = useStore((state) => state.stickers);
   const memoryArray = useStore((state) => state.memories);
 
+  const { updateAllStickers, updateStickerId } = useStore((state) => ({
+    updateAllStickers: state.updateAllStickers,
+    updateStickerId: state.updateStickerId,
+  }));
+
   // const [memories, setMemories] = useState<
 
   // const [activeStickerIndex, setActiveStickerIndex] = useState<number | null>(
@@ -322,7 +327,6 @@ const MemoriesScreen = () => {
   };
 
   const prepareMemoriesForUpdate = () => {
-    // console.log("Sticker Array: ", JSON.stringify(stickerArray, null, 2));
     const modifiedMemories = memoryArray.filter((memory) => memory.modified);
 
     console.log("Modified Memories: " + modifiedMemories);
@@ -392,14 +396,34 @@ const MemoriesScreen = () => {
         };
 
         try {
-          console.log("Modified stickers" + modifiedStickers);
           if (newStickers.length > 0) {
             const newStickersResponse = await axios.post(
               `${process.env.EXPO_PUBLIC_API_URL}/stickers`,
               newStickerRequestBody
             );
             console.log("New stickers added:", newStickersResponse.data);
+            newStickersResponse.data.result.forEach(
+              ({ tempId, id }: { tempId: string; id: string }) => {
+                console.log("Temp ID: " + tempId);
+                console.log("ID: " + id);
+                updateStickerId(tempId, id);
+                console.log(
+                  "Sticker Array: ",
+                  JSON.stringify(
+                    stickerArray.map((sticker) => ({
+                      id: sticker.id,
+                      x: sticker.x,
+                      y: sticker.y,
+                    })),
+                    null,
+                    2
+                  )
+                );
+              }
+            );
           }
+          console.log("Modified stickers" + modifiedStickers);
+          console.log("Sticker temp array: " + stickers);
           if (modifiedStickers.length > 0) {
             const modifiedStickersResponse = await axios.put(
               `${process.env.EXPO_PUBLIC_API_URL}/stickers`,
@@ -418,6 +442,7 @@ const MemoriesScreen = () => {
         }
       }
     }
+    updateAllStickers();
     setStickers(
       stickers.map((sticker) => ({
         ...sticker,
@@ -465,7 +490,7 @@ const MemoriesScreen = () => {
 
   if (!isPendingProfile) {
     selectedColor.value =
-      profileDetails.result.backgroundDetails.backgroundColor;
+      profileDetails.result.backgroundDetails?.backgroundColor;
   }
 
   // if (!isPendingMemories) {

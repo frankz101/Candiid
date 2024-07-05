@@ -16,7 +16,10 @@ export interface StickerSlice {
   stickers: StickerDetails[];
   addSticker: (sticker: StickerDetails) => void;
   updateSticker: (id: string, changes: Partial<StickerDetails>) => void;
+  updateStickerId: (tempId: string, id: string) => void;
+  updateAllStickers: () => void;
   removeSticker: (id: string) => void;
+  resetStickers: () => void;
 }
 
 export const createStickerSlice: StateCreator<StickerSlice> = (set) => ({
@@ -51,8 +54,28 @@ export const createStickerSlice: StateCreator<StickerSlice> = (set) => ({
       ),
     })),
 
+  updateStickerId: (tempId: string, newId: string) =>
+    set((state) => ({
+      stickers: state.stickers.map((sticker) =>
+        sticker.id === tempId
+          ? { ...sticker, id: newId, modified: false }
+          : sticker
+      ),
+    })),
+
+  updateAllStickers: () =>
+    set((state) => ({
+      stickers: state.stickers.map((sticker) => ({
+        ...sticker,
+        isNew: false,
+        lastModified: undefined,
+      })),
+    })),
+
   removeSticker: (id: string) =>
     set((state) => ({
       stickers: state.stickers.filter((sticker) => sticker.id !== id),
     })),
+
+  resetStickers: () => set(() => ({ stickers: [] })),
 });

@@ -171,7 +171,7 @@ const Profile = () => {
             <MemoriesView
               hangouts={memoriesData}
               stickers={stickersData}
-              color={userProfile.backgroundDetails?.backgroundColor || null}
+              color={userProfile.backgroundDetails?.backgroundColor}
             />
           </Pressable>
         </Animated.View>

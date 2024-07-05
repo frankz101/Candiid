@@ -54,7 +54,6 @@ const MemoriesView: React.FC<MemoriesViewProps> = ({
 
   const selectedColor = useSharedValue(color);
   const displayModeRef = useRef(true); // SAVE THIS FOR IS EDIT MODE
-  console.log(selectedColor.value);
 
   const containerStyle = useAnimatedStyle(() => {
     return {

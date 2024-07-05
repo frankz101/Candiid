@@ -245,8 +245,6 @@ const AnimatedMemory = ({
     });
   };
 
-  console.log("Animated display mode: " + displayModeRef.current);
-
   const panGesture = Gesture.Pan()
     .enabled(!displayModeRef.current)
     .onStart(() => {

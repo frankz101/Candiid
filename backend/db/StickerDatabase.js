@@ -26,7 +26,7 @@ const createStickersInDatabase = async (stickers) => {
         ...stickerData,
         createdAt: serverTimestamp(),
       });
-      createdDocRefs.push(docRef.id);
+      createdDocRefs.push({ tempId: id, id: docRef.id });
     }
     return createdDocRefs;
   } catch (error) {
