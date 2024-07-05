@@ -132,7 +132,7 @@ const fetchUpcomingHangoutsFromDatabase = async (userId) => {
         const hangoutDoc = await getDoc(hangoutRef);
 
         if (hangoutDoc.exists()) {
-          const hangout = hangoutDoc.data();
+          const hangout = { id: hangoutDoc.id, ...hangoutDoc.data() };
           const participantIds = hangout.participantIds.slice(0, 2); // Get first two participants
           hangout.participants = participantIds;
           hangouts.push(hangout);
@@ -164,7 +164,7 @@ const fetchUpcomingHangoutsFromDatabase = async (userId) => {
         profilePhoto: userProfiles[userId]?.profilePhoto || null,
       }));
     });
-
+    console.log(hangouts);
     return hangouts;
   } catch (error) {
     console.error("Error fetching upcoming hangouts:", error);
