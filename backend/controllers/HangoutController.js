@@ -11,6 +11,8 @@ import {
   createJoinHangoutRequest,
   fetchJoinhangoutRequests,
   leaveHangout,
+  removeHangout,
+  transferHangoutOwnership,
 } from "../services/HangoutService.js";
 
 const postHangout = async (req, res) => {
@@ -149,6 +151,26 @@ const putLeaveHangout = async (req, res) => {
   }
 };
 
+const deleteHangout = async (req, res) => {
+  try {
+    const { hangoutId } = req.params;
+    const result = await removeHangout(hangoutId);
+    res.status(201).send({ result });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+const putHangoutOwnership = async (req, res) => {
+  try {
+    const { hangoutId, userId, newUserId } = req.body;
+    const result = await transferHangoutOwnership(hangoutId, userId, newUserId);
+    res.status(201).send({ result });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export {
   postHangout,
   postPhotoToHangout,
@@ -162,4 +184,6 @@ export {
   postJoinHangoutRequest,
   getJoinHangoutRequests,
   putLeaveHangout,
+  deleteHangout,
+  putHangoutOwnership,
 };

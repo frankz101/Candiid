@@ -29,12 +29,14 @@ type FriendUpdateAction = {
 interface UserBannerProps {
   user: User;
   type: string;
+  disabled?: boolean;
   onHandleRequest?: (userId: string) => void;
 }
 
 const UserBanner: React.FC<UserBannerProps> = ({
   user,
   type,
+  disabled = false,
   onHandleRequest,
 }) => {
   const { user: currentUser } = useUser();
@@ -215,7 +217,7 @@ const UserBanner: React.FC<UserBannerProps> = ({
           },
         });
       }}
-      disabled={user.userId === currentUser?.id}
+      disabled={user.userId === currentUser?.id || disabled}
     >
       <View
         style={[

@@ -446,6 +446,58 @@ const leaveHangoutInDatabase = async (hangoutId, userId) => {
   }
 };
 
+const removeHangoutInDatabase = async (hangoutId) => {
+  try {
+    const hangoutDocRef = doc(db, "hangouts", hangoutId);
+    const hangoutSnapshot = await getDoc(hangoutDocRef);
+    const participantIds = hangoutSnapshot.data().participantIds;
+    await Promise.all(
+      participantIds.map(async (participantId) => {
+        const userDocRef = doc(db, "users", participantId);
+        await updateDoc(userDocRef, {
+          upcomingHangouts: arrayRemove(hangoutId),
+        });
+      })
+    );
+    const userDoc = doc(db, "users", hangoutSnapshot.data().userId);
+    await updateDoc(userDoc, {
+      createdHangouts: arrayRemove(hangoutId),
+    });
+    await deleteDoc(hangoutDocRef);
+    return "deleted";
+  } catch (error) {
+    console.error("Error deleting hangout: ", error);
+    throw error;
+  }
+};
+
+const transferHangoutOwnershipInDatabase = async (
+  hangoutId,
+  userId,
+  newUserId
+) => {
+  try {
+    const hangoutRef = doc(db, "hangouts", hangoutId);
+    await updateDoc(hangoutRef, {
+      userId: newUserId,
+      participantIds: arrayRemove(userId),
+    });
+    const userRef = doc(db, "users", userId);
+    const newUserRef = doc(db, "users", newUserId);
+    await updateDoc(userRef, {
+      createdHangouts: arrayRemove(hangoutId),
+      upcomingHangouts: arrayRemove(hangoutId),
+    });
+    await updateDoc(newUserRef, {
+      createdHangouts: arrayUnion(hangoutId),
+    });
+    return "successfully transfered hangout";
+  } catch (error) {
+    console.error("Error transfering hangout: ", error);
+    throw error;
+  }
+};
+
 export {
   createHangoutInDatabase,
   addPhotoToHangoutInDatabase,
@@ -459,4 +511,6 @@ export {
   createJoinHangoutRequestInDatabase,
   fetchJoinHangoutRequestsInDatabase,
   leaveHangoutInDatabase,
+  removeHangoutInDatabase,
+  transferHangoutOwnershipInDatabase,
 };

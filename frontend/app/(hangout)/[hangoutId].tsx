@@ -35,8 +35,10 @@ const scrollViewHeight = screenHeight - headerHeight - bottomPadding;
 
 const Hangout = () => {
   const { hangoutId, memoryId } = useLocalSearchParams();
+  const hangoutIdStr = Array.isArray(hangoutId) ? hangoutId[0] : hangoutId;
   const [modalVisible, setModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
+  const [transferModalVisible, setTransferModalVisible] = useState(false);
   const router = useRouter();
   const { user } = useUser();
   const queryClient = useQueryClient();
@@ -109,21 +111,53 @@ const Hangout = () => {
           text: "Yes",
           style: "destructive",
           onPress: async () => {
-            router.back();
-            const res = await axios.put(
-              `${process.env.EXPO_PUBLIC_API_URL}/hangout/leave`,
-              {
-                userId: user?.id,
-                hangoutId,
-              }
-            );
-            queryClient.invalidateQueries({ queryKey: ["hangouts"] });
-            console.log(res.data.result);
+            if (user?.id === hangoutData.userId) {
+              ownerLeaveHangout();
+            } else {
+              router.back();
+              const res = await axios.put(
+                `${process.env.EXPO_PUBLIC_API_URL}/hangout/leave`,
+                {
+                  userId: user?.id,
+                  hangoutId,
+                }
+              );
+              queryClient.invalidateQueries({ queryKey: ["hangouts"] });
+              console.log(res.data.result);
+            }
           },
         },
       ],
       { cancelable: true }
     );
+  };
+
+  const ownerLeaveHangout = () => {
+    if (hangoutData.participantIds.length === 1) {
+      deleteHangout();
+    } else {
+      Alert.alert(
+        "You are the owner of this hangout",
+        "Would you like to transfer ownership or delete the hangout?",
+        [
+          {
+            text: "Transfer",
+            style: "cancel",
+            onPress: () => {
+              setTransferModalVisible(true);
+            },
+          },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: () => {
+              deleteHangout();
+            },
+          },
+        ],
+        { cancelable: true }
+      );
+    }
   };
 
   const removeParticipant = async (userId: string) => {
@@ -152,8 +186,33 @@ const Hangout = () => {
             console.log(res.data.result);
           },
         },
-      ]
+      ],
+      { cancelable: true }
     );
+  };
+
+  const deleteHangout = async () => {
+    router.back();
+    const res = await axios.delete(
+      `${process.env.EXPO_PUBLIC_API_URL}/hangout/delete/${hangoutId}`
+    );
+    queryClient.invalidateQueries({
+      queryKey: ["hangouts"],
+    });
+    console.log(res.data.result);
+  };
+
+  const transferOwnership = async (hangoutId: string, newUserId: string) => {
+    router.back();
+    const res = await axios.put(
+      `${process.env.EXPO_PUBLIC_API_URL}/hangout/transfer`,
+      {
+        hangoutId,
+        userId: user?.id,
+        newUserId,
+      }
+    );
+    console.log(res.data.result);
   };
 
   return (
@@ -267,6 +326,48 @@ const Hangout = () => {
                       )}
                   </View>
                 )}
+                keyExtractor={(item) => item}
+              />
+            </View>
+          </Pressable>
+        </Modal>
+        <Modal
+          transparent={true}
+          animationType="slide"
+          visible={transferModalVisible}
+        >
+          <Pressable
+            style={styles.bottomOverlay}
+            onPress={() => setTransferModalVisible(false)}
+          >
+            <View style={styles.bottomModalContainer}>
+              <FlatList
+                data={participants}
+                renderItem={({ item }) => {
+                  if (user?.id !== item.userId) {
+                    return (
+                      <Pressable
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                        }}
+                        onPress={() =>
+                          transferOwnership(hangoutIdStr, item.userId)
+                        }
+                      >
+                        <View style={{ flex: 1 }}>
+                          <UserBanner
+                            user={item}
+                            type="participants"
+                            disabled={true}
+                          />
+                        </View>
+                      </Pressable>
+                    );
+                  }
+                  return null;
+                }}
                 keyExtractor={(item) => item}
               />
             </View>
