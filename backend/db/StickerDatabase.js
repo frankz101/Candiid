@@ -26,7 +26,7 @@ const createStickersInDatabase = async (stickers) => {
         ...stickerData,
         createdAt: serverTimestamp(),
       });
-      createdDocRefs.push({ id: docRef.id });
+      createdDocRefs.push(docRef.id);
     }
     return createdDocRefs;
   } catch (error) {
@@ -67,6 +67,8 @@ const updateStickersInDatabase = async (stickerData) => {
       throw new Error("No stickers provided for update.");
     }
 
+    const updatedStickerIds = [];
+
     for (const sticker of stickerData.modifiedStickers) {
       if (!sticker.id) {
         throw new Error("Sticker missing an id, cannot update.");
@@ -77,7 +79,10 @@ const updateStickersInDatabase = async (stickerData) => {
 
       await updateDoc(stickerDocRef, updateFields);
       console.log(`Sticker ${sticker.id} updated successfully.`);
+      updatedStickerIds.push(sticker.id);
     }
+
+    return updatedStickerIds;
   } catch (error) {
     console.error("Error updating stickers:", error);
     throw new Error("Failed to update stickers");

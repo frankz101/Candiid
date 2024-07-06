@@ -917,12 +917,14 @@ const MemoriesScreen = () => {
     addSticker,
     addTempSticker,
     updateTempSticker,
+    resetStickers,
     resetTempStickers,
   } = useStore((state) => ({
     setStickers: state.setStickers,
     addSticker: state.addSticker,
     addTempSticker: state.addTempSticker,
     updateTempSticker: state.updateTempSticker,
+    resetStickers: state.resetStickers,
     resetTempStickers: state.resetTempStickers,
   }));
   const stickerStore = useStore((state) => state.stickers);
@@ -1160,18 +1162,16 @@ const MemoriesScreen = () => {
     bottomSheetModalRef.current?.present();
   }, []);
 
-  // const prepareStickersForUpdate = () => {
-  //   // console.log("Sticker Array: ", JSON.stringify(stickerArray, null, 2));
-  //   const newStickers = stickerArray.filter((sticker) => sticker.isNew);
-  //   const modifiedStickers = stickerArray.filter(
-  //     (sticker) => sticker.modified && !sticker.isNew
-  //   );
+  const prepareStickersForUpdate = () => {
+    console.log("Object values: " + Object.values(stickerArray));
+    const modifiedStickers = Object.values(stickerArray).filter(
+      (sticker) => sticker.modified
+    );
 
-  //   console.log("New Stickers: " + newStickers);
-  //   console.log("Modified Stickers: " + modifiedStickers);
+    console.log("Modified Stickers: ", modifiedStickers);
 
-  //   return { newStickers, modifiedStickers };
-  // };
+    return { modifiedStickers };
+  };
 
   const prepareMemoriesForUpdate = () => {
     const modifiedMemories = memoryArray.filter((memory) => memory.modified);
@@ -1181,21 +1181,12 @@ const MemoriesScreen = () => {
     return { modifiedMemories };
   };
 
-  // function prepareStickersForAPI(
-  //   stickers: Record<string, StickerDetails>
-  // ): StickerDetails[] {
-  //   return stickers.map((sticker) => ({
-  //     media: sticker.media,
-  //     x: sticker.positionX.value,
-  //     y: sticker.positionY.value,
-  //     mediaType: sticker.mediaType,
-  //   }));
-  // }
   function prepareStickersForAPI(
     stickers: Record<string, StickerDetails>
   ): StickerDetails[] {
     return Object.values(stickers).map((sticker) => ({
       ...sticker,
+      id: sticker.id,
       x: sticker.x,
       y: sticker.y,
     }));
@@ -1220,39 +1211,38 @@ const MemoriesScreen = () => {
     } else if (editMode === "stickers") {
       displayModeRef.current = true;
 
-      // const { newStickers, modifiedStickers } = prepareStickersForUpdate();
+      const { modifiedStickers } = prepareStickersForUpdate();
       const { modifiedMemories } = prepareMemoriesForUpdate();
 
       // Modify memories
-      // if (modifiedMemories.length > 0) {
-      //   const modifiedMemoriesRequestBody = {
-      //     userId: user?.id,
-      //     modifiedMemories,
-      //   };
+      if (modifiedMemories.length > 0) {
+        const modifiedMemoriesRequestBody = {
+          userId: user?.id,
+          modifiedMemories,
+        };
 
-      //   try {
-      //     console.log("Modified memories" + modifiedMemories);
-      //     if (modifiedMemories.length > 0) {
-      //       const modifiedMemoriesResponse = await axios.put(
-      //         `${process.env.EXPO_PUBLIC_API_URL}/memories`,
-      //         modifiedMemoriesRequestBody
-      //       );
-      //       console.log(
-      //         "Modified memories updated:",
-      //         modifiedMemoriesResponse.data
-      //       );
-      //     }
-      //   } catch (error: any) {
-      //     console.error(
-      //       "Error updating memories",
-      //       error.response ? error.response.data : error.message
-      //     );
-      //   }
-      // }
+        try {
+          console.log("Modified memories" + modifiedMemories);
+          if (modifiedMemories.length > 0) {
+            const modifiedMemoriesResponse = await axios.put(
+              `${process.env.EXPO_PUBLIC_API_URL}/memories`,
+              modifiedMemoriesRequestBody
+            );
+            console.log(
+              "Modified memories updated:",
+              modifiedMemoriesResponse.data
+            );
+          }
+        } catch (error: any) {
+          console.error(
+            "Error updating memories",
+            error.response ? error.response.data : error.message
+          );
+        }
+      }
 
       if (Object.keys(tempStickerStore).length > 0) {
         const preparedStickers = prepareStickersForAPI(tempStickerStore);
-        console.log("Prepared Stickers for API:", preparedStickers);
 
         const newStickerRequestBody = {
           userId: user?.id,
@@ -1273,9 +1263,10 @@ const MemoriesScreen = () => {
               JSON.stringify(preparedStickers, null, 2)
             );
             stickerIds.forEach((id: string, index: number) => {
+              console.log(id);
               const stickerWithId = {
                 ...preparedStickers[index],
-                id, // Update the sticker with the new ID from the backend
+                id,
               };
               addSticker(stickerWithId);
               resetTempStickers();
@@ -1289,70 +1280,32 @@ const MemoriesScreen = () => {
       }
 
       // Only make requests if there are new or modified stickers
-      // if (newStickers.length > 0 || modifiedStickers.length > 0) {
-      //   const newStickerRequestBody = {
-      //     userId: user?.id,
-      //     newStickers,
-      //   };
+      if (modifiedStickers.length > 0) {
+        const modifiedStickerRequestBody = {
+          userId: user?.id,
+          modifiedStickers,
+        };
 
-      //   const modifiedStickerRequestBody = {
-      //     userId: user?.id,
-      //     modifiedStickers,
-      //   };
-
-      //   try {
-      //     if (newStickers.length > 0) {
-      //       const newStickersResponse = await axios.post(
-      //         `${process.env.EXPO_PUBLIC_API_URL}/stickers`,
-      //         newStickerRequestBody
-      //       );
-      //       console.log("New stickers added:", newStickersResponse.data);
-      //       newStickersResponse.data.result.forEach(
-      //         ({ tempId, id }: { tempId: string; id: string }) => {
-      //           console.log("Temp ID: " + tempId);
-      //           console.log("ID: " + id);
-      //           updateStickerId(tempId, id);
-      //           console.log(
-      //             "Sticker Array: ",
-      //             JSON.stringify(
-      //               stickerArray.map((sticker) => ({
-      //                 id: sticker.id,
-      //                 x: sticker.x,
-      //                 y: sticker.y,
-      //               })),
-      //               null,
-      //               2
-      //             )
-      //           );
-      //         }
-      //       );
-      //     }
-      //     if (modifiedStickers.length > 0) {
-      //       const modifiedStickersResponse = await axios.put(
-      //         `${process.env.EXPO_PUBLIC_API_URL}/stickers`,
-      //         modifiedStickerRequestBody
-      //       );
-      //       console.log(
-      //         "Modified stickers updated:",
-      //         modifiedStickersResponse.data
-      //       );
-      //     }
-      //   } catch (error: any) {
-      //     console.error(
-      //       "Error updating stickers",
-      //       error.response ? error.response.data : error.message
-      //     );
-      //   }
-      // }
+        try {
+          if (modifiedStickers.length > 0) {
+            const modifiedStickersResponse = await axios.put(
+              `${process.env.EXPO_PUBLIC_API_URL}/stickers`,
+              modifiedStickerRequestBody
+            );
+            console.log(
+              "Modified stickers updated:",
+              modifiedStickersResponse.data
+            );
+            resetStickers(modifiedStickersResponse.data);
+          }
+        } catch (error: any) {
+          console.error(
+            "Error updating stickers",
+            error.response ? error.response.data : error.message
+          );
+        }
+      }
     }
-    // updateAllStickers();
-    // setStickers(
-    //   stickers.map((sticker) => ({
-    //     ...sticker,
-    //     isNew: false,
-    //     lastModified: undefined,
-    //   }))
-    // );
 
     setIsEditMode(false);
     setEditMode("");
@@ -1470,8 +1423,6 @@ const MemoriesScreen = () => {
       console.error("Error creating memories or hangout requests:", error);
     }
   };
-
-  console.log("TempStickerStore: " + JSON.stringify(tempStickerStore));
 
   return isPendingMemories && isPendingStickers && isPendingProfile ? (
     <Text>Loading...</Text>

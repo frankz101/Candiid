@@ -54,11 +54,6 @@ const MediaComponent: React.FC<MediaComponentProps> = ({
   const isMediaActive = useSharedValue<boolean>(false);
   const [isStickerVisible, setIsStickerVisible] = useState<boolean>(true);
 
-  // const { addSticker, updateSticker } = useStore((state) => ({
-  //   addSticker: state.addSticker,
-  //   updateSticker: state.updateSticker,
-  // }));
-
   const { updateSticker } = useStore((state) => ({
     updateSticker: state.updateSticker,
   }));
@@ -66,20 +61,8 @@ const MediaComponent: React.FC<MediaComponentProps> = ({
   console.log("Rendering Sticker ID: " + id);
 
   useEffect(() => {
-    const stickerTempId = id || uuid.v4();
+    const stickerTempId = id;
     setStickerId(stickerTempId as string);
-
-    // if (!isDisplay) {
-    //   addSticker({
-    //     id: stickerTempId as string,
-    //     x: posX.value,
-    //     y: posY.value,
-    //     media: media,
-    //     scale: 1,
-    //     rotation: 0,
-    //     isNew: isNew,
-    //   });
-    // }
   }, []);
 
   useEffect(() => {
@@ -147,7 +130,7 @@ const MediaComponent: React.FC<MediaComponentProps> = ({
     .onEnd(() => {
       isMediaActive.value = false;
       if (stickerId) {
-        runOnJS(updateSticker)(stickerId, posX.value, posY.value);
+        runOnJS(updateSticker)(stickerId, posX.value, posY.value, true);
       } else {
         console.log("Sticker id is undefined, cannot update.");
       }

@@ -100,8 +100,9 @@ export interface StickerSlice {
   setStickers: (stickers: Record<string, StickerDetails>) => void;
   addSticker: (sticker: StickerDetails) => void;
   addTempSticker: (sticker: StickerDetails) => void;
-  updateSticker: (id: string, x: number, y: number) => void;
+  updateSticker: (id: string, x: number, y: number, modified: boolean) => void;
   updateTempSticker: (id: string, x: number, y: number) => void;
+  resetStickers: (ids: string[]) => void;
   resetTempStickers: () => void;
 }
 
@@ -130,7 +131,7 @@ export const createStickerSlice: StateCreator<StickerSlice> = (set) => ({
       };
     }),
 
-  updateSticker: (id, x, y) =>
+  updateSticker: (id, x, y, modified) =>
     set((state) => ({
       stickers: {
         ...state.stickers,
@@ -138,6 +139,7 @@ export const createStickerSlice: StateCreator<StickerSlice> = (set) => ({
           ...state.stickers[id],
           x,
           y,
+          modified,
         },
       },
     })),
@@ -153,6 +155,22 @@ export const createStickerSlice: StateCreator<StickerSlice> = (set) => ({
         },
       },
     })),
+
+  resetStickers: (ids: string[]) =>
+    set((state) => {
+      const updatedStickers = { ...state.stickers };
+
+      ids.forEach((id) => {
+        if (updatedStickers[id]) {
+          updatedStickers[id] = {
+            ...updatedStickers[id],
+            modified: false,
+          };
+        }
+      });
+
+      return { stickers: updatedStickers };
+    }),
 
   resetTempStickers: () =>
     set(() => ({
