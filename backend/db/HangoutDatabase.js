@@ -436,6 +436,9 @@ const leaveHangoutInDatabase = async (hangoutId, userId) => {
       participantIds: arrayRemove(userId),
     });
 
+    const userDocRef = doc(db, "users", userId);
+    await updateDoc(userDocRef, { upcomingHangouts: arrayRemove(hangoutId) });
+
     return "left hangout successfully";
   } catch (error) {
     console.error("Error leaving hangout: ", error);

@@ -19,6 +19,7 @@ import {
   createBlockInDatabase,
   fetchBlocksInDatabase,
   removeBlockInDatabase,
+  fetchUserListInDatabase,
 } from "../db/UserDatabase.js";
 import { storage } from "../firebase.js";
 import { retrieveFriendRequestsSent } from "./FriendRequestService.js";
@@ -250,6 +251,11 @@ const removeBlock = async (blockId) => {
   return result;
 };
 
+const fetchUserList = async (userIds) => {
+  const result = await fetchUserListInDatabase(userIds);
+  return result;
+};
+
 export {
   createUser,
   changeProfilePhoto,
@@ -270,4 +276,5 @@ export {
   createBlock,
   fetchBlocks,
   removeBlock,
+  fetchUserList,
 };

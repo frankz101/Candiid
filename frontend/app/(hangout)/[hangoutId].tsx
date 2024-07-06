@@ -7,6 +7,7 @@ import {
   Pressable,
   Modal,
   Alert,
+  FlatList,
 } from "react-native";
 import React, { useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -24,6 +25,7 @@ import CompleteHangoutButton from "@/components/hangoutDetail/CompleteHangoutBut
 import HangoutDetailCard from "@/components/hangoutDetail/HangoutDetailCard";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useUser } from "@clerk/clerk-expo";
+import UserBanner from "@/components/friends/UserBanner";
 
 const screenHeight = Dimensions.get("window").height;
 const headerHeight = 140;
@@ -34,6 +36,7 @@ const scrollViewHeight = screenHeight - headerHeight - bottomPadding;
 const Hangout = () => {
   const { hangoutId, memoryId } = useLocalSearchParams();
   const [modalVisible, setModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
   const router = useRouter();
   const { user } = useUser();
   const queryClient = useQueryClient();
@@ -45,9 +48,26 @@ const Hangout = () => {
       .then((res) => res.data);
   };
 
+  const fetchParticipants = async () => {
+    if (hangoutData?.participantIds?.length > 0) {
+      return axios
+        .post(`${process.env.EXPO_PUBLIC_API_URL}/user/list`, {
+          userIds: hangoutData.participantIds,
+        })
+        .then((res) => res.data.result);
+    }
+    return [];
+  };
+
   const { data: hangoutData, isPending } = useQuery({
     queryKey: ["hangoutPhotos", hangoutId],
     queryFn: fetchHangout,
+  });
+
+  const { data: participants } = useQuery({
+    queryKey: ["hangoutParticipants", hangoutId],
+    queryFn: fetchParticipants,
+    enabled: !!hangoutData,
   });
 
   if (isPending) {
@@ -103,6 +123,36 @@ const Hangout = () => {
         },
       ],
       { cancelable: true }
+    );
+  };
+
+  const removeParticipant = async (userId: string) => {
+    Alert.alert(
+      "Are you sure you want to remove this user?",
+      "They will no longer be able to contribute to this hangout.",
+      [
+        {
+          text: "No",
+          style: "cancel",
+        },
+        {
+          text: "Yes",
+          style: "destructive",
+          onPress: async () => {
+            const res = await axios.put(
+              `${process.env.EXPO_PUBLIC_API_URL}/hangout/leave`,
+              {
+                userId,
+                hangoutId,
+              }
+            );
+            queryClient.invalidateQueries({
+              queryKey: ["hangout"],
+            });
+            console.log(res.data.result);
+          },
+        },
+      ]
     );
   };
 
@@ -167,14 +217,68 @@ const Hangout = () => {
           hangoutName={hangoutData.hangoutName}
         />
       </View>
-      <View>
+      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
         <Text style={styles.sectionTwoText}>Participants</Text>
+        <Pressable onPress={() => setEditModalVisible(true)}>
+          <Text
+            style={[
+              styles.sectionTwoText,
+              { color: "gray", fontWeight: "normal" },
+            ]}
+          >
+            Show more
+          </Text>
+        </Pressable>
+        <Modal
+          transparent={true}
+          animationType="slide"
+          visible={editModalVisible}
+        >
+          <Pressable
+            style={styles.bottomOverlay}
+            onPress={() => setEditModalVisible(false)}
+          >
+            <View style={styles.bottomModalContainer}>
+              <FlatList
+                data={participants}
+                renderItem={({ item }) => (
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <UserBanner user={item} type="participants" />
+                    </View>
+                    {hangoutData.userId === user?.id &&
+                      hangoutData.userId !== item.userId && (
+                        <Pressable
+                          style={{ paddingRight: wp(3) }}
+                          onPress={() => removeParticipant(item.userId)}
+                        >
+                          <Ionicons
+                            name="remove-outline"
+                            color="gray"
+                            size={20}
+                          />
+                        </Pressable>
+                      )}
+                  </View>
+                )}
+                keyExtractor={(item) => item}
+              />
+            </View>
+          </Pressable>
+        </Modal>
       </View>
       {hangoutData && hangoutData.participantIds ? (
         <View>
           <ParticipantsList
             participants={hangoutData.participantIds}
             hangoutId={hangoutId as string}
+            showModal={() => setEditModalVisible(true)}
           />
         </View>
       ) : null}
@@ -256,5 +360,18 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     paddingTop: hp(11),
     paddingRight: wp(3),
+  },
+  bottomOverlay: {
+    flex: 1,
+  },
+  bottomModalContainer: {
+    position: "absolute",
+    bottom: 0,
+    width: wp(100),
+    height: hp(80),
+    backgroundColor: "#2a2a2d",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: hp(1),
   },
 });

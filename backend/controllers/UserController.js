@@ -18,6 +18,7 @@ import {
   createBlock,
   fetchBlocks,
   removeBlock,
+  fetchUserList,
 } from "../services/UserService.js";
 
 const postUser = async (req, res) => {
@@ -227,6 +228,16 @@ const deleteBlock = async (req, res) => {
   }
 };
 
+const getUserList = async (req, res) => {
+  try {
+    const userIds = req.body.userIds;
+    const result = await fetchUserList(userIds);
+    res.status(201).send({ result });
+  } catch (error) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export {
   postUser,
   putUserProfilePhoto,
@@ -247,4 +258,5 @@ export {
   postBlock,
   getBlocks,
   deleteBlock,
+  getUserList,
 };

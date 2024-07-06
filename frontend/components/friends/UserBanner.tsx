@@ -215,6 +215,7 @@ const UserBanner: React.FC<UserBannerProps> = ({
           },
         });
       }}
+      disabled={user.userId === currentUser?.id}
     >
       <View
         style={[

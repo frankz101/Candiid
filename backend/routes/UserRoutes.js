@@ -20,6 +20,7 @@ import {
   postBlock,
   getBlocks,
   deleteBlock,
+  getUserList,
 } from "../controllers/UserController.js";
 
 var router = express.Router();
@@ -49,5 +50,6 @@ router.post("/user/report", postReport);
 router.post("/user/block", postBlock);
 router.get("/user/block/:userId", getBlocks);
 router.delete("/user/unblock/:id", deleteBlock);
+router.post("/user/list", getUserList);
 
 export default router;
