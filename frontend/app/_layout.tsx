@@ -62,7 +62,7 @@ const InitialLayout = () => {
     if (isLoaded) {
       fetchDataAndNavigate();
     }
-  }, [isLoaded, isSignedIn, user]);
+  }, [isSignedIn]);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>

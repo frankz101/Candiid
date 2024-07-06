@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   StyleSheet,
-  Button,
   Image,
   Pressable,
 } from "react-native";
@@ -19,6 +18,8 @@ import {
 } from "react-native-responsive-screen";
 import { Ionicons } from "@expo/vector-icons";
 import { SheetManager } from "react-native-actions-sheet";
+import Toast from "react-native-toast-message";
+import { useRouter } from "expo-router";
 
 //GET RID OF RESULT WHEN FETCHING PROFILE
 interface User {
@@ -45,10 +46,14 @@ const EditProfileScreen = () => {
   const [name, setName] = useState(profile?.name);
   const [username, setUsername] = useState(profile?.username);
 
+  const [originalName] = useState(profile?.name);
+  const [originalUsername] = useState(profile?.username);
+
   const nameRef = useRef(name);
   const usernameRef = useRef(username);
 
   const [error, setError] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     nameRef.current = name;
@@ -76,12 +81,18 @@ const EditProfileScreen = () => {
           `${process.env.EXPO_PUBLIC_API_URL}/user/${user?.id}/details`,
           userDetails
         );
-        console.log("Profile updated successfully");
+        router.back();
+        Toast.show({
+          type: "success",
+          text1: "Profile updated successfully!",
+          position: "bottom",
+          visibilityTime: 1500,
+        });
         await queryClient.invalidateQueries({
           queryKey: ["profile", user?.id],
         });
       } catch (error: any) {
-        setError("Username is taken");
+        setError(error.errors[0].message);
       }
     }
   };
@@ -90,15 +101,17 @@ const EditProfileScreen = () => {
     SheetManager.show("change-photo");
   };
 
+  const isChanged = name !== originalName || username !== originalUsername;
+
   return (
     <BaseScreen>
       <View style={styles.headerContainer}>
         <BackButton />
         <Text style={styles.header}>Edit Profile</Text>
-        <Pressable onPress={applyUpdates}>
+        <Pressable onPress={applyUpdates} disabled={!isChanged}>
           <Text
             style={{
-              color: "white",
+              color: isChanged ? "white" : "gray",
               fontWeight: "bold",
               marginRight: wp(2),
             }}
@@ -109,20 +122,17 @@ const EditProfileScreen = () => {
       </View>
 
       <View style={{ alignItems: "center", marginBottom: hp(2) }}>
-        {profile?.profilePhoto ? (
-          <Image
-            source={{ uri: profile?.profilePhoto?.fileUrl }}
-            width={50}
-            height={50}
-            style={styles.profilePhoto}
-          />
-        ) : (
-          <Ionicons name="person-circle-outline" size={50} />
-        )}
         <Pressable onPress={openChangePhotoSheet}>
-          <Text style={{ color: "blue", marginVertical: hp(1), fontSize: 16 }}>
-            Edit Profile Picture
-          </Text>
+          {profile?.profilePhoto ? (
+            <Image
+              source={{ uri: profile?.profilePhoto?.fileUrl }}
+              width={50}
+              height={50}
+              style={styles.profilePhoto}
+            />
+          ) : (
+            <Ionicons name="person-circle-outline" size={50} />
+          )}
         </Pressable>
       </View>
 
@@ -146,8 +156,12 @@ const EditProfileScreen = () => {
           maxLength={30}
           value={username}
         />
-        {error && <Text>{error}</Text>}
       </View>
+      {error && (
+        <Text style={{ color: "red", marginLeft: wp(25), marginTop: hp(-1.5) }}>
+          {error}
+        </Text>
+      )}
     </BaseScreen>
   );
 };
@@ -180,20 +194,21 @@ const styles = StyleSheet.create({
   editContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 15,
-    paddingHorizontal: 10,
+    marginBottom: hp(2),
+    paddingHorizontal: wp(3),
   },
   label: {
-    width: 80,
+    width: wp(20),
     color: "white",
   },
   input: {
     flex: 1,
-    height: 40,
+    height: hp(5),
     borderColor: "gray",
     borderWidth: 1,
-    paddingHorizontal: 10,
+    paddingHorizontal: wp(2),
     color: "white",
     backgroundColor: "black",
+    borderRadius: 5,
   },
 });
