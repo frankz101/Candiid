@@ -160,7 +160,9 @@ const Profile = () => {
                 style={styles.profilePhoto}
               />
             ) : (
-              <Ionicons name="person-circle" size={108} color={"white"} />
+              <View
+                style={[styles.profilePhoto, { backgroundColor: "grey" }]}
+              />
             )}
           </Pressable>
           <Text style={styles.userText}>{userProfile.name}</Text>
@@ -178,9 +180,13 @@ const Profile = () => {
         {/* DEFAULT PROFILE PIC NOT CENTERED AND SIZE IS WRONG */}
         <Text style={styles.headerText}>Upcoming Hangouts</Text>
         <View style={styles.upcomingHangouts}>
-          {upcomingHangouts?.map((hangout: Hangout) => {
-            return <ProfileHangout key={hangout.id} hangout={hangout} />;
-          })}
+          {upcomingHangouts && upcomingHangouts.length > 0 ? (
+            upcomingHangouts.map((hangout: Hangout) => (
+              <ProfileHangout key={hangout.id} hangout={hangout} />
+            ))
+          ) : (
+            <ProfileHangout isEmpty={true} />
+          )}
         </View>
       </ScrollView>
     </BaseScreen>

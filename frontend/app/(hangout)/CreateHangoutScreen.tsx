@@ -33,22 +33,6 @@ import InviteFriends from "@/components/createHangout/InviteFriends";
 const initialLayout = { width: Dimensions.get("window").width };
 
 const CreateHangoutScreen = () => {
-  const [index, setIndex] = useState(0);
-  const [routes] = useState([
-    { key: "createHangout", title: "Create Hangout" },
-    { key: "inviteFriends", title: "Invite Friends" },
-  ]);
-
-  const renderScene = SceneMap({
-    createHangout: () => <CreateHangout />,
-    inviteFriends: () => <InviteFriends />,
-  });
-
-  const hangoutDetails = useStore((state) => state.hangoutDetails);
-  const setHangoutDetails = useStore((state) => state.setHangoutDetails);
-
-  const router = useRouter();
-
   return (
     <BaseScreen>
       {/* Header */}
@@ -69,14 +53,6 @@ const CreateHangoutScreen = () => {
         </Pressable>
       </View>
       <CreateHangout />
-
-      {/* <TabView
-        navigationState={{ index, routes }}
-        renderScene={renderScene}
-        onIndexChange={setIndex}
-        initialLayout={initialLayout}
-        renderTabBar={(props) => <ProfileTabBar {...props} />}
-      /> */}
     </BaseScreen>
   );
 };

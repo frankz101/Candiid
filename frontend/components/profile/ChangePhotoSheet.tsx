@@ -44,6 +44,21 @@ const ChangePhotoSheet = () => {
     }
   };
 
+  const removeProfilePhoto = async () => {
+    closeChangePhotoSheet();
+    try {
+      const response = await axios.delete(
+        `${process.env.EXPO_PUBLIC_API_URL}/user/${user?.id}/profile-photo`
+      );
+      console.log("Profile photo removed successfully:", response.data);
+      queryClient.invalidateQueries({
+        queryKey: ["profile", user?.id],
+      });
+    } catch (error) {
+      console.error("Error removing profile photo:", error);
+    }
+  };
+
   const closeChangePhotoSheet = () => {
     SheetManager.hide("change-photo");
   };
@@ -66,8 +81,9 @@ const ChangePhotoSheet = () => {
   return (
     <ActionSheet>
       <View>
-        <Button title="Take Photo" onPress={() => {}} />
+        {/* <Button title="Take Photo" onPress={() => {}} /> */}
         <Button title="Choose from Library" onPress={openImagePicker} />
+        <Button title="Remove profile photo" onPress={removeProfilePhoto} />
         <Button title="Cancel" onPress={closeChangePhotoSheet} />
       </View>
     </ActionSheet>

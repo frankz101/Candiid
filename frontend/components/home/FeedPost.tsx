@@ -31,7 +31,7 @@ const FeedPost: React.FC<FeedPostProps> = ({
         <Image source={{ uri: profilePhoto }} style={styles.icon} />
         <View style={styles.headerContent}>
           <Text style={styles.username}>{username}</Text>
-          <Text style={styles.caption}>I went to the beach</Text>
+          <Text style={styles.caption}>{caption}</Text>
           <PostCarousel
             images={photoUrls}
             width={postWidth}

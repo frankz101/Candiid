@@ -4,7 +4,7 @@ import SearchBar from "../utils/SearchBar";
 import axios from "axios";
 import { useUser } from "@clerk/clerk-expo";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -17,7 +17,9 @@ const InviteFriends = () => {
   const [searchPhrase, setSearchPhrase] = useState("");
   const { user } = useUser();
   const router = useRouter();
-  const { hangoutId, hangoutName } = useLocalSearchParams();
+  const { hangoutId, hangoutName, isPressedFromHangoutScreen } =
+    useLocalSearchParams();
+  const queryClient = useQueryClient();
 
   const fetchFriends = async () => {
     return axios
@@ -55,9 +57,16 @@ const InviteFriends = () => {
         }
       );
       console.log(hangoutRequestsResponse.data);
-      router.push({
-        pathname: "/(tabs)/profile",
+      await queryClient.invalidateQueries({
+        queryKey: ["profile", user?.id],
       });
+      if (isPressedFromHangoutScreen === "false") {
+        router.push({
+          pathname: "/(tabs)/profile",
+        });
+      } else {
+        router.back();
+      }
     } catch (error) {
       console.error("Error sending invites:", error);
     }

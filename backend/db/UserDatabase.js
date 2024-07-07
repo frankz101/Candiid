@@ -112,6 +112,39 @@ const changeProfilePhotoInDatabase = async (userId, fileData) => {
   }
 };
 
+const deleteProfilePhotoInDatabase = async (userId) => {
+  const userDocRef = doc(db, "users", userId);
+
+  try {
+    const userDoc = await getDoc(userDocRef);
+    const currentProfilePhoto = userDoc.data().profilePhoto?.fileUrl;
+
+    if (currentProfilePhoto) {
+      const url = new URL(currentProfilePhoto);
+      const fileNameEncoded = url.pathname.split("%2F").pop();
+      const fileName = decodeURIComponent(fileNameEncoded);
+
+      const path = `photos/profile-photos/${fileName}`;
+      const currentPhotoRef = ref(storage, path);
+      await deleteObject(currentPhotoRef)
+        .then(() => {
+          console.log("File deleted successfully");
+        })
+        .catch((error) => {
+          console.log("Error");
+        });
+
+      await updateDoc(userDocRef, { profilePhoto: null });
+      console.log("Profile photo deleted successfully");
+    }
+
+    return userId;
+  } catch (error) {
+    console.error("Error deleting profile photo:", error);
+    throw new Error("Failed to delete profile photo.");
+  }
+};
+
 const fetchUserPostsFromDatabase = async (userId) => {
   const postsCollection = collection(db, "posts");
 
@@ -638,6 +671,7 @@ const removeBlockInDatabase = async (blockId) => {
 export {
   createUserInDatabase,
   changeProfilePhotoInDatabase,
+  deleteProfilePhotoInDatabase,
   fetchUserPostsFromDatabase,
   fetchUserPostFromDatabase,
   fetchUserProfilePhotoFromDatabase,

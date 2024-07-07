@@ -4,9 +4,10 @@ import {
   View,
   ActivityIndicator,
   Dimensions,
+  Pressable,
 } from "react-native";
 import React from "react";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import BackButton from "@/components/utils/BackButton";
@@ -29,6 +30,7 @@ const scrollViewHeight = screenHeight - headerHeight - bottomPadding;
 
 const Hangout = () => {
   const { hangoutId, memoryId } = useLocalSearchParams();
+  const router = useRouter();
   console.log("Memory ID Hangout: " + memoryId);
 
   const fetchHangout = async () => {
@@ -41,6 +43,17 @@ const Hangout = () => {
     queryKey: ["hangoutPhotos", hangoutId],
     queryFn: fetchHangout,
   });
+
+  const handleInvite = () => {
+    router.push({
+      pathname: "/(hangout)/InviteFriendsScreen",
+      params: {
+        hangoutId: hangoutId,
+        hangoutName: hangoutData.hangoutName,
+        isPressedFromHangoutScreen: "true",
+      },
+    });
+  };
 
   if (isPending) {
     return (
@@ -81,7 +94,9 @@ const Hangout = () => {
         <BackButton />
 
         <View style={{ flexDirection: "row" }}>
-          <MaterialCommunityIcons name="share" size={32} color="#FFF" />
+          <Pressable onPress={handleInvite}>
+            <MaterialCommunityIcons name="share" size={32} color="#FFF" />
+          </Pressable>
           <MaterialCommunityIcons name="dots-vertical" size={32} color="#FFF" />
         </View>
       </View>
