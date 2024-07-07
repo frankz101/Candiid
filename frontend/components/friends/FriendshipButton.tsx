@@ -1,14 +1,10 @@
 import { useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
-import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
-import {
-  widthPercentageToDP as wp,
-  heightPercentageToDP as hp,
-} from "react-native-responsive-screen";
+import { widthPercentageToDP as wp } from "react-native-responsive-screen";
 
 interface User {
   id: number;
@@ -26,10 +22,6 @@ type FriendUpdateAction = {
   friendId: string;
 };
 
-// interface FriendshipButtonProps {
-//   user: User;
-//   onHandleRequest?: (userId: string) => void;
-// }
 interface FriendshipButtonProps {
   userId: string;
   status: string;
@@ -47,12 +39,11 @@ const FriendshipButton: React.FC<FriendshipButtonProps> = ({
   );
   const [friendStatus, setFriendStatus] = useState(status);
   const router = useRouter();
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    applyUpdates();
-  }, [pendingUpdates]);
+  const applyUpdates = useCallback(async () => {
+    if (pendingUpdates.length === 0) return;
 
-  const applyUpdates = async () => {
     const finalUpdates = pendingUpdates.reduce((acc: any, update: any) => {
       if (acc[update.friendId]) {
         if (
@@ -72,48 +63,70 @@ const FriendshipButton: React.FC<FriendshipButtonProps> = ({
       return acc;
     }, {});
 
-    Object.values(finalUpdates).forEach(async (update: any) => {
-      if (update.action === "add") {
-        const response = await axios.post(
-          `${process.env.EXPO_PUBLIC_API_URL}/friendRequest`,
-          {
-            senderId: currentUser?.id,
-            receiverId: update.friendId,
-          }
-        );
-        if (response.status === 201) {
-          console.log("Added");
-          await axios.post(
-            `${process.env.EXPO_PUBLIC_API_URL}/notification/send`,
+    await Promise.all(
+      Object.values(finalUpdates).map(async (update: any) => {
+        if (update.action === "add") {
+          const response = await axios.post(
+            `${process.env.EXPO_PUBLIC_API_URL}/friendRequest`,
             {
-              userId: update.friendId,
-              title: "New Friend Request",
-              body: `${
-                currentUser?.fullName || "Someone"
-              } has sent you a friend request!`,
+              senderId: currentUser?.id,
+              receiverId: update.friendId,
+            }
+          );
+          if (response.status === 201) {
+            console.log("Added");
+            await axios.post(
+              `${process.env.EXPO_PUBLIC_API_URL}/notification/send`,
+              {
+                userId: update.friendId,
+                title: "New Friend Request",
+                body: `${
+                  currentUser?.fullName || "Someone"
+                } has sent you a friend request!`,
+              }
+            );
+          }
+        } else if (update.action === "removeFriend") {
+          console.log("Remove Friend");
+          await axios.put(
+            `${process.env.EXPO_PUBLIC_API_URL}/friends/remove/users/${currentUser?.id}`,
+            {
+              receiverId: update.friendId,
+            }
+          );
+        } else if (update.action === "removeRequest") {
+          await axios.post(
+            `${process.env.EXPO_PUBLIC_API_URL}/friendRequest/handle`,
+            {
+              senderId: currentUser?.id,
+              receiverId: userId,
+              status: "reject",
             }
           );
         }
-      } else if (update.action === "removeFriend") {
-        console.log("Remove Friend");
-        await axios.put(
-          `${process.env.EXPO_PUBLIC_API_URL}/friends/remove/users/${currentUser?.id}`,
-          {
-            receiverId: update.friendId,
-          }
-        );
-      } else if (update.action === "removeRequest") {
-        await axios.post(
-          `${process.env.EXPO_PUBLIC_API_URL}/friendRequest/handle`,
-          {
-            senderId: currentUser?.id,
-            receiverId: userId,
-            status: "reject",
-          }
-        );
+      })
+    );
+
+    setPendingUpdates([]); // Clear pending updates after applying them
+  }, [pendingUpdates, currentUser?.id, userId]);
+
+  useEffect(() => {
+    if (pendingUpdates.length > 0) {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
       }
-    });
-  };
+      debounceTimeout.current = setTimeout(() => {
+        applyUpdates();
+      }, 5000);
+    }
+
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
+      }
+      applyUpdates();
+    };
+  }, [pendingUpdates, applyUpdates]);
 
   const addFriend = async (friendId: string) => {
     setPendingUpdates((currentUpdates) => [
