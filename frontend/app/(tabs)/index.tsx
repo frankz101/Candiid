@@ -36,25 +36,12 @@ interface Photo {
   takenAt: string;
   takenBy: string;
 }
-
-const BATCH_SIZE = 100;
-
-interface User {
-  userId: string;
-  name: string;
-  username: string;
-  profilePhoto: {
-    fileUrl: string;
-  };
-}
-
 const initialLayout = { width: Dimensions.get("window").width };
 const screenWidth = Dimensions.get("screen").width;
 
 const Home = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [index, setIndex] = useState(0);
-  const queryClient = useQueryClient();
   const [routes] = useState([
     { key: "completedHangouts", title: "Completed Hangouts" },
     { key: "freshHangouts", title: "Fresh Hangouts" },
@@ -80,62 +67,6 @@ const Home = () => {
     setTimeout(() => {
       setRefreshing(false);
     }, 2000);
-  };
-
-  useEffect(() => {
-    fetchRegisteredContacts();
-  }, [user?.id]);
-
-  const getContacts = async (): Promise<Contact[]> => {
-    try {
-      const contacts = await Contacts.getAll();
-      const sortedContacts = contacts.sort((a: any, b: any) => {
-        const nameA = a.givenName?.toLowerCase() || "";
-        const nameB = b.givenName?.toLowerCase() || "";
-
-        if (nameA < nameB) return -1;
-        if (nameA > nameB) return 1;
-        return 0;
-      });
-      return sortedContacts;
-    } catch (err: any) {
-      console.error(err);
-      return [];
-    }
-  };
-
-  const fetchRegisteredContacts = async () => {
-    try {
-      if (!user) {
-        return;
-      }
-      const contacts = await getContacts();
-      const phoneNumbers = contacts
-        .map((contact) => contact.phoneNumbers.map((pn: any) => pn.number))
-        .flat();
-
-      let registeredUsers: User[] = [];
-
-      for (let i = 0; i < phoneNumbers.length; i += BATCH_SIZE) {
-        const batch = phoneNumbers.slice(i, i + BATCH_SIZE);
-        const res = await axios.post(
-          `${process.env.EXPO_PUBLIC_API_URL}/user/check-contacts`,
-          {
-            phoneNumbers: batch,
-            userId: user?.id,
-          }
-        );
-
-        if (res.data && res.data.result) {
-          registeredUsers = registeredUsers.concat(res.data.result);
-        }
-      }
-
-      const users = registeredUsers;
-      queryClient.setQueryData(["registeredContacts"], users);
-    } catch (err) {
-      console.error(err);
-    }
   };
 
   return (

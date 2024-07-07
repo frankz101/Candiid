@@ -23,8 +23,10 @@ interface User {
 
 const ContactsList: React.FC = () => {
   const queryClient = useQueryClient();
+  const { user } = useUser();
   const registeredContacts = queryClient.getQueryData<User[]>([
     "registeredContacts",
+    user?.id,
   ]);
 
   const renderItem = ({ item }: { item: User }) => {
