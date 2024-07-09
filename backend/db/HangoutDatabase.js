@@ -54,7 +54,6 @@ const createHangoutInDatabase = async (hangout) => {
     // add upcoming hangouts to profile
     const userDocRef = doc(db, "users", hangout.userId);
     await updateDoc(userDocRef, {
-      createdHangouts: arrayUnion(docRef.id),
       upcomingHangouts: arrayUnion(docRef.id),
     });
 
@@ -111,20 +110,25 @@ const fetchRecentHangoutsFromDatabase = async (userId) => {
 };
 
 const fetchUpcomingHangoutsFromDatabase = async (userId) => {
+  const hangoutsCollection = collection(db, "hangouts");
+
+  const upcomingHangoutsQuery = query(
+    hangoutsCollection,
+    where("completed", "==", false),
+    where("participantIds", "array-contains", userId),
+    orderBy("createdAt", "desc"),
+    limit(12)
+  );
+
   try {
-    const userDocRef = doc(db, "users", userId);
-    const userDoc = await getDoc(userDocRef);
+    const querySnapshot = await getDocs(upcomingHangoutsQuery);
 
-    if (!userDoc.exists()) {
-      throw new Error("User document does not exist");
-    }
-
-    const upcomingHangouts = userDoc.data().upcomingHangouts || [];
-    if (!upcomingHangouts) {
+    if (querySnapshot.empty) {
+      console.log("No matching documents.");
       return [];
-    }
-    const hangouts = [];
-    const userIdsToFetch = [];
+    } else {
+      const hangouts = [];
+      const userIdsToFetch = [];
 
     await Promise.all(
       upcomingHangouts.map(async (hangoutId) => {
@@ -144,30 +148,33 @@ const fetchUpcomingHangoutsFromDatabase = async (userId) => {
       })
     );
 
-    // Fetch user profiles in a batch
-    const userCollection = collection(db, "users");
-    const userDocs = await Promise.all(
-      userIdsToFetch.map((userId) => getDoc(doc(userCollection, userId)))
-    );
+      // Fetch user profiles in a batch
+      const userCollection = collection(db, "users");
+      const userDocs = await Promise.all(
+        userIdsToFetch.map((userId) => getDoc(doc(userCollection, userId)))
+      );
+      
+      
+      const userProfiles = {};
+      userDocs.forEach((userDoc) => {
+        if (userDoc.exists()) {
+          userProfiles[userDoc.id] = userDoc.data();
+        }
+      });
 
-    const userProfiles = {};
-    userDocs.forEach((userDoc) => {
-      if (userDoc.exists()) {
-        userProfiles[userDoc.id] = userDoc.data();
-      }
-    });
+      // Map the profile photos to the respective participants in the hangouts
+      hangouts.forEach((hangout) => {
+        hangout.participants = hangout.participants.map((userId) => ({
+          userId,
+          profilePhoto: userProfiles[userId]?.profilePhoto || null,
+        }));
+      });
+      return hangouts;
+    }
 
-    // Map the profile photos to the respective participants in the hangouts
-    hangouts.forEach((hangout) => {
-      hangout.participants = hangout.participants.map((userId) => ({
-        userId,
-        profilePhoto: userProfiles[userId]?.profilePhoto || null,
-      }));
-    });
-    console.log(hangouts);
-    return hangouts;
+    // return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   } catch (error) {
-    console.error("Error fetching upcoming hangouts:", error);
+    console.error("Error fetching upcoming hangouts in service:", error);
     throw new Error("Failed to fetch recent hangouts");
   }
 };
@@ -285,10 +292,6 @@ const handleHangoutRequestInDatabase = async (hangoutId, hangoutRequest) => {
       const hangoutDocRef = doc(db, "hangouts", hangoutId);
 
       if (hangoutRequest.type === "request") {
-        const userDocRef = doc(db, "users", hangoutRequest.receiverId);
-        updateDoc(userDocRef, {
-          upcomingHangouts: arrayUnion(hangoutId),
-        });
         updateDoc(hangoutDocRef, {
           participantIds: arrayUnion(hangoutRequest.receiverId),
         })
@@ -301,10 +304,6 @@ const handleHangoutRequestInDatabase = async (hangoutId, hangoutRequest) => {
             console.error("Error updating document:", error);
           });
       } else if (hangoutRequest.type === "join") {
-        const userDocRef = doc(db, "users", hangoutRequest.senderId);
-        updateDoc(userDocRef, {
-          upcomingHangouts: arrayUnion(hangoutId),
-        });
         updateDoc(hangoutDocRef, {
           participantIds: arrayUnion(hangoutRequest.senderId),
         })
@@ -337,9 +336,9 @@ const fetchFreshHangoutsInDatabase = async (userId) => {
         const friendDoc = await getDoc(doc(db, "users", friendId));
         const friendProfile = friendDoc.data();
 
-        if (friendProfile && Array.isArray(friendProfile.createdHangouts)) {
+        if (friendProfile && Array.isArray(friendProfile.upcomingHangouts)) {
           await Promise.all(
-            friendProfile.createdHangouts.map(async (hangout) => {
+            friendProfile.upcomingHangouts.map(async (hangout) => {
               const hangoutDocSnap = await getDoc(doc(db, "hangouts", hangout));
               if (hangoutDocSnap.exists()) {
                 if (!hangoutDocSnap.data().participantIds.includes(userId)) {
