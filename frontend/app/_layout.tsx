@@ -16,8 +16,20 @@ import { ImageBackground } from "react-native";
 import Toast from "react-native-toast-message";
 import toastConfig from "@/toastConfig";
 import axios from "axios";
+import Contacts, { Contact } from "react-native-contacts";
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+const BATCH_SIZE = 100;
+
+interface User {
+  userId: string;
+  name: string;
+  username: string;
+  profilePhoto: {
+    fileUrl: string;
+  };
+}
 
 const InitialLayout = () => {
   const { isLoaded, isSignedIn } = useAuth();
@@ -36,17 +48,74 @@ const InitialLayout = () => {
       .then((res) => res.data);
   };
 
+  const getContacts = async (): Promise<Contact[]> => {
+    try {
+      const contacts = await Contacts.getAll();
+      const sortedContacts = contacts.sort((a: any, b: any) => {
+        const nameA = a.givenName?.toLowerCase() || "";
+        const nameB = b.givenName?.toLowerCase() || "";
+
+        if (nameA < nameB) return -1;
+        if (nameA > nameB) return 1;
+        return 0;
+      });
+      return sortedContacts;
+    } catch (err: any) {
+      console.error(err);
+      return [];
+    }
+  };
+
+  const fetchRegisteredContacts = async () => {
+    try {
+      if (!user) {
+        return;
+      }
+      const contacts = await getContacts();
+      const phoneNumbers = contacts
+        .map((contact) => contact.phoneNumbers.map((pn: any) => pn.number))
+        .flat();
+
+      let registeredUsers: User[] = [];
+
+      for (let i = 0; i < phoneNumbers.length; i += BATCH_SIZE) {
+        const batch = phoneNumbers.slice(i, i + BATCH_SIZE);
+        const res = await axios.post(
+          `${process.env.EXPO_PUBLIC_API_URL}/user/check-contacts`,
+          {
+            phoneNumbers: batch,
+            userId: user?.id,
+          }
+        );
+
+        if (res.data && res.data.result) {
+          registeredUsers = registeredUsers.concat(res.data.result);
+        }
+      }
+      return registeredUsers;
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     SplashScreen.preventAutoHideAsync();
     console.log("Main page UseEffect");
 
     const fetchDataAndNavigate = async () => {
       if (isSignedIn && user) {
-        await queryClient.prefetchQuery({
-          queryKey: ["profile", user.id],
-          queryFn: fetchUser,
-          staleTime: 1000 * 60 * 5,
-        });
+        Promise.all([
+          queryClient.prefetchQuery({
+            queryKey: ["profile", user.id],
+            queryFn: fetchUser,
+            staleTime: 1000 * 60 * 5,
+          }),
+          queryClient.prefetchQuery({
+            queryKey: ["registeredContacts", user.id],
+            queryFn: fetchRegisteredContacts,
+            staleTime: 1000 * 60 * 5,
+          }),
+        ]);
       }
 
       SplashScreen.hideAsync();
@@ -62,7 +131,7 @@ const InitialLayout = () => {
     if (isLoaded) {
       fetchDataAndNavigate();
     }
-  }, [isLoaded, isSignedIn, user]);
+  }, [isSignedIn]);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>

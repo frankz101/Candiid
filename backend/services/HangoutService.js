@@ -12,6 +12,8 @@ import {
   createJoinHangoutRequestInDatabase,
   fetchJoinHangoutRequestsInDatabase,
   leaveHangoutInDatabase,
+  removeHangoutInDatabase,
+  transferHangoutOwnershipInDatabase,
 } from "../db/HangoutDatabase.js";
 import { storage } from "../firebase.js";
 
@@ -119,6 +121,20 @@ const leaveHangout = async (hangoutId, userId) => {
   return result;
 };
 
+const removeHangout = async (hangoutId) => {
+  const result = await removeHangoutInDatabase(hangoutId);
+  return result;
+};
+
+const transferHangoutOwnership = async (hangoutId, userId, newUserId) => {
+  const result = await transferHangoutOwnershipInDatabase(
+    hangoutId,
+    userId,
+    newUserId
+  );
+  return result;
+};
+
 export {
   createHangout,
   addPhotoToHangout,
@@ -132,4 +148,6 @@ export {
   createJoinHangoutRequest,
   fetchJoinhangoutRequests,
   leaveHangout,
+  removeHangout,
+  transferHangoutOwnership,
 };

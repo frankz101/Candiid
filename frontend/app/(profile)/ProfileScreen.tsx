@@ -39,7 +39,7 @@ const scrollViewHeight = screenHeight - headerHeight - bottomPadding;
 const ProfileScreen = () => {
   const { user } = useUser();
   const router = useRouter();
-  const { userId, username, name, profilePhoto, friendStatus } =
+  const { userId, username, name, profilePhoto, friendStatus, searchPhrase } =
     useLocalSearchParams();
   const userIdStr = Array.isArray(userId) ? userId[0] : userId;
   const profilePhotoStr = Array.isArray(profilePhoto)

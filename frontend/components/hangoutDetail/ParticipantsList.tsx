@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import React from "react";
@@ -24,10 +25,12 @@ interface ParticipantsListProps {
   // }[];
   participants: string[];
   hangoutId: string;
+  showModal: () => void;
 }
 const ParticipantsList: React.FC<ParticipantsListProps> = ({
   participants,
   hangoutId,
+  showModal,
 }) => {
   const users = participants.slice(0, MAX_VISIBLE_PARTICIPANTS + 1);
 
@@ -47,10 +50,7 @@ const ParticipantsList: React.FC<ParticipantsListProps> = ({
   const renderItem = ({ item, index }: { item: any; index: any }) => {
     if (index === MAX_VISIBLE_PARTICIPANTS) {
       return (
-        <Pressable
-          onPress={() => alert("Show all participants (IMPLEMENT THIS SCREEN)")}
-          style={styles.moreContainer}
-        >
+        <Pressable onPress={() => showModal} style={styles.moreContainer}>
           <Text style={styles.moreText}>
             +{participants.length - MAX_VISIBLE_PARTICIPANTS}
           </Text>
@@ -59,7 +59,11 @@ const ParticipantsList: React.FC<ParticipantsListProps> = ({
     } else {
       return (
         <View style={styles.participantContainer}>
-          <Image source={{ uri: item.profilePhoto }} style={styles.icon} />
+          {item.profilePhoto ? (
+            <Image source={{ uri: item.profilePhoto }} style={styles.icon} />
+          ) : (
+            <Ionicons name="person-circle-outline" color="white" size={50} />
+          )}
         </View>
       );
     }
@@ -90,7 +94,7 @@ const styles = StyleSheet.create({
   participantContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginRight: 10,
+    marginRight: wp(1),
   },
   icon: {
     width: 40,

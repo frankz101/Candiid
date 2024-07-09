@@ -636,6 +636,42 @@ const removeBlockInDatabase = async (blockId) => {
   }
 };
 
+const fetchUserListInDatabase = async (userIds) => {
+  try {
+    let userDocs = [];
+    const chunkSize = 10;
+    const chunkedUserIds = [];
+    for (let i = 0; i < userIds.length; i += chunkSize) {
+      chunkedUserIds.push(userIds.slice(i, i + chunkSize));
+    }
+
+    // Iterate over each chunk and perform the query
+    for (const chunk of chunkedUserIds) {
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("userId", "in", chunk));
+      const querySnapshot = await getDocs(q);
+
+      querySnapshot.forEach((doc) => {
+        const userData = doc.data();
+        userDocs.push({
+          id: doc.id,
+          userId: userData.userId,
+          name: userData.name,
+          username: userData.username,
+          profilePhoto: {
+            fileUrl: userData.profilePhoto?.fileUrl || null,
+          },
+        });
+      });
+    }
+
+    return userDocs;
+  } catch (error) {
+    console.error("Error fetching user list: ", error);
+    throw error;
+  }
+};
+
 export {
   createUserInDatabase,
   changeProfilePhotoInDatabase,
@@ -656,4 +692,5 @@ export {
   createBlockInDatabase,
   fetchBlocksInDatabase,
   removeBlockInDatabase,
+  fetchUserListInDatabase,
 };

@@ -64,11 +64,11 @@ const InviteFriends = () => {
     // }
   };
 
-  const handleInvite = (username: string) => {
-    setInvitedFriends((prev) => [...prev, username]);
+  const handleInvite = (userId: string) => {
+    setInvitedFriends((prev) => [...prev, userId]);
   };
-  const handleUninvite = (username: string) => {
-    setInvitedFriends((prev) => prev.filter((name) => name !== username));
+  const handleUninvite = (userId: string) => {
+    setInvitedFriends((prev) => prev.filter((id) => id !== userId));
   };
 
   const onSubmit = () => {}; // TODO: Implement search functionality
@@ -76,7 +76,7 @@ const InviteFriends = () => {
   interface Friend {
     username: string;
     name: string;
-    id: string;
+    userId: string;
     profilePhoto: {
       fileUrl: string;
     };
@@ -92,8 +92,8 @@ const InviteFriends = () => {
     <FriendInviteBanner
       username={item.username} // FIX THIS WITH USERNAME NOT FIRSTNAME
       profilePhoto={item.profilePhoto.fileUrl}
-      onInvite={() => handleInvite(item.id)}
-      onUninvite={() => handleUninvite(item.id)}
+      onInvite={() => handleInvite(item.userId)}
+      onUninvite={() => handleUninvite(item.userId)}
     />
   );
 
@@ -117,7 +117,7 @@ const InviteFriends = () => {
           ) : (
             <FlatList
               data={friendsData.result}
-              keyExtractor={(item) => item.id}
+              keyExtractor={(item) => item.userId}
               renderItem={renderFriendBanner}
             />
           )}

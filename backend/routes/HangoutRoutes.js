@@ -13,6 +13,8 @@ import {
   postJoinHangoutRequest,
   getJoinHangoutRequests,
   putLeaveHangout,
+  deleteHangout,
+  putHangoutOwnership,
 } from "../controllers/HangoutController.js";
 
 var router = express.Router();
@@ -33,5 +35,7 @@ router.put("/hangout/:hangoutId/requests", putHangoutRequest);
 router.post("/hangout/join-hangout-requests", postJoinHangoutRequest);
 router.get("/hangout/join-requests/:userId", getJoinHangoutRequests);
 router.put("/hangout/leave", putLeaveHangout);
+router.delete("/hangout/delete/:hangoutId", deleteHangout);
+router.put("/hangout/transfer", putHangoutOwnership);
 
 export default router;

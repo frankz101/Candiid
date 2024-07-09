@@ -1,5 +1,5 @@
-import { FlatList, ListRenderItem, StyleSheet, Text, View } from "react-native";
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import { FlatList, ListRenderItem, StyleSheet, View } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
 import SearchBar from "@/components/utils/SearchBar";
 import { useUser } from "@clerk/clerk-expo";
 import axios from "axios";
@@ -11,8 +11,6 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import ShareButton from "./ShareButton";
-import { useFocusEffect } from "@react-navigation/native";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface User {
   id: number;
@@ -29,6 +27,7 @@ const SearchFriends = () => {
   const [clicked, setClicked] = useState(false);
   const [searchPhrase, setSearchPhrase] = useState("");
   const [debouncedSearchPhrase, setDebouncedSearchPhrase] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
   const { user } = useUser();
 
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -50,31 +49,47 @@ const SearchFriends = () => {
 
   const fetchSearchResults = async () => {
     console.log("fetching");
-    if (user) {
-      const res = await axios.get(
-        `${
-          process.env.EXPO_PUBLIC_API_URL
-        }/user/search/${searchPhrase.trim()}/users/${user.id}`
-      );
-      return res.data.result.filter(
-        (result: User) => result.userId !== user.id
-      );
+    if (user && debouncedSearchPhrase) {
+      try {
+        const res = await axios.get(
+          `${
+            process.env.EXPO_PUBLIC_API_URL
+          }/user/search/${debouncedSearchPhrase.trim()}/users/${user.id}`
+        );
+        if (res.status === 201 && res.data.result) {
+          setSearchResults(
+            res.data.result.filter((result: User) => result.userId !== user.id)
+          );
+        } else {
+          setSearchResults([]);
+        }
+      } catch (err) {
+        if (axios.isAxiosError(err) && err.response?.status === 404) {
+          setSearchResults([]);
+          console.warn("No results found for the search query.");
+        } else {
+          console.error("Error fetching search results:", err);
+        }
+      }
     }
   };
 
-  const { data: searchResults = [] } = useQuery({
-    queryKey: ["searchResults", searchPhrase],
-    queryFn: fetchSearchResults,
-    enabled: !!debouncedSearchPhrase,
-  });
+  useEffect(() => {
+    fetchSearchResults();
+  }, [debouncedSearchPhrase]);
 
   const renderItem: ListRenderItem<User> = ({ item }) => (
-    <UserBanner key={item.id} user={item} type="searchResults" />
+    <UserBanner
+      key={item.id}
+      user={item}
+      type="searchResults"
+      searchPhrase={debouncedSearchPhrase}
+    />
   );
 
   return (
     <BaseScreen>
-      <View style={styles.container}>
+      <View>
         <SearchBar
           clicked={clicked}
           searchPhrase={searchPhrase}
@@ -89,17 +104,10 @@ const SearchFriends = () => {
           renderItem={renderItem}
           keyExtractor={(item) => item.userId}
         />
+        <ContactsList />
       </View>
-      <ContactsList />
     </BaseScreen>
   );
 };
 
 export default SearchFriends;
-
-const styles = StyleSheet.create({
-  container: {
-    alignItems: "stretch",
-    marginBottom: hp(2),
-  },
-});

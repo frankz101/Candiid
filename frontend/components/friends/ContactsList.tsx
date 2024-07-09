@@ -23,8 +23,10 @@ interface User {
 
 const ContactsList: React.FC = () => {
   const queryClient = useQueryClient();
+  const { user } = useUser();
   const registeredContacts = queryClient.getQueryData<User[]>([
     "registeredContacts",
+    user?.id,
   ]);
 
   const renderItem = ({ item }: { item: User }) => {
@@ -32,7 +34,7 @@ const ContactsList: React.FC = () => {
   };
 
   return (
-    <BaseScreen>
+    <View>
       {registeredContacts && registeredContacts?.length > 0 && (
         <View style={styles.container}>
           <Text style={styles.header}>Active Contacts</Text>
@@ -43,13 +45,14 @@ const ContactsList: React.FC = () => {
           />
         </View>
       )}
-    </BaseScreen>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
+    marginTop: hp(2),
   },
   header: {
     color: "white",
