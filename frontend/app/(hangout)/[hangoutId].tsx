@@ -77,10 +77,6 @@ const Hangout = () => {
 
   const latestPhotos = hangoutData.sharedAlbum?.slice(-6) || [];
 
-  if (!isPending) {
-    console.log(hangoutData);
-  }
-
   return (
     <BaseScreen>
       <View

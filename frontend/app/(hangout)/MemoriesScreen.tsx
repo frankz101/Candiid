@@ -60,7 +60,8 @@ const screenHeight = Dimensions.get("window").height;
 const initialLayout = { width: Dimensions.get("window").width };
 
 const padding = 20;
-const imageWidth = (screenWidth - padding * 6) / 3 + wp(4);
+const imageWidth = (screenWidth - padding * 6) / 3;
+// const imageWidth = (screenWidth - padding * 6) / 3 + wp(4);
 const imageHeight = (screenWidth - padding * 6) / 3 + hp(6);
 
 const mediaWidth = wp(20);
@@ -211,6 +212,30 @@ const MemoriesScreen = () => {
       }
     });
 
+  useEffect(() => {
+    setPostDimensions(getPostDimensions(viewStyle));
+  }, [viewStyle]);
+
+  const getPostDimensions = (style: ViewStyleKey) => {
+    switch (style) {
+      case "rectangle":
+        return { width: imageWidth, height: (imageWidth * 5) / 4 };
+      case "square":
+        return { width: imageWidth, height: imageWidth };
+      case "polaroid":
+        return {
+          width: imageWidth + wp(4),
+          height: imageWidth + hp(6),
+        };
+      default:
+        return { width: imageWidth, height: (imageWidth * 5) / 4 };
+    }
+  };
+
+  const [postDimensions, setPostDimensions] = useState(
+    getPostDimensions(viewStyle)
+  );
+
   const postPan = Gesture.Pan()
     .onStart(() => {
       isPostActive.value = true;
@@ -223,11 +248,10 @@ const MemoriesScreen = () => {
       let newpostX = (e.translationX + postContext.value.x) / scale.value;
       let newpostY = (e.translationY + postContext.value.y) / scale.value;
 
-      // const halfPostWidth = postWidth / 2;
-      // const halfPostHeight = postHeight / 2;
+      const { width, height } = postDimensions;
 
-      const halfPostWidth = imageWidth / 2;
-      const halfPostHeight = imageHeight / 2;
+      const halfPostWidth = width / 2;
+      const halfPostHeight = height / 2;
 
       const minX = -screenWidth / 2 + halfPostWidth;
       const maxX = screenWidth / 2 - halfPostWidth;

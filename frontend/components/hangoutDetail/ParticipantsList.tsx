@@ -74,7 +74,7 @@ const ParticipantsList: React.FC<ParticipantsListProps> = ({
       <FlatList
         data={profilePics}
         renderItem={renderItem}
-        keyExtractor={(item) => item}
+        keyExtractor={(item) => item.id}
         horizontal={true}
         showsHorizontalScrollIndicator={false}
         scrollEnabled={false}

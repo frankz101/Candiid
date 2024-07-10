@@ -72,7 +72,6 @@ const FreshHangouts: React.FC<FreshHangoutsProps> = ({
         renderItem={({ item }) => {
           return (
             <FreshCard
-              key={item.id}
               name={item.hangoutName}
               description={item.hangoutDescription}
               hangoutId={item.id}
