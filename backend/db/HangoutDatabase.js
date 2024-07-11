@@ -110,25 +110,20 @@ const fetchRecentHangoutsFromDatabase = async (userId) => {
 };
 
 const fetchUpcomingHangoutsFromDatabase = async (userId) => {
-  const hangoutsCollection = collection(db, "hangouts");
-
-  const upcomingHangoutsQuery = query(
-    hangoutsCollection,
-    where("completed", "==", false),
-    where("participantIds", "array-contains", userId),
-    orderBy("createdAt", "desc"),
-    limit(12)
-  );
-
   try {
-    const querySnapshot = await getDocs(upcomingHangoutsQuery);
+    const userDocRef = doc(db, "users", userId);
+    const userDoc = await getDoc(userDocRef);
 
-    if (querySnapshot.empty) {
-      console.log("No matching documents.");
+    if (!userDoc.exists()) {
+      throw new Error("User document does not exist");
+    }
+
+    const upcomingHangouts = userDoc.data().upcomingHangouts || [];
+    if (!upcomingHangouts) {
       return [];
-    } else {
-      const hangouts = [];
-      const userIdsToFetch = [];
+    }
+    const hangouts = [];
+    const userIdsToFetch = [];
 
     await Promise.all(
       upcomingHangouts.map(async (hangoutId) => {
@@ -146,35 +141,29 @@ const fetchUpcomingHangoutsFromDatabase = async (userId) => {
           );
         }
       })
+    ); // Fetch user profiles in a batch
+
+    const userCollection = collection(db, "users");
+    const userDocs = await Promise.all(
+      userIdsToFetch.map((userId) => getDoc(doc(userCollection, userId)))
     );
 
-      // Fetch user profiles in a batch
-      const userCollection = collection(db, "users");
-      const userDocs = await Promise.all(
-        userIdsToFetch.map((userId) => getDoc(doc(userCollection, userId)))
-      );
-      
-      
-      const userProfiles = {};
-      userDocs.forEach((userDoc) => {
-        if (userDoc.exists()) {
-          userProfiles[userDoc.id] = userDoc.data();
-        }
-      });
+    const userProfiles = {};
+    userDocs.forEach((userDoc) => {
+      if (userDoc.exists()) {
+        userProfiles[userDoc.id] = userDoc.data();
+      }
+    }); // Map the profile photos to the respective participants in the hangouts
 
-      // Map the profile photos to the respective participants in the hangouts
-      hangouts.forEach((hangout) => {
-        hangout.participants = hangout.participants.map((userId) => ({
-          userId,
-          profilePhoto: userProfiles[userId]?.profilePhoto || null,
-        }));
-      });
-      return hangouts;
-    }
-
-    // return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    hangouts.forEach((hangout) => {
+      hangout.participants = hangout.participants.map((userId) => ({
+        userId,
+        profilePhoto: userProfiles[userId]?.profilePhoto || null,
+      }));
+    });
+    return hangouts;
   } catch (error) {
-    console.error("Error fetching upcoming hangouts in service:", error);
+    console.error("Error fetching upcoming hangouts:", error);
     throw new Error("Failed to fetch recent hangouts");
   }
 };

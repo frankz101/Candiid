@@ -70,6 +70,7 @@ const CreateHangout = () => {
         params: {
           hangoutId: hangoutResponse.data.result,
           hangoutName: hangoutName,
+          isPressedFromHangoutScreen: "false",
         },
       });
       setHangoutName("");

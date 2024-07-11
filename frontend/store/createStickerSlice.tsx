@@ -6,53 +6,94 @@ export interface StickerDetails {
   x: number;
   y: number;
   media: GiphyMedia;
-  scale: number;
-  rotation: number;
+  scale?: number;
+  rotation?: number;
   isNew?: boolean;
   modified?: boolean;
 }
 
 export interface StickerSlice {
-  stickers: StickerDetails[];
+  stickers: Record<string, StickerDetails>;
+  tempStickers: Record<string, StickerDetails>;
+  setStickers: (stickers: Record<string, StickerDetails>) => void;
   addSticker: (sticker: StickerDetails) => void;
-  updateSticker: (id: string, changes: Partial<StickerDetails>) => void;
-  removeSticker: (id: string) => void;
+  addTempSticker: (sticker: StickerDetails) => void;
+  updateSticker: (id: string, x: number, y: number, modified: boolean) => void;
+  updateTempSticker: (id: string, x: number, y: number) => void;
+  resetStickers: (ids: string[]) => void;
+  resetTempStickers: () => void;
 }
 
 export const createStickerSlice: StateCreator<StickerSlice> = (set) => ({
-  stickers: [],
+  stickers: {},
+  tempStickers: {},
 
-  addSticker: (sticker: StickerDetails) =>
+  setStickers: (stickers) => set({ stickers }),
+
+  addSticker: (sticker) => {
     set((state) => ({
-      stickers: [
+      stickers: {
         ...state.stickers,
-        {
-          ...sticker,
-          isNew: sticker.isNew ?? false,
-          modified: false,
+        [sticker.id || ""]: sticker,
+      },
+    }));
+  },
+
+  addTempSticker: (sticker) => {
+    set((state) => {
+      const index = Object.keys(state.tempStickers).length.toString();
+      return {
+        tempStickers: {
+          ...state.tempStickers,
+          [index]: sticker,
         },
-      ],
+      };
+    });
+  },
+
+  updateSticker: (id, x, y, modified) =>
+    set((state) => ({
+      stickers: {
+        ...state.stickers,
+        [id]: {
+          ...state.stickers[id],
+          x,
+          y,
+          modified,
+        },
+      },
     })),
 
-  updateSticker: (id: string, changes: Partial<StickerDetails>) =>
+  updateTempSticker: (id, x, y) =>
     set((state) => ({
-      stickers: state.stickers.map((sticker) =>
-        sticker.id === id
-          ? {
-              ...sticker,
-              ...changes,
-              modified:
-                sticker.x !== changes.x ||
-                sticker.y !== changes.y ||
-                sticker.scale !== changes.scale ||
-                sticker.rotation !== changes.rotation,
-            }
-          : sticker
-      ),
+      tempStickers: {
+        ...state.tempStickers,
+        [id]: {
+          ...state.tempStickers[id],
+          x,
+          y,
+        },
+      },
     })),
 
-  removeSticker: (id: string) =>
-    set((state) => ({
-      stickers: state.stickers.filter((sticker) => sticker.id !== id),
+  resetStickers: (ids: string[]) =>
+    set((state) => {
+      const updatedStickers = { ...state.stickers };
+
+      ids.forEach((id) => {
+        if (updatedStickers[id]) {
+          updatedStickers[id] = {
+            ...updatedStickers[id],
+            modified: false,
+          };
+        }
+      });
+
+      return { stickers: updatedStickers };
+    }),
+
+  resetTempStickers: () =>
+    set(() => ({
+      tempStickers: {},
     })),
 });

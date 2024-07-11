@@ -66,13 +66,12 @@ const FreshHangouts: React.FC<FreshHangoutsProps> = ({
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={"white"}
+            tintColor={"#FFF"}
           />
         }
         renderItem={({ item }) => {
           return (
             <FreshCard
-              key={item.id}
               name={item.hangoutName}
               description={item.hangoutDescription}
               hangoutId={item.id}

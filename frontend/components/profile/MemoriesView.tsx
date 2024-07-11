@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
   SharedValue,
@@ -14,6 +14,8 @@ import { GiphyMedia } from "@giphy/react-native-sdk";
 import MediaComponent from "../photo/MediaComponent";
 import { ViewStyleKey } from "@/app/(hangout)/MemoriesScreen";
 import DotGrid from "../utils/DotGrid";
+import useStore from "@/store/useStore";
+import DisplayMediaComponent from "../photo/DisplayMediaComponent";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
@@ -48,13 +50,18 @@ const MemoriesView: React.FC<MemoriesViewProps> = ({
   stickers,
   color = "#FFF",
 }) => {
+  const stickerStore = useStore((state) => state.stickers);
+  // console.log(JSON.stringify(stickerStore));
   const screenX = useSharedValue<number>(0);
   const screenY = useSharedValue<number>(0);
   const scale = useSharedValue<number>(1);
 
   const selectedColor = useSharedValue(color);
-  const displayModeRef = useRef(true); // SAVE THIS FOR IS EDIT MODE
-  console.log(selectedColor.value);
+  const displayModeRef = useRef(true);
+
+  useEffect(() => {
+    console.log("Stickers updated and rerendering:");
+  }, [stickers]);
 
   const containerStyle = useAnimatedStyle(() => {
     return {
@@ -79,6 +86,7 @@ const MemoriesView: React.FC<MemoriesViewProps> = ({
 
   return (
     <View>
+      {/* */}
       <Animated.View style={[styles.container, containerStyle]}>
         {/* <Animated.View style={overlayStyle} /> */}
         {/* <View
@@ -103,21 +111,18 @@ const MemoriesView: React.FC<MemoriesViewProps> = ({
               positionY={hangout.postY}
               frame={hangout.frame}
               color={hangout.color}
-              isDisplay={true}
             />
           ))}
 
         {stickers && stickers.length > 0 ? (
           stickers.map((sticker: any, index: number) => (
-            <MediaComponent
+            <DisplayMediaComponent
               key={index}
               id={sticker.id}
               media={sticker.media}
               positionX={sticker.x}
               positionY={sticker.y}
               mediaType={"sticker"} // change this later
-              displayModeRef={displayModeRef}
-              isDisplay={true}
             />
           ))
         ) : (

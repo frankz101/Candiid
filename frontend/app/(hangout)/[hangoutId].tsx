@@ -72,6 +72,17 @@ const Hangout = () => {
     enabled: !!hangoutData,
   });
 
+  const handleInvite = () => {
+    router.push({
+      pathname: "/(hangout)/InviteFriendsScreen",
+      params: {
+        hangoutId: hangoutId,
+        hangoutName: hangoutData.hangoutName,
+        isPressedFromHangoutScreen: "true",
+      },
+    });
+  };
+
   if (isPending) {
     return (
       <BaseScreen>
@@ -228,7 +239,9 @@ const Hangout = () => {
         <BackButton />
 
         <View style={{ flexDirection: "row", gap: wp(2) }}>
-          <MaterialCommunityIcons name="share" size={30} color="#FFF" />
+          <Pressable onPress={handleInvite}>
+            <MaterialCommunityIcons name="share" size={30} color="#FFF" />
+          </Pressable>
           <Pressable onPress={() => setModalVisible(true)}>
             <Ionicons name="ellipsis-horizontal" size={30} color="#FFF" />
           </Pressable>

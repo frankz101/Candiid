@@ -23,7 +23,7 @@ const SettingsScreen = () => {
   const { user } = useUser();
   const { signOut } = useClerk();
   const toEditProfile = () => {
-    router.push("/EditProfileScreen");
+    router.push("/(settings)/EditProfileScreen");
   };
   const deleteAccount = () => {
     try {

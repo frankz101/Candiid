@@ -40,7 +40,6 @@ const searchUserInDatabase = async (userId) => {
   try {
     const userDocSnap = await getDoc(userDocRef);
     if (userDocSnap.exists()) {
-      console.log("User document data:", userDocSnap.data());
       return userDocSnap.data();
     } else {
       console.log("No such user document!");
@@ -110,6 +109,39 @@ const changeProfilePhotoInDatabase = async (userId, fileData) => {
   } catch (error) {
     console.error("Error updating document: ", error);
     throw new Error("Failed to change profile photo.");
+  }
+};
+
+const deleteProfilePhotoInDatabase = async (userId) => {
+  const userDocRef = doc(db, "users", userId);
+
+  try {
+    const userDoc = await getDoc(userDocRef);
+    const currentProfilePhoto = userDoc.data().profilePhoto?.fileUrl;
+
+    if (currentProfilePhoto) {
+      const url = new URL(currentProfilePhoto);
+      const fileNameEncoded = url.pathname.split("%2F").pop();
+      const fileName = decodeURIComponent(fileNameEncoded);
+
+      const path = `photos/profile-photos/${fileName}`;
+      const currentPhotoRef = ref(storage, path);
+      await deleteObject(currentPhotoRef)
+        .then(() => {
+          console.log("File deleted successfully");
+        })
+        .catch((error) => {
+          console.log("Error");
+        });
+
+      await updateDoc(userDocRef, { profilePhoto: null });
+      console.log("Profile photo deleted successfully");
+    }
+
+    return userId;
+  } catch (error) {
+    console.error("Error deleting profile photo:", error);
+    throw new Error("Failed to delete profile photo.");
   }
 };
 
@@ -675,6 +707,7 @@ const fetchUserListInDatabase = async (userIds) => {
 export {
   createUserInDatabase,
   changeProfilePhotoInDatabase,
+  deleteProfilePhotoInDatabase,
   fetchUserPostsFromDatabase,
   fetchUserPostFromDatabase,
   fetchUserProfilePhotoFromDatabase,

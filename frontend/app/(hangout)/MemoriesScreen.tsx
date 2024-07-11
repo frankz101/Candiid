@@ -52,6 +52,8 @@ import MediaComponent from "@/components/photo/MediaComponent";
 import { StickerDetails } from "@/store/createStickerSlice";
 import ColorPicker, { Panel5 } from "reanimated-color-picker";
 import type { returnedResults } from "reanimated-color-picker";
+import NewMediaComponent from "@/components/photo/NewMediaComponent";
+import { Image } from "expo-image";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
@@ -59,7 +61,8 @@ const screenHeight = Dimensions.get("window").height;
 const initialLayout = { width: Dimensions.get("window").width };
 
 const padding = 20;
-const imageWidth = (screenWidth - padding * 6) / 3 + wp(4);
+const imageWidth = (screenWidth - padding * 6) / 3;
+// const imageWidth = (screenWidth - padding * 6) / 3 + wp(4);
 const imageHeight = (screenWidth - padding * 6) / 3 + hp(6);
 
 const mediaWidth = wp(20);
@@ -70,8 +73,8 @@ export type ViewStyleKey = "square" | "rectangle" | "polaroid";
 
 interface Sticker {
   media: GiphyMedia;
-  positionX: SharedValue<number>;
-  positionY: SharedValue<number>;
+  x: number;
+  y: number;
   mediaType: string;
 }
 
@@ -85,15 +88,34 @@ const MemoriesScreen = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [media, setMedia] = useState<GiphyMedia | null>(null);
 
-  const [stickers, setStickers] = useState<Sticker[]>([]);
-  const stickerArray = useStore((state) => state.stickers);
+  // const [addedStickers, setAddedStickers] = useState<Sticker[]>([]);
   const memoryArray = useStore((state) => state.memories);
 
-  // const [memories, setMemories] = useState<
+  // const { updateAllStickers, updateStickerId } = useStore((state) => ({
+  //   updateAllStickers: state.updateAllStickers,
+  //   updateStickerId: state.updateStickerId,
+  // }));
 
-  // const [activeStickerIndex, setActiveStickerIndex] = useState<number | null>(
-  //   null
-  // );
+  const {
+    setStickers,
+    addSticker,
+    addTempSticker,
+    updateTempSticker,
+    resetStickers,
+    resetTempStickers,
+  } = useStore((state) => ({
+    setStickers: state.setStickers,
+    addSticker: state.addSticker,
+    addTempSticker: state.addTempSticker,
+    updateTempSticker: state.updateTempSticker,
+    resetStickers: state.resetStickers,
+    resetTempStickers: state.resetTempStickers,
+  }));
+  const stickerStore = useStore((state) => state.stickers);
+  const tempStickerStore = useStore((state) => state.tempStickers);
+
+  const queryClient = useQueryClient();
+
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const [editMode, setEditMode] = useState("");
   const [initialBackgroundColor, setInitialBackgroundColor] = useState("");
@@ -112,12 +134,6 @@ const MemoriesScreen = () => {
       setIsPostPlacementMode(true);
     }
   }, [isNewPost]);
-
-  // useEffect(() => {
-  //   if (media) {
-  //     setIsMediaPlacementMode(true);
-  //   }
-  // }, [media]);
 
   /* Board Animation */
   const screenX = useSharedValue<number>(0);
@@ -187,6 +203,30 @@ const MemoriesScreen = () => {
       }
     });
 
+  useEffect(() => {
+    setPostDimensions(getPostDimensions(viewStyle));
+  }, [viewStyle]);
+
+  const getPostDimensions = (style: ViewStyleKey) => {
+    switch (style) {
+      case "rectangle":
+        return { width: imageWidth, height: (imageWidth * 5) / 4 };
+      case "square":
+        return { width: imageWidth, height: imageWidth };
+      case "polaroid":
+        return {
+          width: imageWidth + wp(4),
+          height: imageWidth + hp(6),
+        };
+      default:
+        return { width: imageWidth, height: (imageWidth * 5) / 4 };
+    }
+  };
+
+  const [postDimensions, setPostDimensions] = useState(
+    getPostDimensions(viewStyle)
+  );
+
   const postPan = Gesture.Pan()
     .onStart(() => {
       isPostActive.value = true;
@@ -199,11 +239,10 @@ const MemoriesScreen = () => {
       let newpostX = (e.translationX + postContext.value.x) / scale.value;
       let newpostY = (e.translationY + postContext.value.y) / scale.value;
 
-      // const halfPostWidth = postWidth / 2;
-      // const halfPostHeight = postHeight / 2;
+      const { width, height } = postDimensions;
 
-      const halfPostWidth = imageWidth / 2;
-      const halfPostHeight = imageHeight / 2;
+      const halfPostWidth = width / 2;
+      const halfPostHeight = height / 2;
 
       const minX = -screenWidth / 2 + halfPostWidth;
       const maxX = screenWidth / 2 - halfPostWidth;
@@ -295,6 +334,19 @@ const MemoriesScreen = () => {
   const { data: stickersData, isPending: isPendingStickers } = fetchedStickers;
   const { data: profileDetails, isPending: isPendingProfile } = profile;
 
+  {
+    /* Setting the Sticker Store*/
+  }
+  useEffect(() => {
+    if (!isPendingMemories) {
+      const stickersObj = stickersData.reduce((acc: any, sticker: any) => {
+        acc[sticker.id] = sticker;
+        return acc;
+      }, {});
+      setStickers(stickersObj);
+    }
+  }, [isPendingMemories]);
+  console.log("Sticker Array IDS: " + Object.keys(stickerStore));
   /* Edit Mode */
 
   const handleEditMode = useCallback((mode: string) => {
@@ -309,26 +361,34 @@ const MemoriesScreen = () => {
   }, []);
 
   const prepareStickersForUpdate = () => {
-    // console.log("Sticker Array: ", JSON.stringify(stickerArray, null, 2));
-    const newStickers = stickerArray.filter((sticker) => sticker.isNew);
-    const modifiedStickers = stickerArray.filter(
-      (sticker) => sticker.modified && !sticker.isNew
+    console.log("Object values: " + Object.values(stickerStore));
+    const modifiedStickers = Object.values(stickerStore).filter(
+      (sticker) => sticker.modified
     );
 
-    console.log("New Stickers: " + newStickers);
-    console.log("Modified Stickers: " + modifiedStickers);
+    console.log("Modified Stickers: ", modifiedStickers);
 
-    return { newStickers, modifiedStickers };
+    return { modifiedStickers };
   };
 
   const prepareMemoriesForUpdate = () => {
-    // console.log("Sticker Array: ", JSON.stringify(stickerArray, null, 2));
     const modifiedMemories = memoryArray.filter((memory) => memory.modified);
 
     console.log("Modified Memories: " + modifiedMemories);
 
     return { modifiedMemories };
   };
+
+  function prepareStickersForAPI(
+    stickers: Record<string, StickerDetails>
+  ): StickerDetails[] {
+    return Object.values(stickers).map((sticker) => ({
+      ...sticker,
+      id: sticker.id,
+      x: sticker.x,
+      y: sticker.y,
+    }));
+  }
 
   const handleEditSubmit = async () => {
     if (
@@ -346,10 +406,10 @@ const MemoriesScreen = () => {
       } catch {
         console.log("Error changing background");
       }
-    } else if (editMode === "stickers" && stickerArray.length > 0) {
+    } else if (editMode === "stickers") {
       displayModeRef.current = true;
 
-      const { newStickers, modifiedStickers } = prepareStickersForUpdate();
+      const { modifiedStickers } = prepareStickersForUpdate();
       const { modifiedMemories } = prepareMemoriesForUpdate();
 
       // Modify memories
@@ -370,6 +430,9 @@ const MemoriesScreen = () => {
               "Modified memories updated:",
               modifiedMemoriesResponse.data
             );
+            await queryClient.invalidateQueries({
+              queryKey: ["memories", user?.id],
+            });
           }
         } catch (error: any) {
           console.error(
@@ -379,27 +442,53 @@ const MemoriesScreen = () => {
         }
       }
 
-      // Only make requests if there are new or modified stickers
-      if (newStickers.length > 0 || modifiedStickers.length > 0) {
+      if (Object.keys(tempStickerStore).length > 0) {
+        const preparedStickers = prepareStickersForAPI(tempStickerStore);
+
         const newStickerRequestBody = {
           userId: user?.id,
-          newStickers,
+          addedStickers: preparedStickers,
         };
 
+        try {
+          const response = await axios.post(
+            `${process.env.EXPO_PUBLIC_API_URL}/stickers`,
+            newStickerRequestBody
+          );
+          console.log("New stickers added:", response.data);
+          const stickerIds = response.data.result;
+
+          if (stickerIds.length === Object.keys(tempStickerStore).length) {
+            // console.log(
+            //   "Prepared Stickers for API:",
+            //   JSON.stringify(preparedStickers, null, 2)
+            // );
+            stickerIds.forEach((id: string, index: number) => {
+              console.log(id);
+              const stickerWithId = {
+                ...preparedStickers[index],
+                id,
+              };
+              addSticker(stickerWithId);
+              resetTempStickers();
+            });
+          }
+          await queryClient.invalidateQueries({
+            queryKey: ["stickers", user?.id],
+          });
+        } catch (error) {
+          console.error("Failed to add stickers:", error);
+        }
+      }
+
+      // Only make requests if there are new or modified stickers
+      if (modifiedStickers.length > 0) {
         const modifiedStickerRequestBody = {
           userId: user?.id,
           modifiedStickers,
         };
 
         try {
-          console.log("Modified stickers" + modifiedStickers);
-          if (newStickers.length > 0) {
-            const newStickersResponse = await axios.post(
-              `${process.env.EXPO_PUBLIC_API_URL}/stickers`,
-              newStickerRequestBody
-            );
-            console.log("New stickers added:", newStickersResponse.data);
-          }
           if (modifiedStickers.length > 0) {
             const modifiedStickersResponse = await axios.put(
               `${process.env.EXPO_PUBLIC_API_URL}/stickers`,
@@ -409,6 +498,7 @@ const MemoriesScreen = () => {
               "Modified stickers updated:",
               modifiedStickersResponse.data
             );
+            resetStickers(modifiedStickersResponse.data);
           }
         } catch (error: any) {
           console.error(
@@ -418,13 +508,6 @@ const MemoriesScreen = () => {
         }
       }
     }
-    setStickers(
-      stickers.map((sticker) => ({
-        ...sticker,
-        isNew: false,
-        lastModified: undefined,
-      }))
-    );
 
     setIsEditMode(false);
     setEditMode("");
@@ -451,14 +534,13 @@ const MemoriesScreen = () => {
 
     const newSticker: Sticker = {
       media: newMedia,
-      positionX: mediaX,
-      positionY: mediaY,
+      x: mediaX.value,
+      y: mediaY.value,
       mediaType: "sticker",
     };
 
-    // setActiveStickerIndex(stickers.length);
-
-    setStickers((prevStickers) => [...prevStickers, newSticker]);
+    console.log("New Sticker: " + newSticker);
+    addTempSticker(newSticker);
 
     bottomSheetModalRef.current?.close();
   };
@@ -606,8 +688,8 @@ const MemoriesScreen = () => {
               <View />
             )}
 
-            {stickersData && stickersData.length > 0 ? (
-              stickersData.map((sticker: any, index: number) => (
+            {stickerStore && Object.keys(stickerStore).length > 0 ? (
+              Object.values(stickerStore).map((sticker: any, index: number) => (
                 <MediaComponent
                   key={index}
                   id={sticker.id}
@@ -623,12 +705,13 @@ const MemoriesScreen = () => {
             )}
 
             {/*TEMPORARY STICKERS */}
-            {stickers.length > 0 ? (
-              stickers.map((sticker, index: number) => (
-                <MediaComponent
+            {Object.keys(tempStickerStore).length > 0 ? (
+              Object.values(tempStickerStore).map((sticker, index: number) => (
+                <NewMediaComponent
                   key={index}
+                  id={index.toString()}
                   media={sticker.media}
-                  mediaType={sticker.mediaType}
+                  mediaType={"sticker"}
                   displayModeRef={displayModeRef}
                   isNew={true}
                 />
@@ -693,6 +776,11 @@ const MemoriesScreen = () => {
               onChangeText={setSearchQuery}
               placeholder="Search..."
               value={searchQuery}
+              style={{ padding: wp(1.5) }}
+            />
+            <Image
+              style={styles.attributionLogo}
+              source={require("@/assets/images/PoweredBy_200px-White_HorizText.png")}
             />
             <GiphyGridView
               content={
@@ -777,6 +865,10 @@ const styles = StyleSheet.create({
     height: imageWidth,
     borderRadius: 10,
     backgroundColor: "blue",
+  },
+  attributionLogo: {
+    width: wp(40),
+    aspectRatio: 10,
   },
   // modalContainer: {
   //   flex: 1,
