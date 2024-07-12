@@ -2,8 +2,10 @@ import { useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import React, { useState } from "react";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image } from "expo-image";
+import { emitWarning } from "process";
+import React, { memo, useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -42,7 +44,12 @@ const FreshCard: React.FC<hangoutCardProps> = ({
   const { data: profilePics, isPending } = useQuery({
     queryKey: ["freshCardData", hangoutId],
     queryFn: getProfilePics,
+    staleTime: 1000 * 60 * 5,
   });
+
+  if (!isPending) {
+    console.log("FRESH CARD RERENDER" + profilePics[0]?.profilePhoto);
+  }
 
   const askToJoin = async () => {
     try {
