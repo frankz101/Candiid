@@ -131,7 +131,7 @@ const PreviewPost = () => {
           <BackButton />
         </View>
 
-        <Text style={styles.headerText}>PreviewPost</Text>
+        <Text style={styles.headerText}>Preview Post</Text>
         <Pressable onPress={handleNextPress}>
           <View style={{ width: 64 }}>
             <Text style={styles.nextButton}>Next</Text>

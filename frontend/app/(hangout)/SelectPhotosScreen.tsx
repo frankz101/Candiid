@@ -1,9 +1,9 @@
 import {
+  Alert,
   Dimensions,
   FlatList,
   Pressable,
   RefreshControl,
-  SafeAreaView,
   StyleSheet,
   Text,
   View,
@@ -12,11 +12,10 @@ import React, { useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import PhotoSquare from "@/components/photo/PhotoSquare";
 import BackButton from "@/components/utils/BackButton";
-import { Feather, Ionicons } from "@expo/vector-icons";
 import BaseScreen from "@/components/utils/BaseScreen";
 import PhotoSquareSelect from "@/components/photo/PhotoSquareSelect";
+import * as MediaLibrary from "expo-media-library";
 
 const screenHeight = Dimensions.get("window").height;
 const headerHeight = 140;
@@ -24,9 +23,14 @@ const bottomPadding = 20;
 
 const scrollViewHeight = screenHeight - headerHeight - bottomPadding;
 
+interface Photo {
+  fileUrl: string;
+  takenBy: string;
+  takenAt: string;
+}
+
 const SelectPhotosScreen = () => {
   const { hangoutId } = useLocalSearchParams();
-  console.log(hangoutId);
   const [selectedPhotos, setSelectedPhotos] = useState<number[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
@@ -79,6 +83,88 @@ const SelectPhotosScreen = () => {
     setRefreshing(false);
   };
 
+  const savePhotos = async (indices: number[]) => {
+    const album = hangoutData.sharedAlbum;
+
+    const { status } = await MediaLibrary.requestPermissionsAsync();
+    if (status !== "granted") {
+      alert("Sorry, we need camera roll permissions to make this work!");
+      return;
+    }
+
+    let photosToSave: string[] = [];
+
+    if (indices.length === 0) {
+      photosToSave = album.map((photo: Photo) => photo.fileUrl);
+    } else {
+      photosToSave = indices.map((index) => album[index].fileUrl);
+    }
+
+    try {
+      await Promise.all(
+        photosToSave.map((fileUrl) => MediaLibrary.saveToLibraryAsync(fileUrl))
+      );
+    } catch (error) {
+      console.error("Error saving photos to library:", error);
+      alert("An error occurred while saving photos.");
+    }
+  };
+
+  const onNext = () => {
+    Alert.alert(
+      "Would you like to save your photos?",
+      "Choose to save:",
+      [
+        {
+          text: "All photos",
+          style: "default",
+          onPress: async () => {
+            savePhotos([]);
+            router.push({
+              pathname: "/(hangout)/PreviewPost",
+              params: {
+                hangoutId: hangoutId,
+                photoIndexes: selectedPhotos,
+              },
+            });
+          },
+        },
+        {
+          text: "Selected photos",
+          style: "default",
+          onPress: async () => {
+            savePhotos(selectedPhotos);
+            router.push({
+              pathname: "/(hangout)/PreviewPost",
+              params: {
+                hangoutId: hangoutId,
+                photoIndexes: selectedPhotos,
+              },
+            });
+          },
+        },
+        {
+          text: "None",
+          style: "default",
+          onPress: async () => {
+            router.push({
+              pathname: "/(hangout)/PreviewPost",
+              params: {
+                hangoutId: hangoutId,
+                photoIndexes: selectedPhotos,
+              },
+            });
+          },
+        },
+        {
+          text: "Cancel",
+          style: "destructive",
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
   return (
     <BaseScreen>
       <View
@@ -94,27 +180,19 @@ const SelectPhotosScreen = () => {
         </View>
 
         <Text style={styles.headerText}>Select Photos</Text>
-        {selectedPhotos?.length > 0 ? (
-          <Pressable
-            onPress={() => {
-              router.push({
-                pathname: "/(hangout)/PreviewPost",
-                params: {
-                  hangoutId: hangoutId,
-                  photoIndexes: selectedPhotos,
-                },
-              });
-            }}
-          >
-            <View style={{ width: 64 }}>
-              <Text style={styles.nextButton}>Next</Text>
-            </View>
-          </Pressable>
-        ) : (
+
+        <Pressable onPress={onNext} disabled={!(selectedPhotos?.length > 0)}>
           <View style={{ width: 64 }}>
-            <Text style={styles.nextButtonDeactivated}>Next</Text>
+            <Text
+              style={[
+                styles.nextButton,
+                { color: selectedPhotos?.length > 0 ? "#0A84FF" : "#636366" },
+              ]}
+            >
+              Next
+            </Text>
           </View>
-        )}
+        </Pressable>
       </View>
 
       <FlatList
@@ -150,13 +228,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     paddingRight: 20,
     color: "#0A84FF",
-  },
-  nextButtonDeactivated: {
-    fontSize: 18,
-    fontFamily: "inter",
-    fontWeight: "700",
-    paddingRight: 20,
-    color: "#636366",
   },
   emptyAlbumContainer: {
     flex: 1,

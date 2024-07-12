@@ -11,6 +11,7 @@ import {
   query,
   updateDoc,
   deleteDoc,
+  arrayRemove,
 } from "firebase/firestore";
 import { db } from "../firebase.js";
 
@@ -20,6 +21,12 @@ const createMemoryInDatabase = async (memory) => {
     const docRef = await addDoc(memoryCollection, {
       ...memory,
       createdAt: serverTimestamp(),
+    });
+
+    const userDoc = doc(db, "users", memory.userId);
+    await updateDoc(userDoc, {
+      upcomingHangouts: arrayRemove(memory.hangoutId),
+      createdHangouts: arrayRemove(memory.hangoutId),
     });
     return docRef.id;
   } catch (error) {
@@ -91,10 +98,12 @@ const updateMemoriesInDatabase = async (memoryData) => {
   }
 };
 
-const deleteMemoryFromDatabase = async (memoryId) => {
+const deleteMemoryFromDatabase = async (memoryId, postId) => {
   try {
     const memoryDocRef = doc(db, "memories", memoryId);
     await deleteDoc(memoryDocRef);
+    const postDocRef = doc(db, "posts", postId);
+    await deleteDoc(postDocRef);
     console.log(`Memory ${memoryId} deleted successfully.`);
     return true;
   } catch (error) {

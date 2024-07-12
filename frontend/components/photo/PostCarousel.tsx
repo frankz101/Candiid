@@ -15,6 +15,8 @@ import { useSharedValue } from "react-native-reanimated";
 
 export interface ImageData {
   fileUrl: string;
+  takenAt?: string;
+  takenBy?: string;
 }
 
 interface PostCarouselProps {

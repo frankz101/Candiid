@@ -3,7 +3,7 @@
     "name": "Memories",
     "slug": "memories",
     "owner": "franklinzhu26",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -16,7 +16,7 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "buildNumber": "3",
+      "buildNumber": "4",
       "infoPlist": {
         "NSContactsUsageDescription": "$(PRODUCT_NAME) needs access to your Contacts.",
         "NSCameraUsageDescription": "$(PRODUCT_NAME) needs access to your Camera.",

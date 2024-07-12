@@ -32,6 +32,7 @@ interface User {
     };
     friends?: string[];
     phoneNumber: string;
+    createdHangouts?: string[];
     upcomingHangouts?: string[];
   };
 }

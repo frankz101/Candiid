@@ -13,6 +13,6 @@ router.post("/memories", postMemory);
 router.get("/memories/:userId", getMemories);
 router.put("/memories/:memoryId", putMemory);
 router.put("/memories", putMemories);
-router.delete("/memories/:memoryId", deleteMemory);
+router.delete("/memories/:memoryId/:postId", deleteMemory);
 
 export default router;

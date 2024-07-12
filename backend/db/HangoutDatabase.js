@@ -143,6 +143,7 @@ const fetchUpcomingHangoutsFromDatabase = async (userId) => {
       })
     ); // Fetch user profiles in a batch
 
+    // Fetch user profiles in a batch
     const userCollection = collection(db, "users");
     const userDocs = await Promise.all(
       userIdsToFetch.map((userId) => getDoc(doc(userCollection, userId)))
@@ -153,14 +154,16 @@ const fetchUpcomingHangoutsFromDatabase = async (userId) => {
       if (userDoc.exists()) {
         userProfiles[userDoc.id] = userDoc.data();
       }
-    }); // Map the profile photos to the respective participants in the hangouts
+    });
 
+    // Map the profile photos to the respective participants in the hangouts
     hangouts.forEach((hangout) => {
       hangout.participants = hangout.participants.map((userId) => ({
         userId,
         profilePhoto: userProfiles[userId]?.profilePhoto || null,
       }));
     });
+
     return hangouts;
   } catch (error) {
     console.error("Error fetching upcoming hangouts:", error);
@@ -174,7 +177,7 @@ const fetchHangoutFromDatabase = async (hangoutId) => {
     const docSnap = await getDoc(hangoutDocRef);
 
     if (docSnap.exists()) {
-      return docSnap.data();
+      return { ...docSnap.data(), id: docSnap.id };
     } else {
       console.log("No such document!");
       return null;
