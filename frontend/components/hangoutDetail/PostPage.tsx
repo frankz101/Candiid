@@ -1,4 +1,5 @@
 import {
+  Alert,
   Dimensions,
   Modal,
   Pressable,
@@ -21,13 +22,16 @@ import UserBanner from "../friends/UserBanner";
 import { FlatList } from "react-native-actions-sheet";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUser } from "@clerk/clerk-expo";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 interface PostProps {
   hangoutId: string;
-  userId: string;
+  memoryId: string;
 }
 
 interface Hangout {
+  id: string;
   completed: boolean;
   createdAt: Timestamp;
   hangoutDescription: string;
@@ -43,6 +47,7 @@ interface PhotoDetailsProps {
 }
 
 interface Post {
+  id: string;
   createdAt: Timestamp;
   hangoutId: string;
   photoUrls: PhotoDetailsProps[];
@@ -51,11 +56,13 @@ interface Post {
 }
 
 const { width: screenWidth } = Dimensions.get("window");
-const PostPage: React.FC<PostProps> = ({ hangoutId, userId }) => {
+const PostPage: React.FC<PostProps> = ({ hangoutId, memoryId }) => {
   const [post, setPost] = useState<Post>();
   const [hangout, setHangout] = useState<Hangout>();
   const [editModalVisible, setEditModalVisible] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const { user } = useUser();
+  const router = useRouter();
 
   const fetchParticipants = async () => {
     if (hangout?.participantIds && hangout?.participantIds?.length > 0) {
@@ -77,7 +84,7 @@ const PostPage: React.FC<PostProps> = ({ hangoutId, userId }) => {
   const getPost = async () => {
     try {
       const res = await axios.get(
-        `${process.env.EXPO_PUBLIC_API_URL}/posts/${userId}/${hangoutId}`
+        `${process.env.EXPO_PUBLIC_API_URL}/posts/${user?.id}/${hangoutId}`
       );
       if (res.status === 201) {
         setPost(res.data.result);
@@ -104,9 +111,69 @@ const PostPage: React.FC<PostProps> = ({ hangoutId, userId }) => {
     getPost();
     getHangout();
   }, []);
+
+  const deleteHangout = async () => {
+    Alert.alert(
+      "Are you sure you want to delete this memory?",
+      "This action is not recoverable.",
+      [
+        {
+          text: "No",
+          style: "cancel",
+        },
+        {
+          text: "Yes",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              router.back();
+              const res = await axios.delete(
+                `${process.env.EXPO_PUBLIC_API_URL}/memories/${memoryId}/${post?.id}`
+              );
+            } catch (err) {
+              console.error(err);
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
   return (
     <BaseScreen>
-      <BackButton />
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          paddingRight: wp(2),
+        }}
+      >
+        <BackButton />
+        <Pressable onPress={() => setShowModal(true)}>
+          <Ionicons name="ellipsis-horizontal" color="white" size={32} />
+        </Pressable>
+      </View>
+      <Modal transparent={true} animationType="fade" visible={showModal}>
+        <Pressable style={styles.overlay} onPress={() => setShowModal(false)}>
+          <View style={styles.modalContainer}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.modalButton,
+                pressed
+                  ? { backgroundColor: "#3a3a3d" }
+                  : { backgroundColor: "#2a2a2d" },
+              ]}
+              onPress={() => {
+                setShowModal(false);
+                deleteHangout();
+              }}
+            >
+              <Text style={styles.modalButtonText}>Delete Hangout</Text>
+              <Ionicons name="trash-outline" color="red" size={24} />
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
       <View style={{ alignItems: "center", padding: wp(2) }}>
         <Text style={styles.headerText}>{hangout?.hangoutName}</Text>
         <Text style={styles.descriptionText}>

@@ -133,7 +133,7 @@ const AnimatedMemory = ({
             onPress: async () => {
               try {
                 const response = await axios.delete(
-                  `${process.env.EXPO_PUBLIC_API_URL}/memories/${memoryId}`
+                  `${process.env.EXPO_PUBLIC_API_URL}/memories/${memoryId}/${postId}`
                 );
                 console.log("Photo deleted successfully:", response.data);
                 setIsPhotoVisible(false);

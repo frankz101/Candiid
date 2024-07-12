@@ -177,7 +177,7 @@ const fetchHangoutFromDatabase = async (hangoutId) => {
     const docSnap = await getDoc(hangoutDocRef);
 
     if (docSnap.exists()) {
-      return docSnap.data();
+      return { ...docSnap.data(), id: docSnap.id };
     } else {
       console.log("No such document!");
       return null;

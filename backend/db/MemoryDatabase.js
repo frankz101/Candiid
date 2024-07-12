@@ -98,10 +98,12 @@ const updateMemoriesInDatabase = async (memoryData) => {
   }
 };
 
-const deleteMemoryFromDatabase = async (memoryId) => {
+const deleteMemoryFromDatabase = async (memoryId, postId) => {
   try {
     const memoryDocRef = doc(db, "memories", memoryId);
     await deleteDoc(memoryDocRef);
+    const postDocRef = doc(db, "posts", postId);
+    await deleteDoc(postDocRef);
     console.log(`Memory ${memoryId} deleted successfully.`);
     return true;
   } catch (error) {

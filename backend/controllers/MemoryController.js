@@ -56,9 +56,9 @@ const putMemories = async (req, res) => {
 };
 
 const deleteMemory = async (req, res) => {
-  const { memoryId } = req.params;
+  const { memoryId, postId } = req.params;
   try {
-    const wasDeleted = await deleteMemoryFromDatabase(memoryId);
+    const wasDeleted = await deleteMemoryFromDatabase(memoryId, postId);
     if (wasDeleted) {
       res.status(204).send();
     } else {

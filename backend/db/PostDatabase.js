@@ -38,7 +38,7 @@ const fetchPostInDatabase = async (userId, hangoutId) => {
     );
 
     if (!postSnapshot.empty) {
-      return postSnapshot.docs[0].data();
+      return { ...postSnapshot.docs[0].data(), id: postSnapshot.docs[0].id };
     }
     return {};
   } catch (error) {

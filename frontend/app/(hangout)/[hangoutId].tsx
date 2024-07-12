@@ -35,7 +35,9 @@ const Hangout = () => {
       {profile?.upcomingHangouts?.includes(hangoutIdStr) ? (
         <HangoutPage hangoutId={hangoutIdStr} memoryId={memoryIdStr} />
       ) : (
-        user && <PostPage hangoutId={hangoutIdStr} userId={user?.id} />
+        user && (
+          <PostPage hangoutId={hangoutIdStr} memoryId={memoryId as string} />
+        )
       )}
     </BaseScreen>
   );
