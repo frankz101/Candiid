@@ -246,7 +246,7 @@ const fetchFriendsPostsFromDatabase = async (userId) => {
           querySnapshot.docs.map(async (doc) => {
             const postData = doc.data();
             const userInfo = await searchUserInDatabase(postData.userId);
-            return { ...postData, userInfo };
+            return { ...postData, id: doc.id, userInfo };
           })
         );
 

@@ -42,7 +42,7 @@ const CompletedHangouts: React.FC<CompletedHangoutsProps> = ({
     <View>
       <FlatList
         data={posts}
-        keyExtractor={(item) => item.hangoutId}
+        keyExtractor={(item) => item.id}
         ListHeaderComponent={<CreateHangoutButton />}
         ListHeaderComponentStyle={styles.main}
         refreshControl={

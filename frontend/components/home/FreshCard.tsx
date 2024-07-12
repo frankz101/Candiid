@@ -82,10 +82,9 @@ const FreshCard: React.FC<hangoutCardProps> = ({
           </View>
           <View style={styles.participants}>
             {profilePics?.slice(1).map((profilePic: profilePicProps) => (
-              <View>
+              <View key={profilePic.id}>
                 {profilePic.profilePhoto ? (
                   <Image
-                    key={profilePic.id}
                     source={{ uri: profilePic.profilePhoto }}
                     style={styles.participantPhoto}
                   />
