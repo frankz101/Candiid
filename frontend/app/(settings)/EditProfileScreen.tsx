@@ -62,6 +62,7 @@ const EditProfileScreen = () => {
   }, [name, username]);
 
   const applyUpdates = async () => {
+    console.log("apply updates");
     const userDetails: Record<string, string> = {};
 
     if (nameRef.current) {

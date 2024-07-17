@@ -1,3 +1,4 @@
+import { deleteProfilePhotoInDatabase } from "../db/UserDatabase.js";
 import {
   changeProfilePhoto,
   createUser,
@@ -62,6 +63,24 @@ const putUserProfilePhoto = async (req, res) => {
     res.status(201).send({ result });
   } catch (err) {
     res.status(500).send({ message: err.message });
+  }
+};
+
+const deleteUserProfilePhoto = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    const result = await deleteProfilePhotoInDatabase(userId);
+    if (result) {
+      res.status(200).json({ message: "Profile photo deleted successfully." });
+    } else {
+      res
+        .status(404)
+        .json({ message: "User not found or no profile photo to delete." });
+    }
+  } catch (error) {
+    console.error("Error deleting profile photo:", error);
+    res.status(500).json({ message: "Internal server error." });
   }
 };
 
@@ -241,6 +260,7 @@ const getUserList = async (req, res) => {
 export {
   postUser,
   putUserProfilePhoto,
+  deleteUserProfilePhoto,
   getUserPosts,
   getUsers,
   getUserPost,

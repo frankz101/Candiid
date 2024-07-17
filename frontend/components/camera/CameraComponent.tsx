@@ -184,6 +184,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ hangoutId }) => {
               // format={format}
               isActive={isActive}
               photo={true}
+              enableZoomGesture={true}
               style={StyleSheet.absoluteFill}
               // style={styles.cameraPreview}
             />

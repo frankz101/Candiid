@@ -36,7 +36,7 @@ interface Photo {
   takenAt: string;
   takenBy: string;
 }
-const initialLayout = { width: Dimensions.get("window").width };
+const initialLayout = { height: 0, width: Dimensions.get("window").width };
 const screenWidth = Dimensions.get("screen").width;
 
 const Home = () => {
@@ -47,14 +47,18 @@ const Home = () => {
     { key: "freshHangouts", title: "Fresh Hangouts" },
   ]);
 
-  const renderScene = SceneMap({
-    completedHangouts: () => (
-      <CompletedHangouts refreshing={refreshing} onRefresh={onRefresh} />
-    ),
-    freshHangouts: () => (
-      <FreshHangouts refreshing={refreshing} onRefresh={onRefresh} />
-    ),
-  });
+  const renderScene = ({ route }: any) => {
+    switch (route.key) {
+      case "completedHangouts":
+        return (
+          <CompletedHangouts refreshing={refreshing} onRefresh={onRefresh} />
+        );
+      case "freshHangouts":
+        return <FreshHangouts refreshing={refreshing} onRefresh={onRefresh} />;
+      default:
+        return null;
+    }
+  };
 
   const router = useRouter();
   const { user } = useUser();
@@ -76,7 +80,7 @@ const Home = () => {
         <Image
           source={require("../../assets/images/logo-white.png")}
           style={styles.logo}
-        ></Image>
+        />
         <Pressable
           onPress={() => {
             router.push("/(profile)/NotificationsScreen");
@@ -93,6 +97,7 @@ const Home = () => {
         renderScene={renderScene}
         onIndexChange={setIndex}
         initialLayout={initialLayout}
+        lazy={true}
         renderTabBar={(props) => <ProfileTabBar {...props} />}
       />
     </BaseScreen>

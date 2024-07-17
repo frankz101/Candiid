@@ -2,9 +2,12 @@ import express from "express";
 import cors from "cors";
 import { Expo } from "expo-server-sdk";
 import { WebSocketServer } from "ws";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
-const port = 3001;
+const PORT = process.env.PORT || 8080;
 
 app.use(cors());
 app.use(express.json());
@@ -31,8 +34,8 @@ app.use("/", NotificationRoutes);
 app.use("/", StickerRoutes);
 app.use("/", ChatRoutes);
 
-const server = app.listen(port, "0.0.0.0", () => {
-  console.log(`Listening on port ${port}`);
+const server = app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Listening on port ${PORT}`);
 });
 
 const wss = new WebSocketServer({ server });
@@ -74,51 +77,3 @@ wss.on("connection", (ws) => {
     });
   });
 });
-
-// // Create WebSocket server
-// const wss = new WebSocketServer({ noServer: true });
-
-// wss.on("connection", (ws) => {
-//   console.log("New client connected");
-
-//   ws.on("message", (message) => {
-//     const { type, roomId } = JSON.parse(message);
-
-//     if (type === "subscribe") {
-//       console.log(`Subscribing to room ${roomId}`);
-//       // Setup Firestore listener for the specific room
-//       const messagesRef = collection(db, "messages", roomId, "chatMessages");
-//       const q = query(messagesRef, orderBy("createdAt", "asc"));
-
-//       const unsubscribe = onSnapshot(q, (snapshot) => {
-//         snapshot.docChanges().forEach((change) => {
-//           if (change.type === "added") {
-//             const newMessage = change.doc.data();
-//             ws.send(
-//               JSON.stringify({ type: "new_message", message: newMessage })
-//             );
-//           }
-//         });
-//       });
-
-//       ws.on("close", () => {
-//         console.log("Client disconnected");
-//         unsubscribe();
-//       });
-//     }
-//   });
-
-//   ws.on("close", () => {
-//     console.log("Client disconnected");
-//   });
-// });
-
-// const setupWebSocketServer = (server) => {
-//   server.on("upgrade", (request, socket, head) => {
-//     wss.handleUpgrade(request, socket, head, (ws) => {
-//       wss.emit("connection", ws, request);
-//     });
-//   });
-// };
-
-// setupWebSocketServer(server);

@@ -1,5 +1,5 @@
 import { FlatList, RefreshControl, StyleSheet, Text, View } from "react-native";
-import React, { useEffect } from "react";
+import React, { memo, useEffect } from "react";
 import CreateHangoutButton from "./CreateHangoutButton";
 import FeedPost from "./FeedPost";
 import { useUser } from "@clerk/clerk-expo";
@@ -12,8 +12,8 @@ import {
 } from "react-native-responsive-screen";
 
 interface FreshHangoutsProps {
-  refreshing: boolean;
-  onRefresh: () => void;
+  refreshing?: boolean;
+  onRefresh?: () => void;
 }
 
 interface UserProfile {
@@ -29,10 +29,12 @@ interface UserProfile {
   };
 }
 
-const FreshHangouts: React.FC<FreshHangoutsProps> = ({
-  refreshing,
-  onRefresh,
-}) => {
+const FreshHangouts: React.FC<FreshHangoutsProps> = (
+  {
+    // refreshing,
+    // onRefresh,
+  }
+) => {
   const { user } = useUser();
 
   const fetchFreshHangouts = async () => {
@@ -62,17 +64,16 @@ const FreshHangouts: React.FC<FreshHangoutsProps> = ({
         keyExtractor={(item) => item.id}
         ListHeaderComponent={<CreateHangoutButton />}
         ListHeaderComponentStyle={styles.main}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={"white"}
-          />
-        }
+        // refreshControl={
+        //   <RefreshControl
+        //     refreshing={refreshing}
+        //     onRefresh={onRefresh}
+        //     tintColor={"#FFF"}
+        //   />
+        // }
         renderItem={({ item }) => {
           return (
             <FreshCard
-              key={item.id}
               name={item.hangoutName}
               description={item.hangoutDescription}
               hangoutId={item.id}

@@ -15,6 +15,7 @@ import {
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   runOnJS,
+  useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
 } from "react-native-reanimated";
@@ -67,6 +68,26 @@ const AnimatedMemory = ({
   const memoryContext = useSharedValue({ x: positionX, y: positionY });
   const posX = useSharedValue<number>(positionX);
   const posY = useSharedValue<number>(positionY);
+
+  useAnimatedReaction(
+    () => positionX,
+    (currentPosX, previousPosX) => {
+      if (currentPosX !== previousPosX) {
+        posX.value = currentPosX;
+      }
+    },
+    [positionX] // Dependency on positionX to re-create the reaction if needed
+  );
+
+  useAnimatedReaction(
+    () => positionY,
+    (currentPosY, previousPosY) => {
+      if (currentPosY !== previousPosY) {
+        posY.value = currentPosY;
+      }
+    },
+    [positionY] // Dependency on positionY to re-create the reaction if needed
+  );
 
   const postStyle = useAnimatedStyle(() => ({
     position: "absolute",
@@ -244,8 +265,6 @@ const AnimatedMemory = ({
       },
     });
   };
-
-  console.log("Animated display mode: " + displayModeRef.current);
 
   const panGesture = Gesture.Pan()
     .enabled(!displayModeRef.current)

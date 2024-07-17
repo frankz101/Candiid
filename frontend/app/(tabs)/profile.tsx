@@ -105,6 +105,7 @@ const Profile = () => {
 
   const onRefresh = async () => {
     setRefreshing(true);
+    console.log("CALLED REFESH");
     await queryClient.invalidateQueries({ queryKey: ["memories", user?.id] });
     await queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
     await queryClient.invalidateQueries({ queryKey: ["hangouts", user?.id] });
@@ -129,27 +130,37 @@ const Profile = () => {
     },
   };
 
+  // if (!isPendingStickers) {
+  //   console.log(JSON.stringify(stickersData));
+  // }
+
   return (
     <BaseScreen style={styles.container}>
       <View style={styles.navOptions}>
-        <Ionicons
-          onPress={() => router.push("/(profile)/FriendsScreen")}
-          name="people-outline"
-          size={32}
-          color={"white"}
-        />
         <Text style={styles.userDetailText}>{`@${userProfile.username}`}</Text>
-        <Ionicons
-          onPress={() => router.push("/(settings)/SettingsScreen")}
-          name="reorder-three-outline"
-          size={32}
-          color={"white"}
-        />
+        <View style={styles.navIcons}>
+          <Ionicons
+            onPress={() => router.push("/(profile)/FriendsScreen")}
+            name="people-outline"
+            size={32}
+            color={"white"}
+          />
+          <Ionicons
+            onPress={() => router.push("/(settings)/SettingsScreen")}
+            name="reorder-three-outline"
+            size={32}
+            color={"white"}
+          />
+        </View>
       </View>
       <ScrollView
         contentContainerStyle={styles.scrollViewContainer}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={"#FFF"}
+          />
         }
       >
         <View style={styles.userDetails}>
@@ -160,7 +171,9 @@ const Profile = () => {
                 style={styles.profilePhoto}
               />
             ) : (
-              <Ionicons name="person-circle" size={108} color={"white"} />
+              <View
+                style={[styles.profilePhoto, { backgroundColor: "grey" }]}
+              />
             )}
           </Pressable>
           <Text style={styles.userText}>{userProfile.name}</Text>
@@ -178,9 +191,13 @@ const Profile = () => {
         {/* DEFAULT PROFILE PIC NOT CENTERED AND SIZE IS WRONG */}
         <Text style={styles.headerText}>Upcoming Hangouts</Text>
         <View style={styles.upcomingHangouts}>
-          {upcomingHangouts?.map((hangout: Hangout) => {
-            return <ProfileHangout key={hangout.id} hangout={hangout} />;
-          })}
+          {upcomingHangouts && upcomingHangouts.length > 0 ? (
+            upcomingHangouts.map((hangout: Hangout) => (
+              <ProfileHangout key={hangout.id} hangout={hangout} />
+            ))
+          ) : (
+            <ProfileHangout isEmpty={true} />
+          )}
         </View>
       </ScrollView>
     </BaseScreen>
@@ -199,6 +216,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: wp(4),
     marginBottom: hp(1),
+  },
+  navIcons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: wp(18),
   },
   userDetails: {
     alignItems: "center",
@@ -241,7 +264,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
   },
   upcomingHangouts: {
-    marginTop: hp(1),
+    marginVertical: hp(1),
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",

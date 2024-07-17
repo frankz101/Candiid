@@ -49,7 +49,7 @@ const CompletedHangouts: React.FC<CompletedHangoutsProps> = ({
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={"white"}
+            tintColor={"#FFF"}
           />
         }
         renderItem={({ item }) => {

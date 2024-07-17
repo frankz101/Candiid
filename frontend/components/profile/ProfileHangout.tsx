@@ -7,14 +7,33 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import { Image } from "expo-image";
-import { Ionicons } from "@expo/vector-icons";
+import { AntDesign, Ionicons } from "@expo/vector-icons";
 
 interface ProfileHangoutProps {
-  hangout: Hangout;
+  hangout?: Hangout;
+  isEmpty?: boolean;
 }
 
-const ProfileHangout: React.FC<ProfileHangoutProps> = ({ hangout }) => {
+const ProfileHangout: React.FC<ProfileHangoutProps> = ({
+  hangout,
+  isEmpty = false,
+}) => {
   const router = useRouter();
+
+  if (isEmpty) {
+    return (
+      <Pressable onPress={() => router.push("/(hangout)/CreateHangoutScreen")}>
+        <View style={[styles.hangoutBanner, styles.emptyBanner]}>
+          <AntDesign name="plus" size={48} color="#AEAEB4" />
+        </View>
+      </Pressable>
+    );
+  }
+
+  if (!hangout) {
+    return null;
+  }
+
   return (
     <Pressable
       key={hangout.id}
@@ -65,6 +84,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#202023",
     borderRadius: 20,
     justifyContent: "space-between",
+  },
+  emptyBanner: {
+    alignItems: "center",
+    justifyContent: "center",
   },
   hangoutNameText: {
     paddingLeft: wp(3),

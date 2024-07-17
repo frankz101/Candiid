@@ -2,8 +2,10 @@ import { useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import React, { useState } from "react";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image } from "expo-image";
+import { emitWarning } from "process";
+import React, { memo, useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -42,7 +44,12 @@ const FreshCard: React.FC<hangoutCardProps> = ({
   const { data: profilePics, isPending } = useQuery({
     queryKey: ["freshCardData", hangoutId],
     queryFn: getProfilePics,
+    staleTime: 1000 * 60 * 5,
   });
+
+  if (!isPending) {
+    console.log("FRESH CARD RERENDER" + profilePics[0]?.profilePhoto);
+  }
 
   const askToJoin = async () => {
     try {
@@ -140,9 +147,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   hostPhoto: {
-    height: 40,
-    width: 40,
-    borderRadius: 18,
+    height: wp(10),
+    width: wp(10),
+    borderRadius: wp(10) / 2,
     borderColor: "white",
     borderWidth: 1,
     justifyContent: "center",
@@ -154,18 +161,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   participantPhoto: {
-    height: 36,
-    width: 36,
-    borderRadius: 18,
+    height: wp(8),
+    width: wp(8),
+    borderRadius: wp(8) / 2,
     borderColor: "white",
     borderWidth: 1,
     justifyContent: "center",
     alignItems: "center",
   },
   additionalParticipants: {
-    height: 36,
-    width: 36,
-    borderRadius: 18,
+    height: wp(8),
+    width: wp(8),
+    borderRadius: wp(8) / 2,
     backgroundColor: "#D9D9D9",
     borderColor: "white",
     borderWidth: 1,

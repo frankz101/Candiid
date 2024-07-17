@@ -48,29 +48,27 @@ const ParticipantsList: React.FC<ParticipantsListProps> = ({
   });
 
   const renderItem = ({ item, index }: { item: any; index: any }) => {
-    if (index === MAX_VISIBLE_PARTICIPANTS) {
-      return (
-        <Pressable onPress={() => showModal} style={styles.moreContainer}>
-          <Text style={styles.moreText}>
-            +{participants.length - MAX_VISIBLE_PARTICIPANTS}
-          </Text>
-        </Pressable>
-      );
-    } else {
-      return (
-        <View style={styles.participantContainer}>
-          {item.profilePhoto ? (
-            <Image source={{ uri: item.profilePhoto }} style={styles.icon} />
-          ) : (
-            <Ionicons name="person-circle-outline" color="white" size={50} />
-          )}
-        </View>
-      );
-    }
+    return (
+      <View style={styles.participantContainer}>
+        {item.profilePhoto ? (
+          <Image source={{ uri: item.profilePhoto }} style={styles.icon} />
+        ) : (
+          <Ionicons name="person-circle-outline" color="white" size={50} />
+        )}
+      </View>
+    );
   };
 
   if (isPending) {
-    return <View />;
+    return (
+      <View style={styles.mainContainer}>
+        {participants.slice(0, MAX_VISIBLE_PARTICIPANTS).map((_, idx) => (
+          <View key={idx} style={styles.participantContainer}>
+            <View style={[styles.icon]} />
+          </View>
+        ))}
+      </View>
+    );
   }
 
   return (
@@ -78,7 +76,7 @@ const ParticipantsList: React.FC<ParticipantsListProps> = ({
       <FlatList
         data={profilePics}
         renderItem={renderItem}
-        keyExtractor={(item) => item}
+        keyExtractor={(item) => item.id}
         horizontal={true}
         showsHorizontalScrollIndicator={false}
         scrollEnabled={false}

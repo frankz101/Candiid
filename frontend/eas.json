@@ -7,7 +7,12 @@
     "preview": {
       "distribution": "internal"
     },
-    "production": {}
+    "production": {
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://candiid-backend-nvik2fcc2q-uk.a.run.app",
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_cHJvLW1vdGgtNi5jbGVyay5hY2NvdW50cy5kZXYk"
+      }
+    }
   },
   "cli": {
     "version": ">= 0.45.0"

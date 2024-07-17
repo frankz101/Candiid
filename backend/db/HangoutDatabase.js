@@ -49,20 +49,13 @@ const createHangoutInDatabase = async (hangout) => {
       ...hangout,
       participantIds: arrayUnion(hangout.userId),
       createdAt: serverTimestamp(),
-    });
+    }); // add upcoming hangouts to profile
 
-    // add upcoming hangouts to profile
     const userDocRef = doc(db, "users", hangout.userId);
     await updateDoc(userDocRef, {
       createdHangouts: arrayUnion(docRef.id),
       upcomingHangouts: arrayUnion(docRef.id),
-    });
-
-    // const userDocRef = doc(db, "users", hangout.userId); ADD THIS IF YOU WANT TO IMPLEMENET MOST RECENT 12 HANGOUTS
-
-    // await updateDoc(userDocRef, {
-    //   recentHangouts: arrayUnion(docRef.id),
-    // });
+    }); // const userDocRef = doc(db, "users", hangout.userId); ADD THIS IF YOU WANT TO IMPLEMENET MOST RECENT 12 HANGOUTS // await updateDoc(userDocRef, { //   recentHangouts: arrayUnion(docRef.id), // });
 
     return docRef.id;
   } catch (error) {
@@ -142,7 +135,7 @@ const fetchUpcomingHangoutsFromDatabase = async (userId) => {
           );
         }
       })
-    );
+    ); // Fetch user profiles in a batch
 
     // Fetch user profiles in a batch
     const userCollection = collection(db, "users");
@@ -164,7 +157,7 @@ const fetchUpcomingHangoutsFromDatabase = async (userId) => {
         profilePhoto: userProfiles[userId]?.profilePhoto || null,
       }));
     });
-    console.log(hangouts);
+
     return hangouts;
   } catch (error) {
     console.error("Error fetching upcoming hangouts:", error);

@@ -21,6 +21,7 @@ import {
   getBlocks,
   deleteBlock,
   getUserList,
+  deleteUserProfilePhoto,
 } from "../controllers/UserController.js";
 
 var router = express.Router();
@@ -34,6 +35,7 @@ router.put(
   upload.single("profilePhoto"),
   putUserProfilePhoto
 );
+router.delete("/user/:userId/profile-photo", deleteUserProfilePhoto);
 router.get("/user/:id/profile-photo", getUserProfilePhoto);
 router.get("/user/:id/posts", getUserPosts);
 router.get("/user/:userId/post/:postId", getUserPost);
