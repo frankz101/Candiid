@@ -89,40 +89,41 @@ const SharedAlbumScreen = () => {
         <Text style={styles.headerText}>{hangoutData.hangoutName}</Text>
         <View style={{ width: 32 }} />
       </View>
-
-      <FlatList
-        data={hangoutData.sharedAlbum}
-        renderItem={renderPhoto}
-        keyExtractor={(item, index) => index.toString()}
-        numColumns={3}
-        contentContainerStyle={styles.scrollViewContainer}
-        ListEmptyComponent={
-          <View style={styles.emptyAlbumContainer}>
-            <View style={styles.greyPost}>
-              <Pressable
-                onPress={() => {
-                  router.push({
-                    pathname: "/(camera)/CameraScreen",
-                    params: {
-                      id: hangoutId,
-                      hangoutName: hangoutData.hangoutName,
-                    },
-                  });
-                }}
-              >
-                <Ionicons name="add" size={32} color="white" />
-              </Pressable>
+      <View style={{ flex: 1 }}>
+        <FlatList
+          data={hangoutData.sharedAlbum}
+          renderItem={renderPhoto}
+          keyExtractor={(item, index) => index.toString()}
+          numColumns={3}
+          contentContainerStyle={styles.scrollViewContainer}
+          ListEmptyComponent={
+            <View style={styles.emptyAlbumContainer}>
+              <View style={styles.greyPost}>
+                <Pressable
+                  onPress={() => {
+                    router.push({
+                      pathname: "/(camera)/CameraScreen",
+                      params: {
+                        id: hangoutId,
+                        hangoutName: hangoutData.hangoutName,
+                      },
+                    });
+                  }}
+                >
+                  <Ionicons name="add" size={32} color="white" />
+                </Pressable>
+              </View>
             </View>
-          </View>
-        }
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#FFF"
-          />
-        }
-      />
+          }
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#FFF"
+            />
+          }
+        />
+      </View>
 
       <Pressable
         onPress={() =>
@@ -164,7 +165,6 @@ const styles = StyleSheet.create({
   },
 
   scrollViewContainer: {
-    flexGrow: 1,
-    height: scrollViewHeight,
+    paddingBottom: 20,
   },
 });

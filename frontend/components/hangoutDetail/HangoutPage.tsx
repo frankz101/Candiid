@@ -9,7 +9,7 @@ import {
   Alert,
   FlatList,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
@@ -393,6 +393,16 @@ const HangoutPage: React.FC<HangoutPageProps> = ({ hangoutId, memoryId }) => {
       >
         <CompleteHangoutButton hangoutId={hangoutId as string} />
       </View>
+      <Pressable
+        onPress={() =>
+          router.push({
+            pathname: "/(hangout)/ChatScreen",
+            params: { hangoutId },
+          })
+        }
+      >
+        <Text style={{ color: "white" }}>Chat</Text>
+      </Pressable>
     </BaseScreen>
   );
 };

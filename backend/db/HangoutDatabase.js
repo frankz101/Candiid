@@ -54,6 +54,7 @@ const createHangoutInDatabase = async (hangout) => {
     // add upcoming hangouts to profile
     const userDocRef = doc(db, "users", hangout.userId);
     await updateDoc(userDocRef, {
+      createdHangouts: arrayUnion(docRef.id),
       upcomingHangouts: arrayUnion(docRef.id),
     });
 

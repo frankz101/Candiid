@@ -16,6 +16,7 @@ const Layout = () => {
       />
       <Stack.Screen name="SharedAlbumScreen" />
       <Stack.Screen name="SelectPhotosScreen" />
+      <Stack.Screen name="ChatScreen" />
     </Stack>
   );
 };
