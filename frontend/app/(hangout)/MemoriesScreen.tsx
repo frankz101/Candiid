@@ -514,7 +514,7 @@ const MemoriesScreen = () => {
   };
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
-  const snapPoints = useMemo(() => ["25%", "50%", "90%"], []);
+  const snapPoints = useMemo(() => ["50%", "90%"], []);
 
   const handleSheetChanges = useCallback((index: number) => {
     console.log("handleSheetChanges", index);
@@ -792,7 +792,7 @@ const MemoriesScreen = () => {
                   : GiphyContent.trendingStickers()
               }
               cellPadding={3}
-              style={{ height: 300, marginTop: 24 }}
+              style={{ height: hp(100) }}
               onMediaSelect={handleStickerSelect}
             />
             {media && (

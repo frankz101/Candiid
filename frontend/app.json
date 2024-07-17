@@ -1,9 +1,9 @@
 {
   "expo": {
-    "name": "Memories",
+    "name": "Candiid",
     "slug": "memories",
     "owner": "franklinzhu26",
-    "version": "1.0.3",
+    "version": "1.0.5",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -16,7 +16,7 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "buildNumber": "4",
+      "buildNumber": "6",
       "infoPlist": {
         "NSContactsUsageDescription": "$(PRODUCT_NAME) needs access to your Contacts.",
         "NSCameraUsageDescription": "$(PRODUCT_NAME) needs access to your Camera.",
