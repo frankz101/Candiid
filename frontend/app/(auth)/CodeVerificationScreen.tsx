@@ -1,6 +1,7 @@
 import BackButton from "@/components/utils/BackButton";
 import BaseScreen from "@/components/utils/BaseScreen";
 import { useSignUp, useUser } from "@clerk/clerk-expo";
+import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useLocalSearchParams } from "expo-router";
 import React, { useState, useEffect } from "react";
@@ -18,6 +19,7 @@ const CodeVerificationScreen = () => {
   const [userSignedIn, setUserSignedIn] = useState(false);
   const [resendTimer, setResendTimer] = useState(60);
   const [error, setError] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (userSignedIn && isLoaded && user) {
@@ -27,6 +29,8 @@ const CodeVerificationScreen = () => {
         name: user.firstName,
         username: user.username,
       };
+
+      queryClient.setQueryData(["profile", user.id], { result: userData });
 
       axios
         .post(`${process.env.EXPO_PUBLIC_API_URL}/users`, userData)

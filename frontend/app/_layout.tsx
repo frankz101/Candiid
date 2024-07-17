@@ -42,7 +42,7 @@ const InitialLayout = () => {
   setTimeout(SplashScreen.hideAsync, 1000);
 
   const fetchUser = async () => {
-    console.log("Fetching User Information");
+    console.log("Fetching User Information in Initial Layout");
     return axios
       .get(`${process.env.EXPO_PUBLIC_API_URL}/users/${user?.id}/${user?.id}`)
       .then((res) => res.data);
@@ -100,7 +100,6 @@ const InitialLayout = () => {
 
   useEffect(() => {
     SplashScreen.preventAutoHideAsync();
-    console.log("Main page UseEffect");
 
     const fetchDataAndNavigate = async () => {
       if (isSignedIn && user) {

@@ -47,7 +47,7 @@ const Profile = () => {
   const queryClient = useQueryClient();
 
   const fetchMemories = async () => {
-    console.log("Fetching Memories");
+    console.log("Fetching Memories in Profile Tab");
     return axios
       .get(`${process.env.EXPO_PUBLIC_API_URL}/memories/${user?.id}`)
       .then((res) => res.data);
@@ -61,13 +61,14 @@ const Profile = () => {
   };
 
   const fetchUpcomingHangouts = async () => {
+    console.log("Fetching Upcoming Hangouts in Profile Tab");
     return axios
       .get(`${process.env.EXPO_PUBLIC_API_URL}/hangout/upcoming/${user?.id}`)
       .then((res) => res.data);
   };
 
   const fetchStickers = async () => {
-    console.log("Fetching Stickers");
+    console.log("Fetching Stickers in Profile Tab");
     return axios
       .get(`${process.env.EXPO_PUBLIC_API_URL}/stickers/${user?.id}`)
       .then((res) => res.data);
@@ -105,7 +106,6 @@ const Profile = () => {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    console.log("CALLED REFESH");
     await queryClient.invalidateQueries({ queryKey: ["memories", user?.id] });
     await queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
     await queryClient.invalidateQueries({ queryKey: ["hangouts", user?.id] });

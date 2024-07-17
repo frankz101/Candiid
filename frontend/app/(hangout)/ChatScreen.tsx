@@ -49,7 +49,7 @@ const ChatScreen = () => {
   useEffect(() => {
     fetchMessages(roomId as string);
 
-    const socket = new WebSocket("ws://192.168.1.228:3001");
+    const socket = new WebSocket(`${process.env.EXPO_PUBLIC_WEBSOCKET_URL}`);
 
     socket.onopen = () => {
       console.log("Connected to websocket");

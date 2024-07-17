@@ -35,9 +35,6 @@ const CompletedHangouts: React.FC<CompletedHangoutsProps> = ({
     staleTime: 1000 * 60 * 5,
   });
 
-  if (!isPending) {
-    console.log("Posts: " + posts);
-  }
   return (
     <View>
       <FlatList

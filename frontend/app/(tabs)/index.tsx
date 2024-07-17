@@ -64,7 +64,6 @@ const Home = () => {
   const { user } = useUser();
   const { expoPushToken, notification } = usePushNotifications();
   const data = JSON.stringify(notification, undefined, 2);
-  console.log(expoPushToken?.data ?? "");
 
   const onRefresh = async () => {
     setRefreshing(true);

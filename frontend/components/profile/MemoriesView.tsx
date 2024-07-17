@@ -59,10 +59,6 @@ const MemoriesView: React.FC<MemoriesViewProps> = ({
   const selectedColor = useSharedValue(color);
   const displayModeRef = useRef(true);
 
-  useEffect(() => {
-    console.log("Stickers updated and rerendering:");
-  }, [stickers]);
-
   const containerStyle = useAnimatedStyle(() => {
     return {
       transform: [

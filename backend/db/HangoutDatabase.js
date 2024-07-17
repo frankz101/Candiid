@@ -278,6 +278,7 @@ const handleHangoutRequestInDatabase = async (hangoutId, hangoutRequest) => {
       const hangoutDocRef = doc(db, "hangouts", hangoutId);
 
       if (hangoutRequest.type === "request") {
+        const userDocRef = doc(db, "users", hangoutRequest.receiverId);
         updateDoc(hangoutDocRef, {
           participantIds: arrayUnion(hangoutRequest.receiverId),
         })
@@ -289,13 +290,36 @@ const handleHangoutRequestInDatabase = async (hangoutId, hangoutRequest) => {
           .catch((error) => {
             console.error("Error updating document:", error);
           });
+        updateDoc(userDocRef, {
+          upcomingHangouts: arrayUnion(hangoutId),
+        })
+          .then(() => {
+            console.log(
+              `User ${hangoutRequest.receiverId} added to hangout: ${hangoutId}'s.`
+            );
+          })
+          .catch((error) => {
+            console.error("Error updating document:", error);
+          });
       } else if (hangoutRequest.type === "join") {
+        const userDocRef = doc(db, "users", hangoutRequest.senderId);
         updateDoc(hangoutDocRef, {
           participantIds: arrayUnion(hangoutRequest.senderId),
         })
           .then(() => {
             console.log(
               `User ${hangoutRequest.senderId} join hangout request accepted: ${hangoutId}.`
+            );
+          })
+          .catch((error) => {
+            console.error("Error updating document:", error);
+          });
+        updateDoc(userDocRef, {
+          upcomingHangouts: arrayUnion(hangoutId),
+        })
+          .then(() => {
+            console.log(
+              `User ${hangoutRequest.senderId} added to hangout: ${hangoutId}'s.`
             );
           })
           .catch((error) => {
