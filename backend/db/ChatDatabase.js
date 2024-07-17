@@ -2,8 +2,12 @@ import {
   addDoc,
   collection,
   getDocs,
+  getDoc,
+  limit,
   orderBy,
   query,
+  startAfter,
+  doc,
 } from "firebase/firestore";
 import { db } from "../firebase.js";
 
@@ -21,11 +25,28 @@ const addMessageToDatabase = async (roomId, message) => {
   }
 };
 
-const fetchMessagesFromDatabase = async (roomId) => {
+const fetchMessagesFromDatabase = async (roomId, limitQuery, lastMessageId) => {
   try {
     const messageRef = collection(db, "messages", roomId, "chatMessages");
-    const q = query(messageRef, orderBy("createdAt", "asc"));
-    const snapshot = await getDocs(q);
+    let messageQuery = query(
+      messageRef,
+      orderBy("createdAt", "desc"),
+      limit(parseInt(limitQuery, 10))
+    );
+
+    if (lastMessageId) {
+      const lastMessageDoc = await getDoc(
+        doc(db, "messages", roomId, "chatMessages", lastMessageId)
+      );
+      messageQuery = query(
+        messageRef,
+        orderBy("createdAt", "desc"),
+        startAfter(lastMessageDoc),
+        limit(parseInt(limitQuery, 10))
+      );
+    }
+
+    const snapshot = await getDocs(messageQuery);
     const messages = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),

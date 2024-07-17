@@ -43,37 +43,52 @@ const wss = new WebSocketServer({ server });
 wss.on("connection", (ws) => {
   console.log("Client connected");
 
+  let isReady = false; // Flag to track if the client is ready to receive data
+  let unsubscribe = null; // Variable to hold the unsubscribe function
+
   ws.on("message", (message) => {
     const parsedMessage = JSON.parse(message);
-    const { roomId } = parsedMessage;
 
-    if (!roomId) {
-      ws.send(JSON.stringify({ error: "roomId is required" }));
-      return;
-    }
+    if (parsedMessage.type === "ready") {
+      const { roomId } = parsedMessage;
 
-    console.log(`Listening to room: ${roomId}`);
+      if (!roomId) {
+        ws.send(JSON.stringify({ error: "roomId is required" }));
+        return;
+      }
 
-    // Listen for changes in Firestore for the specified room
-    const colRef = collection(db, "messages", roomId, "chatMessages");
-    const q = query(colRef);
+      console.log(`Listening to room: ${roomId}`);
+      isReady = true;
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      snapshot.docChanges().forEach((change) => {
-        if (
-          change.type === "added" ||
-          change.type === "modified" ||
-          change.type === "removed"
-        ) {
-          ws.send(
-            JSON.stringify({ type: change.type, doc: change.doc.data() })
-          );
+      // Listen for changes in Firestore for the specified room
+      const colRef = collection(db, "messages", roomId, "chatMessages");
+      const q = query(colRef);
+
+      unsubscribe = onSnapshot(q, (snapshot) => {
+        if (isReady) {
+          snapshot.docChanges().forEach((change) => {
+            if (
+              change.type === "added" ||
+              change.type === "modified" ||
+              change.type === "removed"
+            ) {
+              ws.send(
+                JSON.stringify({
+                  type: change.type,
+                  doc: { id: change.doc.id, ...change.doc.data() },
+                })
+              );
+            }
+          });
         }
       });
-    });
-    ws.on("close", () => {
-      console.log("Client disconnected");
+    }
+  });
+
+  ws.on("close", () => {
+    console.log("Client disconnected");
+    if (unsubscribe) {
       unsubscribe(); // Stop listening to changes when the client disconnects
-    });
+    }
   });
 });
