@@ -64,18 +64,18 @@ const HangoutPage: React.FC<HangoutPageProps> = ({ hangoutId, memoryId }) => {
     return [];
   };
 
-  const { data: hangoutData, isPending } = useQuery({
+  const { data: hangoutData, isPending: isPendingHangout } = useQuery({
     queryKey: ["hangoutPhotos", hangoutId],
     queryFn: fetchHangout,
   });
 
-  const { data: participants } = useQuery({
+  const { data: participants, isPending: isPendingParticipants } = useQuery({
     queryKey: ["hangoutParticipants", hangoutId],
     queryFn: fetchParticipants,
     enabled: !!hangoutData,
   });
 
-  if (isPending) {
+  if (isPendingHangout || isPendingParticipants) {
     return (
       <BaseScreen>
         <View
@@ -96,10 +96,6 @@ const HangoutPage: React.FC<HangoutPageProps> = ({ hangoutId, memoryId }) => {
   }
 
   const latestPhotos = hangoutData.sharedAlbum?.slice(-6) || [];
-
-  if (!isPending) {
-    console.log(hangoutData);
-  }
 
   const leaveHangout = () => {
     Alert.alert(

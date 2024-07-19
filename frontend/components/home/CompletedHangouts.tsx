@@ -56,6 +56,7 @@ const CompletedHangouts: React.FC<CompletedHangoutsProps> = ({
           }));
           return (
             <FeedPost
+              userId={item.userId}
               username={username}
               profilePhoto={profilePhoto.fileUrl}
               caption={item.caption}

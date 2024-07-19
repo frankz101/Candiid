@@ -39,29 +39,50 @@ const scrollViewHeight = screenHeight - headerHeight - bottomPadding;
 const ProfileScreen = () => {
   const { user } = useUser();
   const router = useRouter();
-  const { userId, username, name, profilePhoto, friendStatus, searchPhrase } =
-    useLocalSearchParams();
-  const userIdStr = Array.isArray(userId) ? userId[0] : userId;
-  const profilePhotoStr = Array.isArray(profilePhoto)
-    ? profilePhoto[0]
-    : profilePhoto;
-  const friendStatusStr = Array.isArray(friendStatus)
-    ? friendStatus[0]
-    : friendStatus;
+  const { userId } = useLocalSearchParams();
+
+  // const userIdStr = Array.isArray(userId) ? userId[0] : userId;
+  // const profilePhotoStr = Array.isArray(profilePhoto)
+  //   ? profilePhoto[0]
+  //   : profilePhoto;
+  // const friendStatusStr = Array.isArray(friendStatus)
+  //   ? friendStatus[0]
+  //   : friendStatus;
   const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const queryClient = useQueryClient();
+
+  const fetchUser = async () => {
+    console.log("Fetching User Information in profile screen");
+    return axios
+      .get(`${process.env.EXPO_PUBLIC_API_URL}/users/${userId}/${user?.id}`)
+      .then((res) => res.data);
+  };
+
   const fetchMemories = async () => {
-    console.log("Fetching Memories");
+    console.log("Fetching Memories in profile screen");
     return axios
       .get(`${process.env.EXPO_PUBLIC_API_URL}/memories/${userId}`)
       .then((res) => res.data);
   };
 
-  const { data: memoriesData, isPending } = useQuery({
-    queryKey: ["memories", userId],
-    queryFn: fetchMemories,
+  const [memories, profile] = useQueries({
+    queries: [
+      {
+        queryKey: ["memories", userId],
+        queryFn: fetchMemories,
+        staleTime: 1000 * 60 * 5,
+      },
+      {
+        queryKey: ["profile", userId],
+        queryFn: fetchUser,
+        staleTime: 1000 * 60 * 5,
+      },
+    ],
   });
+
+  const { data: memoriesData, isPending: isPendingMemories } = memories;
+  const { data: profileDetails, isPending: isPendingProfile } = profile;
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -69,7 +90,7 @@ const ProfileScreen = () => {
     setRefreshing(false);
   };
 
-  if (isPending) {
+  if (isPendingMemories || isPendingProfile) {
     return <Text>Is Loading...</Text>;
   }
 
@@ -92,7 +113,7 @@ const ProfileScreen = () => {
                 setModalVisible(false);
                 const details = {
                   userId: user.id,
-                  blockedUserId: userIdStr,
+                  blockedUserId: userId,
                 };
                 const res = await axios.post(
                   `${process.env.EXPO_PUBLIC_API_URL}/user/block`,
@@ -117,7 +138,9 @@ const ProfileScreen = () => {
     <BaseScreen style={styles.container}>
       <View style={styles.navOptions}>
         <BackButton />
-        <Text style={styles.userDetailText}>{`@${username}`}</Text>
+        <Text
+          style={styles.userDetailText}
+        >{`@${profileDetails.result.username}`}</Text>
         <View>
           <Pressable onPress={() => setModalVisible(true)}>
             <Ionicons
@@ -145,12 +168,14 @@ const ProfileScreen = () => {
                       pathname: "/ReportScreen",
                       params: {
                         userId,
-                        username,
+                        username: profileDetails.result.username,
                       },
                     });
                   }}
                 >
-                  <Text style={styles.modalButtonText}>Report {username}</Text>
+                  <Text style={styles.modalButtonText}>
+                    Report {profileDetails.result.username}
+                  </Text>
                   <Ionicons name="alert-circle-outline" color="red" size={24} />
                 </Pressable>
                 <Pressable
@@ -162,11 +187,13 @@ const ProfileScreen = () => {
                   ]}
                   onPress={blockUser}
                 >
-                  <Text style={styles.modalButtonText}>Block {username}</Text>
+                  <Text style={styles.modalButtonText}>
+                    Block {profileDetails.result.username}
+                  </Text>
                   <Ionicons name="ban-outline" color="red" size={24} />
                 </Pressable>
 
-                {friendStatus === "Already Friends" && (
+                {profileDetails.result.friendStatus === "Already Friends" && (
                   <Pressable
                     style={({ pressed }) => [
                       styles.modalButton,
@@ -197,16 +224,19 @@ const ProfileScreen = () => {
         }
       >
         <View style={styles.userDetails}>
-          {profilePhotoStr !== "undefined" && profilePhotoStr !== "null" ? (
+          {profileDetails && profileDetails.result.profilePhoto ? (
             <Image
-              source={{ uri: profilePhotoStr }}
+              source={{ uri: profileDetails.result.profilePhoto.fileUrl }}
               style={styles.profilePhoto}
             />
           ) : (
-            <Ionicons name="person-circle" size={wp(25)} color="white" />
+            <View style={[styles.profilePhoto, { backgroundColor: "grey" }]} />
           )}
-          <Text style={styles.userText}>{name}</Text>
-          <FriendshipButton userId={userIdStr} status={friendStatusStr} />
+          <Text style={styles.userText}>{profileDetails.result.name}</Text>
+          <FriendshipButton
+            userId={userId as string}
+            status={profileDetails.result.friendStatus}
+          />
         </View>
         {/* <Text style={styles.headerText}>Memoryboard</Text> */}
         <Animated.View style={styles.animatedView}>

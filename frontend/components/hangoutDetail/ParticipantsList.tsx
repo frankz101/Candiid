@@ -61,7 +61,7 @@ const ParticipantsList: React.FC<ParticipantsListProps> = ({
 
   if (isPending) {
     return (
-      <View style={styles.mainContainer}>
+      <View>
         {participants.slice(0, MAX_VISIBLE_PARTICIPANTS).map((_, idx) => (
           <View key={idx} style={styles.participantContainer}>
             <View style={[styles.icon]} />

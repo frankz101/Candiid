@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
   profilePhoto: {
     width: wp(25),
     height: wp(25),
-    borderRadius: wp(25),
+    borderRadius: wp(25) / 2,
   },
   scrollViewContainer: {
     flexGrow: 1,

@@ -1,4 +1,4 @@
-import { Dimensions, StyleSheet, Text, View } from "react-native";
+import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import React from "react";
 import {
   widthPercentageToDP as wp,
@@ -8,9 +8,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import PostCarousel from "../photo/PostCarousel";
 import { ImageData } from "../photo/PostCarousel";
+import { useRouter } from "expo-router";
 const { width: screenWidth } = Dimensions.get("window");
 
 interface FeedPostProps {
+  userId: string;
   username: string;
   profilePhoto: string;
   caption: string;
@@ -18,20 +20,34 @@ interface FeedPostProps {
 }
 
 const FeedPost: React.FC<FeedPostProps> = ({
+  userId,
   username,
   profilePhoto,
   caption,
   photoUrls,
 }) => {
   const postWidth = screenWidth - wp(17);
+  const router = useRouter();
   return (
     <View style={{ marginTop: hp(1), marginBottom: hp(2) }}>
       {/* Post Header */}
       <View style={styles.postHeader}>
         <Image source={{ uri: profilePhoto }} style={styles.icon} />
         <View style={styles.headerContent}>
-          <Text style={styles.username}>{username}</Text>
-          <Text style={styles.caption}>{caption}</Text>
+          <Pressable
+            onPress={() =>
+              router.push({
+                pathname: "/(profile)/ProfileScreen",
+                params: {
+                  userId: userId,
+                },
+              })
+            }
+          >
+            <Text style={styles.username}>{username}</Text>
+            <Text style={styles.caption}>{caption}</Text>
+          </Pressable>
+
           <PostCarousel
             images={photoUrls}
             width={postWidth}

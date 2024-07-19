@@ -193,7 +193,21 @@ const FriendshipButton: React.FC<FriendshipButtonProps> = ({
     <View>
       <View style={styles.centerRow}>
         {friendStatus === "Already Friends" ? (
-          <View></View>
+          <Pressable
+            style={({ pressed }) => [
+              {
+                backgroundColor: pressed ? "#ddd" : "#ccc",
+                padding: 10,
+                borderRadius: 5,
+                width: wp("95%"),
+                aspectRatio: 8,
+              },
+              styles.centerRow,
+            ]}
+            onPress={() => removeFriend(userId)}
+          >
+            <Text style={{ color: "#000" }}>Remove Friend</Text>
+          </Pressable>
         ) : friendStatus === "Friend Requested" ? (
           <Pressable
             style={({ pressed }) => [

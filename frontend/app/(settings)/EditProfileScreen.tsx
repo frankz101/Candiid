@@ -1,14 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  Image,
-  Pressable,
-} from "react-native";
+import { View, Text, TextInput, StyleSheet, Pressable } from "react-native";
 import { useUser } from "@clerk/clerk-expo";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import BaseScreen from "@/components/utils/BaseScreen";
 import BackButton from "@/components/utils/BackButton";
@@ -20,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { SheetManager } from "react-native-actions-sheet";
 import Toast from "react-native-toast-message";
 import { useRouter } from "expo-router";
+import { Image } from "expo-image";
 
 //GET RID OF RESULT WHEN FETCHING PROFILE
 interface User {
@@ -41,14 +35,26 @@ interface User {
 const EditProfileScreen = () => {
   const queryClient = useQueryClient();
   const { user } = useUser();
-  const cachedData = queryClient.getQueryData<User>(["profile", user?.id]);
-  const profile = cachedData?.result;
+  // const cachedData = queryClient.getQueryData<User>(["profile", user?.id]);
+  // const profile = cachedData?.result;
 
-  const [name, setName] = useState(profile?.name);
-  const [username, setUsername] = useState(profile?.username);
+  const fetchUser = async () => {
+    console.log("Fetching User Information in Settings tab");
+    return axios
+      .get(`${process.env.EXPO_PUBLIC_API_URL}/users/${user?.id}/${user?.id}`)
+      .then((res) => res.data);
+  };
 
-  const [originalName] = useState(profile?.name);
-  const [originalUsername] = useState(profile?.username);
+  const { data: profile, isPending } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: fetchUser,
+  });
+
+  const [name, setName] = useState(profile?.result.name);
+  const [username, setUsername] = useState(profile?.result.username);
+
+  const [originalName] = useState(profile?.result.name);
+  const [originalUsername] = useState(profile?.result.username);
 
   const nameRef = useRef(name);
   const usernameRef = useRef(username);
@@ -125,15 +131,13 @@ const EditProfileScreen = () => {
 
       <View style={{ alignItems: "center", marginBottom: hp(2) }}>
         <Pressable onPress={openChangePhotoSheet}>
-          {profile?.profilePhoto ? (
+          {profile?.result.profilePhoto ? (
             <Image
-              source={{ uri: profile?.profilePhoto?.fileUrl }}
-              width={50}
-              height={50}
+              source={{ uri: profile?.result.profilePhoto?.fileUrl }}
               style={styles.profilePhoto}
             />
           ) : (
-            <Ionicons name="person-circle-outline" size={50} />
+            <View style={[styles.profilePhoto, { backgroundColor: "grey" }]} />
           )}
         </Pressable>
       </View>
@@ -189,9 +193,9 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   profilePhoto: {
-    width: wp(30),
-    height: wp(30),
-    borderRadius: wp(15),
+    width: wp(25),
+    height: wp(25),
+    borderRadius: wp(25) / 2,
   },
   editContainer: {
     flexDirection: "row",

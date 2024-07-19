@@ -616,6 +616,8 @@ const MemoriesScreen = () => {
         selectedFriends: [],
       });
 
+      await queryClient.invalidateQueries({ queryKey: ["memories", user?.id] });
+
       router.push({
         pathname: "/(tabs)/profile",
       });
