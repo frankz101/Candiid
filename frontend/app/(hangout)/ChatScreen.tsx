@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import {
   Button,
   FlatList,
+  Pressable,
   StyleSheet,
   Text,
   TextInput,
@@ -177,10 +178,7 @@ const ChatScreen = () => {
                   ownMessage
                     ? { alignSelf: "flex-end" }
                     : { alignSelf: "flex-start" },
-                  !showProfilePhoto &&
-                    (ownMessage
-                      ? { marginRight: wp(14) }
-                      : { marginLeft: wp(14) }),
+                  !showProfilePhoto && !ownMessage && { marginLeft: wp(14) },
                 ]}
               >
                 {showProfilePhoto &&
@@ -201,10 +199,8 @@ const ChatScreen = () => {
                     />
                   ))}
                 <View>
-                  {showName && (
-                    <Text style={ownMessage ? styles.ownSender : styles.sender}>
-                      {item.senderName}
-                    </Text>
+                  {showName && !ownMessage && (
+                    <Text style={styles.sender}>{item.senderName}</Text>
                   )}
                   <View
                     style={[
@@ -221,23 +217,6 @@ const ChatScreen = () => {
                     </Text>
                   </View>
                 </View>
-                {showProfilePhoto &&
-                  ownMessage &&
-                  (profilePhotoMap[item.senderId] ? (
-                    <Image
-                      source={{
-                        uri: profilePhotoMap[item.senderId],
-                      }}
-                      style={[styles.profilePhoto, styles.ownProfilePhoto]}
-                    />
-                  ) : (
-                    <Ionicons
-                      name="person-circle-outline"
-                      color="white"
-                      size={40}
-                      style={[styles.profilePhoto, styles.ownProfilePhoto]}
-                    />
-                  ))}
               </View>
             );
           }}
@@ -252,8 +231,13 @@ const ChatScreen = () => {
             value={newMessage}
             onChangeText={setNewMessage}
             placeholder="Type a message"
+            onSubmitEditing={handleSendMessage}
           />
-          <Button title="Send" onPress={handleSendMessage} />
+          {newMessage && (
+            <Pressable style={styles.sendButton}>
+              <Ionicons name="arrow-up-circle" color="#007BFF" size={30} />
+            </Pressable>
+          )}
         </View>
       </View>
     </BaseScreen>
@@ -301,34 +285,29 @@ const styles = StyleSheet.create({
     marginBottom: hp(0.25),
     color: "lightgray",
   },
-  ownSender: {
-    color: "lightgray",
-    alignSelf: "flex-end",
-    fontSize: 12,
-    marginBottom: hp(0.25),
-    marginRight: wp(1),
-  },
   profilePhoto: {
     width: wp(10),
     height: wp(10),
     borderRadius: 20,
     marginRight: wp(2),
   },
-  ownProfilePhoto: {
-    marginLeft: 10,
-  },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 10,
+    padding: wp(2),
+    marginHorizontal: wp(2),
   },
   input: {
     flex: 1,
     borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 10,
-    marginRight: 10,
-    borderRadius: 5,
+    borderColor: "#424242",
+    padding: wp(2.5),
+    borderRadius: 20,
     color: "white",
+  },
+  sendButton: {
+    position: "absolute",
+    right: wp(4),
+    top: hp(1.4),
   },
 });
