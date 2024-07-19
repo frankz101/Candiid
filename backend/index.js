@@ -43,46 +43,48 @@ const wss = new WebSocketServer({ server });
 wss.on("connection", (ws) => {
   console.log("Client connected");
 
-  let isReady = false; // Flag to track if the client is ready to receive data
-  let unsubscribe = null; // Variable to hold the unsubscribe function
+  let unsubscribe = null;
 
   ws.on("message", (message) => {
     const parsedMessage = JSON.parse(message);
+    const { roomId } = parsedMessage;
 
-    if (parsedMessage.type === "ready") {
-      const { roomId } = parsedMessage;
+    if (!roomId) {
+      ws.send(JSON.stringify({ error: "roomId is required" }));
+      return;
+    }
 
-      if (!roomId) {
-        ws.send(JSON.stringify({ error: "roomId is required" }));
-        return;
-      }
+    console.log(`Listening to room: ${roomId}`);
 
-      console.log(`Listening to room: ${roomId}`);
-      isReady = true;
+    const colRef = collection(db, "messages", roomId, "chatMessages");
+    const q = query(colRef);
 
-      // Listen for changes in Firestore for the specified room
-      const colRef = collection(db, "messages", roomId, "chatMessages");
-      const q = query(colRef);
+    let isInitialLoad = true;
 
-      unsubscribe = onSnapshot(q, (snapshot) => {
-        if (isReady) {
-          snapshot.docChanges().forEach((change) => {
-            if (
-              change.type === "added" ||
-              change.type === "modified" ||
-              change.type === "removed"
-            ) {
-              ws.send(
-                JSON.stringify({
-                  type: change.type,
-                  doc: { id: change.doc.id, ...change.doc.data() },
-                })
-              );
-            }
-          });
+    unsubscribe = onSnapshot(q, (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        if (isInitialLoad) {
+          console.log("Initial load document:", change.doc.data());
+        } else {
+          if (
+            change.type === "added" ||
+            change.type === "modified" ||
+            change.type === "removed"
+          ) {
+            ws.send(
+              JSON.stringify({
+                type: change.type,
+                doc: { id: change.doc.id, ...change.doc.data() },
+              })
+            );
+          }
         }
       });
-    }
+
+      if (isInitialLoad) {
+        isInitialLoad = false;
+      }
+    });
   });
 
   ws.on("close", () => {
