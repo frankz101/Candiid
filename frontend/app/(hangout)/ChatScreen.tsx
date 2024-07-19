@@ -1,7 +1,10 @@
 import BackButton from "@/components/utils/BackButton";
 import BaseScreen from "@/components/utils/BaseScreen";
 import { useUser } from "@clerk/clerk-expo";
+import { Ionicons } from "@expo/vector-icons";
+import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
+import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -19,6 +22,12 @@ import {
 
 const LIMIT = 20;
 
+interface ParticipantPhoto {
+  id: string;
+  name: string;
+  profilePhoto?: string;
+}
+
 const ChatScreen = () => {
   const { hangoutId, name } = useLocalSearchParams();
   const [messages, setMessages] = useState<any[]>([]);
@@ -28,6 +37,14 @@ const ChatScreen = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [lastMessageId, setLastMessageId] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState<boolean>(true);
+  const queryClient = useQueryClient();
+  const participantPhotos = queryClient.getQueryData<ParticipantPhoto[]>([
+    "participants",
+    hangoutId,
+  ]);
+  const profilePhotoMap = Object.fromEntries(
+    (participantPhotos || []).map((p) => [p.id, p.profilePhoto])
+  );
 
   const addMessage = async (message: {
     senderName: string;
@@ -145,19 +162,85 @@ const ChatScreen = () => {
           keyExtractor={(item, index) =>
             item.id?.toString() || index.toString()
           }
-          renderItem={({ item }) => (
-            <View
-              style={[
-                styles.message,
-                isOwnMessage(item.senderId)
-                  ? styles.ownMessage
-                  : styles.otherMessage,
-              ]}
-            >
-              <Text style={styles.sender}>{item.senderName}</Text>
-              <Text style={styles.text}>{item.text}</Text>
-            </View>
-          )}
+          renderItem={({ item, index }) => {
+            const showProfilePhoto =
+              index === 0 || item.senderId !== messages[index - 1].senderId;
+            const showName =
+              index === messages.length - 1 ||
+              item.senderId !== messages[index + 1].senderId;
+            const ownMessage = isOwnMessage(item.senderId);
+
+            return (
+              <View
+                style={[
+                  styles.messageContainer,
+                  ownMessage
+                    ? { alignSelf: "flex-end" }
+                    : { alignSelf: "flex-start" },
+                  !showProfilePhoto &&
+                    (ownMessage
+                      ? { marginRight: wp(14) }
+                      : { marginLeft: wp(14) }),
+                ]}
+              >
+                {showProfilePhoto &&
+                  !ownMessage &&
+                  (profilePhotoMap[item.senderId] ? (
+                    <Image
+                      source={{
+                        uri: profilePhotoMap[item.senderId],
+                      }}
+                      style={styles.profilePhoto}
+                    />
+                  ) : (
+                    <Ionicons
+                      name="person-circle-outline"
+                      color="white"
+                      size={40}
+                      style={styles.profilePhoto}
+                    />
+                  ))}
+                <View>
+                  {showName && (
+                    <Text style={ownMessage ? styles.ownSender : styles.sender}>
+                      {item.senderName}
+                    </Text>
+                  )}
+                  <View
+                    style={[
+                      styles.message,
+                      ownMessage ? styles.ownMessage : styles.otherMessage,
+                    ]}
+                  >
+                    <Text
+                      style={
+                        ownMessage ? { color: "white" } : { color: "black" }
+                      }
+                    >
+                      {item.text}
+                    </Text>
+                  </View>
+                </View>
+                {showProfilePhoto &&
+                  ownMessage &&
+                  (profilePhotoMap[item.senderId] ? (
+                    <Image
+                      source={{
+                        uri: profilePhotoMap[item.senderId],
+                      }}
+                      style={[styles.profilePhoto, styles.ownProfilePhoto]}
+                    />
+                  ) : (
+                    <Ionicons
+                      name="person-circle-outline"
+                      color="white"
+                      size={40}
+                      style={[styles.profilePhoto, styles.ownProfilePhoto]}
+                    />
+                  ))}
+              </View>
+            );
+          }}
           inverted
           onEndReached={loadMoreMessages}
           onEndReachedThreshold={0.1}
@@ -196,29 +279,43 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    padding: 10,
+    padding: wp(2),
   },
   message: {
-    padding: 10,
-    borderBottomWidth: 1,
-    marginVertical: 5,
+    padding: hp(1),
+    borderRadius: 15,
+  },
+  messageContainer: {
+    flexDirection: "row",
+    alignItems: "flex-end",
   },
   ownMessage: {
     backgroundColor: "#007BFF",
-    alignSelf: "flex-end",
-    borderRadius: 10,
   },
   otherMessage: {
     backgroundColor: "#ccc",
-    alignSelf: "flex-start",
-    borderRadius: 10,
   },
   sender: {
-    fontWeight: "bold",
-    color: "white",
+    marginLeft: wp(1),
+    fontSize: 12,
+    marginBottom: hp(0.25),
+    color: "lightgray",
   },
-  text: {
-    color: "white",
+  ownSender: {
+    color: "lightgray",
+    alignSelf: "flex-end",
+    fontSize: 12,
+    marginBottom: hp(0.25),
+    marginRight: wp(1),
+  },
+  profilePhoto: {
+    width: wp(10),
+    height: wp(10),
+    borderRadius: 20,
+    marginRight: wp(2),
+  },
+  ownProfilePhoto: {
+    marginLeft: 10,
   },
   inputContainer: {
     flexDirection: "row",
