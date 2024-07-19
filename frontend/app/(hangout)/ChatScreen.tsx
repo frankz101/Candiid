@@ -275,6 +275,7 @@ const styles = StyleSheet.create({
   },
   ownMessage: {
     backgroundColor: "#007BFF",
+    marginRight: wp(2),
   },
   otherMessage: {
     backgroundColor: "#ccc",
