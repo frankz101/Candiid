@@ -17,7 +17,12 @@ const postMessage = async (req, res) => {
 const getMessages = async (req, res) => {
   try {
     const { roomId } = req.params;
-    const result = await fetchMessagesFromDatabase(roomId);
+    const { limit: limitQuery, lastMessageId } = req.query;
+    const result = await fetchMessagesFromDatabase(
+      roomId,
+      limitQuery,
+      lastMessageId
+    );
     res.status(200).send({ result });
   } catch (err) {
     res.status(500).send({ message: err.message });

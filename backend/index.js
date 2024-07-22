@@ -43,6 +43,8 @@ const wss = new WebSocketServer({ server });
 wss.on("connection", (ws) => {
   console.log("Client connected");
 
+  let unsubscribe = null;
+
   ws.on("message", (message) => {
     const parsedMessage = JSON.parse(message);
     const { roomId } = parsedMessage;
@@ -54,26 +56,41 @@ wss.on("connection", (ws) => {
 
     console.log(`Listening to room: ${roomId}`);
 
-    // Listen for changes in Firestore for the specified room
     const colRef = collection(db, "messages", roomId, "chatMessages");
     const q = query(colRef);
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    let isInitialLoad = true;
+
+    unsubscribe = onSnapshot(q, (snapshot) => {
       snapshot.docChanges().forEach((change) => {
-        if (
-          change.type === "added" ||
-          change.type === "modified" ||
-          change.type === "removed"
-        ) {
-          ws.send(
-            JSON.stringify({ type: change.type, doc: change.doc.data() })
-          );
+        if (isInitialLoad) {
+          console.log("Initial load document:", change.doc.data());
+        } else {
+          if (
+            change.type === "added" ||
+            change.type === "modified" ||
+            change.type === "removed"
+          ) {
+            ws.send(
+              JSON.stringify({
+                type: change.type,
+                doc: { id: change.doc.id, ...change.doc.data() },
+              })
+            );
+          }
         }
       });
+
+      if (isInitialLoad) {
+        isInitialLoad = false;
+      }
     });
-    ws.on("close", () => {
-      console.log("Client disconnected");
+  });
+
+  ws.on("close", () => {
+    console.log("Client disconnected");
+    if (unsubscribe) {
       unsubscribe(); // Stop listening to changes when the client disconnects
-    });
+    }
   });
 });

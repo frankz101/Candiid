@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Dimensions,
   FlatList,
@@ -15,7 +15,7 @@ import axios from "axios";
 import { useRouter } from "expo-router";
 import useStore from "@/store/useStore";
 // import { HangoutDetails } from "@/store/createHangoutSlice";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import BaseScreen from "@/components/utils/BaseScreen";
 import SearchBar from "@/components/utils/SearchBar";
@@ -34,6 +34,7 @@ const CreateHangout = () => {
   const { addFriend, removeFriend } = useStore();
   const { user } = useUser();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const fetchFriends = async () => {
     return axios
@@ -65,6 +66,9 @@ const CreateHangout = () => {
         hangoutData
       );
       console.log(hangoutResponse.data);
+
+      await queryClient.invalidateQueries({ queryKey: ["hangouts", user?.id] });
+
       router.push({
         pathname: "/(hangout)/InviteFriendsScreen",
         params: {
@@ -91,23 +95,26 @@ const CreateHangout = () => {
           <TextInput
             placeholder="what's your plan?"
             onChangeText={(input) => setHangoutName(input)}
-            maxLength={25}
+            maxLength={37}
             value={hangoutName}
             accessibilityLabel="text-input"
             placeholderTextColor="#3F3F3F"
             cursorColor="white"
             style={styles.nameInput}
           />
-          <TextInput
-            placeholder="describe it :)"
-            onChangeText={(input) => setHangoutDescription(input)}
-            maxLength={90}
-            value={hangoutDescription}
-            accessibilityLabel="text-input"
-            placeholderTextColor="#3F3F3F"
-            cursorColor="white"
-            style={styles.descriptionInput}
-          />
+          <Pressable>
+            <TextInput
+              placeholder="describe it :)"
+              onChangeText={(input) => setHangoutDescription(input)}
+              maxLength={150}
+              value={hangoutDescription}
+              accessibilityLabel="text-input"
+              placeholderTextColor="#3F3F3F"
+              cursorColor="white"
+              style={styles.descriptionInput}
+              multiline={true}
+            />
+          </Pressable>
         </View>
         <View style={styles.submitContainer}>
           <Pressable
@@ -151,14 +158,18 @@ const styles = StyleSheet.create({
     borderRadius: 15,
   },
   nameInput: {
-    padding: 10,
+    paddingHorizontal: wp(3),
+    paddingTop: hp(2),
+    paddingBottom: hp(1),
     fontFamily: "inter",
     fontSize: 24,
     fontWeight: "500",
     color: "#FFF",
   },
   descriptionInput: {
-    paddingLeft: 10,
+    width: "100%",
+    height: hp(18),
+    paddingHorizontal: wp(3),
     fontFamily: "inter",
     fontSize: 16,
     fontWeight: "500",

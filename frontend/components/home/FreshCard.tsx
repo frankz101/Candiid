@@ -47,10 +47,6 @@ const FreshCard: React.FC<hangoutCardProps> = ({
     staleTime: 1000 * 60 * 5,
   });
 
-  if (!isPending) {
-    console.log("FRESH CARD RERENDER" + profilePics[0]?.profilePhoto);
-  }
-
   const askToJoin = async () => {
     try {
       const res = await axios.post(

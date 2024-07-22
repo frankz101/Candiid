@@ -191,21 +191,25 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ hangoutId }) => {
             <Animated.View style={[styles.flashOverlay, flashStyle]} />
           </Pressable>
         </View>
-        <Pressable
-          onPress={onCameraCapture}
-          style={{ position: "absolute", alignSelf: "center", bottom: 75 }}
-        >
-          <Feather name="circle" size={90} color="#FFF" />
-        </Pressable>
-        <Pressable
-          onPress={handleCameraComplete}
-          disabled={isSubmitDisabled}
-          style={{ position: "absolute", right: 20, bottom: 90 }}
-        >
-          {!isSubmitDisabled && (
-            <Feather name="arrow-right-circle" size={48} color="white" />
-          )}
-        </Pressable>
+        {hangoutId && (
+          <>
+            <Pressable
+              onPress={onCameraCapture}
+              style={{ position: "absolute", alignSelf: "center", bottom: 75 }}
+            >
+              <Feather name="circle" size={90} color="black" />
+            </Pressable>
+            <Pressable
+              onPress={handleCameraComplete}
+              disabled={isSubmitDisabled}
+              style={{ position: "absolute", right: 20, bottom: 90 }}
+            >
+              {!isSubmitDisabled && (
+                <Feather name="arrow-right-circle" size={48} color="black" />
+              )}
+            </Pressable>
+          </>
+        )}
       </View>
     </BottomSheetModalProvider>
   );

@@ -29,12 +29,10 @@ interface UserProfile {
   };
 }
 
-const FreshHangouts: React.FC<FreshHangoutsProps> = (
-  {
-    // refreshing,
-    // onRefresh,
-  }
-) => {
+const FreshHangouts: React.FC<FreshHangoutsProps> = ({
+  refreshing,
+  onRefresh,
+}) => {
   const { user } = useUser();
 
   const fetchFreshHangouts = async () => {
@@ -64,13 +62,13 @@ const FreshHangouts: React.FC<FreshHangoutsProps> = (
         keyExtractor={(item) => item.id}
         ListHeaderComponent={<CreateHangoutButton />}
         ListHeaderComponentStyle={styles.main}
-        // refreshControl={
-        //   <RefreshControl
-        //     refreshing={refreshing}
-        //     onRefresh={onRefresh}
-        //     tintColor={"#FFF"}
-        //   />
-        // }
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={"#FFF"}
+          />
+        }
         renderItem={({ item }) => {
           return (
             <FreshCard

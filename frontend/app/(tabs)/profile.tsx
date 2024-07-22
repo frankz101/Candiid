@@ -1,31 +1,28 @@
 import {
-  SafeAreaView,
   Pressable,
   StyleSheet,
   Text,
   View,
   ScrollView,
-  Dimensions,
   RefreshControl,
+  Modal,
 } from "react-native";
-import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
 import React, { useState } from "react";
 import { useRouter } from "expo-router";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
-import { SheetManager } from "react-native-actions-sheet";
 import { useUser } from "@clerk/clerk-expo";
 import { Image } from "expo-image";
 import MemoriesView from "@/components/profile/MemoriesView";
 import Animated from "react-native-reanimated";
-import { BlurView } from "expo-blur";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import BaseScreen from "@/components/utils/BaseScreen";
-import MemoriesScreen from "../(hangout)/MemoriesScreen";
 import ProfileHangout from "@/components/profile/ProfileHangout";
+import ChangePhotoSheet from "@/components/profile/ChangePhotoSheet";
 
 export interface Hangout {
   hangoutName: string;
@@ -45,6 +42,7 @@ const Profile = () => {
   const { user } = useUser();
   const [refreshing, setRefreshing] = useState(false);
   const queryClient = useQueryClient();
+  const [photoSheetVisible, setPhotoSheetVisible] = useState(false);
 
   const fetchMemories = async () => {
     console.log("Fetching Memories in Profile Tab");
@@ -113,14 +111,6 @@ const Profile = () => {
     setRefreshing(false);
   };
 
-  const openChangePhotoSheet = () => {
-    SheetManager.show("change-photo");
-  };
-
-  // if (isPendingMemories || isPendingProfile) {
-  //   return <Text>Is Loading...</Text>;
-  // }
-
   const userProfile = profileDetails?.result || {
     name: "Unknown User",
     username: "unknown_user",
@@ -164,7 +154,7 @@ const Profile = () => {
         }
       >
         <View style={styles.userDetails}>
-          <Pressable onPress={openChangePhotoSheet}>
+          <Pressable onPress={() => setPhotoSheetVisible(true)}>
             {profileDetails && userProfile && userProfile.profilePhoto ? (
               <Image
                 source={{ uri: userProfile.profilePhoto.fileUrl }}
@@ -176,6 +166,20 @@ const Profile = () => {
               />
             )}
           </Pressable>
+          <Modal
+            transparent={true}
+            visible={photoSheetVisible}
+            animationType="slide"
+          >
+            <Pressable
+              style={styles.overlay}
+              onPress={() => setPhotoSheetVisible(false)}
+            >
+              <View style={styles.modalContainer}>
+                <ChangePhotoSheet />
+              </View>
+            </Pressable>
+          </Modal>
           <Text style={styles.userText}>{userProfile.name}</Text>
         </View>
         {/* <Text style={styles.headerText}>Memoryboard</Text> */}
@@ -309,5 +313,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  overlay: {
+    flex: 1,
+    paddingTop: hp(11),
+    paddingRight: wp(3),
+  },
+  modalContainer: {
+    position: "absolute",
+    bottom: 0,
+    width: wp(100),
   },
 });

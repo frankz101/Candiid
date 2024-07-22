@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   hangoutNameText: {
-    paddingLeft: wp(3),
+    paddingHorizontal: wp(3),
     paddingTop: hp(2),
     color: "#FFF",
     fontFamily: "Inter",

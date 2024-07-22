@@ -165,7 +165,11 @@ const NotificationsScreen = () => {
       <ScrollView
         contentContainerStyle={styles.scrollViewContainer}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={"#FFF"}
+          />
         }
       >
         {friendRequests?.map((contact: User) => (

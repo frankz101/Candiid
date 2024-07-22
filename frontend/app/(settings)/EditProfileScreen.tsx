@@ -1,5 +1,12 @@
 import React, { useEffect, useState, useRef } from "react";
-import { View, Text, TextInput, StyleSheet, Pressable } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  Pressable,
+  Modal,
+} from "react-native";
 import { useUser } from "@clerk/clerk-expo";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
@@ -10,9 +17,9 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import { Ionicons } from "@expo/vector-icons";
-import { SheetManager } from "react-native-actions-sheet";
 import Toast from "react-native-toast-message";
 import { useRouter } from "expo-router";
+import ChangePhotoSheet from "@/components/profile/ChangePhotoSheet";
 import { Image } from "expo-image";
 
 //GET RID OF RESULT WHEN FETCHING PROFILE
@@ -37,6 +44,7 @@ const EditProfileScreen = () => {
   const { user } = useUser();
   // const cachedData = queryClient.getQueryData<User>(["profile", user?.id]);
   // const profile = cachedData?.result;
+  const [photoSheetVisible, setPhotoSheetVisible] = useState(false);
 
   const fetchUser = async () => {
     console.log("Fetching User Information in Settings tab");
@@ -105,10 +113,6 @@ const EditProfileScreen = () => {
     }
   };
 
-  const openChangePhotoSheet = async () => {
-    SheetManager.show("change-photo");
-  };
-
   const isChanged = name !== originalName || username !== originalUsername;
 
   return (
@@ -130,7 +134,7 @@ const EditProfileScreen = () => {
       </View>
 
       <View style={{ alignItems: "center", marginBottom: hp(2) }}>
-        <Pressable onPress={openChangePhotoSheet}>
+        <Pressable onPress={() => setPhotoSheetVisible(true)}>
           {profile?.result.profilePhoto ? (
             <Image
               source={{ uri: profile?.result.profilePhoto?.fileUrl }}
@@ -140,13 +144,27 @@ const EditProfileScreen = () => {
             <View style={[styles.profilePhoto, { backgroundColor: "grey" }]} />
           )}
         </Pressable>
+        <Modal
+          transparent={true}
+          visible={photoSheetVisible}
+          animationType="slide"
+        >
+          <Pressable
+            style={styles.overlay}
+            onPress={() => setPhotoSheetVisible(false)}
+          >
+            <View style={styles.modalContainer}>
+              <ChangePhotoSheet />
+            </View>
+          </Pressable>
+        </Modal>
       </View>
 
       <View style={styles.editContainer}>
         <Text style={styles.label}>Name</Text>
         <TextInput
           style={styles.input}
-          onChangeText={(input) => setName(input)} //consider onsubmitediting
+          onChangeText={(input) => setName(input)}
           multiline={false}
           maxLength={30}
           value={name}
@@ -216,5 +234,15 @@ const styles = StyleSheet.create({
     color: "white",
     backgroundColor: "black",
     borderRadius: 5,
+  },
+  overlay: {
+    flex: 1,
+    paddingTop: hp(11),
+    paddingRight: wp(3),
+  },
+  modalContainer: {
+    position: "absolute",
+    bottom: 0,
+    width: wp(100),
   },
 });

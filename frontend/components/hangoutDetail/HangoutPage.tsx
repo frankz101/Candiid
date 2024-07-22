@@ -393,7 +393,7 @@ const HangoutPage: React.FC<HangoutPageProps> = ({ hangoutId, memoryId }) => {
         onPress={() =>
           router.push({
             pathname: "/(hangout)/ChatScreen",
-            params: { hangoutId },
+            params: { hangoutId, name: hangoutData.hangoutName },
           })
         }
       >

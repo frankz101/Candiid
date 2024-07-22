@@ -1,6 +1,4 @@
 import { ClerkProvider, useAuth, useUser } from "@clerk/clerk-expo";
-import { SheetProvider } from "react-native-actions-sheet";
-import "@/components/utils/sheets";
 import {
   QueryClientProvider,
   QueryClient,
@@ -168,10 +166,8 @@ const RootLayout = React.memo(() => {
     >
       <QueryClientProvider client={queryClient}>
         <GestureHandlerRootView style={{ flex: 1 }}>
-          <SheetProvider>
-            <InitialLayout />
-            <Toast config={toastConfig} />
-          </SheetProvider>
+          <InitialLayout />
+          <Toast config={toastConfig} />
         </GestureHandlerRootView>
       </QueryClientProvider>
     </ClerkProvider>
