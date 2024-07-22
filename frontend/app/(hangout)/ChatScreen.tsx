@@ -2,20 +2,28 @@ import BackButton from "@/components/utils/BackButton";
 import BaseScreen from "@/components/utils/BaseScreen";
 import { useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
+import { useKeyboard } from "@react-native-community/hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Button,
+  Dimensions,
   FlatList,
+  Keyboard,
+  KeyboardAvoidingView,
+  PanResponder,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
   TextInput,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
+import Animated from "react-native-reanimated";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -152,95 +160,101 @@ const ChatScreen = () => {
   };
 
   return (
-    <BaseScreen>
-      <View style={styles.headerContainer}>
-        <BackButton />
-        <Text style={styles.header}>{name}</Text>
-      </View>
-      <View style={styles.container}>
-        <FlatList
-          data={messages}
-          keyExtractor={(item, index) =>
-            item.id?.toString() || index.toString()
-          }
-          renderItem={({ item, index }) => {
-            const showProfilePhoto =
-              index === 0 || item.senderId !== messages[index - 1].senderId;
-            const showName =
-              index === messages.length - 1 ||
-              item.senderId !== messages[index + 1].senderId;
-            const ownMessage = isOwnMessage(item.senderId);
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <BaseScreen>
+        <View style={styles.headerContainer}>
+          <BackButton />
+          <Text style={styles.header}>{name}</Text>
+        </View>
+        <View style={styles.container}>
+          <FlatList
+            data={messages}
+            keyExtractor={(item, index) =>
+              item.id?.toString() || index.toString()
+            }
+            renderItem={({ item, index }) => {
+              const showProfilePhoto =
+                index === 0 || item.senderId !== messages[index - 1].senderId;
+              const showName =
+                index === messages.length - 1 ||
+                item.senderId !== messages[index + 1].senderId;
+              const ownMessage = isOwnMessage(item.senderId);
 
-            return (
-              <View
-                style={[
-                  styles.messageContainer,
-                  ownMessage
-                    ? { alignSelf: "flex-end" }
-                    : { alignSelf: "flex-start" },
-                  !showProfilePhoto && !ownMessage && { marginLeft: wp(14) },
-                ]}
-              >
-                {showProfilePhoto &&
-                  !ownMessage &&
-                  (profilePhotoMap[item.senderId] ? (
-                    <Image
-                      source={{
-                        uri: profilePhotoMap[item.senderId],
-                      }}
-                      style={styles.profilePhoto}
-                    />
-                  ) : (
-                    <Ionicons
-                      name="person-circle-outline"
-                      color="white"
-                      size={40}
-                      style={styles.profilePhoto}
-                    />
-                  ))}
-                <View>
-                  {showName && !ownMessage && (
-                    <Text style={styles.sender}>{item.senderName}</Text>
-                  )}
-                  <View
-                    style={[
-                      styles.message,
-                      ownMessage ? styles.ownMessage : styles.otherMessage,
-                    ]}
-                  >
-                    <Text
-                      style={
-                        ownMessage ? { color: "white" } : { color: "black" }
-                      }
+              return (
+                <View
+                  style={[
+                    styles.messageContainer,
+                    ownMessage
+                      ? { alignSelf: "flex-end" }
+                      : { alignSelf: "flex-start" },
+                    !showProfilePhoto && !ownMessage && { marginLeft: wp(11) },
+                  ]}
+                >
+                  {showProfilePhoto &&
+                    !ownMessage &&
+                    (profilePhotoMap[item.senderId] ? (
+                      <Image
+                        source={{
+                          uri: profilePhotoMap[item.senderId],
+                        }}
+                        style={styles.profilePhoto}
+                      />
+                    ) : (
+                      <Ionicons
+                        name="person-circle-outline"
+                        color="white"
+                        size={40}
+                        style={styles.profilePhoto}
+                      />
+                    ))}
+                  <View>
+                    {showName && !ownMessage && (
+                      <Text style={styles.sender}>{item.senderName}</Text>
+                    )}
+                    <View
+                      style={[
+                        styles.message,
+                        ownMessage ? styles.ownMessage : styles.otherMessage,
+                      ]}
                     >
-                      {item.text}
-                    </Text>
+                      <Text
+                        style={
+                          ownMessage ? { color: "white" } : { color: "black" }
+                        }
+                      >
+                        {item.text}
+                      </Text>
+                    </View>
                   </View>
                 </View>
-              </View>
-            );
-          }}
-          inverted
-          onEndReached={loadMoreMessages}
-          onEndReachedThreshold={0.1}
-          ListFooterComponent={loading ? <Text>Loading...</Text> : null}
-        />
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            value={newMessage}
-            onChangeText={setNewMessage}
-            placeholder="Type a message"
-            onSubmitEditing={handleSendMessage}
+              );
+            }}
+            inverted
+            onEndReached={loadMoreMessages}
+            onEndReachedThreshold={0.1}
+            ListFooterComponent={loading ? <Text>Loading...</Text> : null}
           />
-          {newMessage && (
-            <Pressable style={styles.sendButton}>
-              <Ionicons name="arrow-up-circle" color="#007BFF" size={30} />
-            </Pressable>
-          )}
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              value={newMessage}
+              onChangeText={setNewMessage}
+              placeholder="Type a message"
+              blurOnSubmit={false}
+              onSubmitEditing={handleSendMessage}
+            />
+            {newMessage && (
+              <Pressable onPress={handleSendMessage} style={styles.sendButton}>
+                <Ionicons name="arrow-up-circle" color="#007BFF" size={30} />
+              </Pressable>
+            )}
+          </View>
         </View>
-      </View>
-    </BaseScreen>
+      </BaseScreen>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -268,10 +282,12 @@ const styles = StyleSheet.create({
   message: {
     padding: hp(1),
     borderRadius: 15,
+    maxWidth: wp(70),
   },
   messageContainer: {
     flexDirection: "row",
     alignItems: "flex-end",
+    marginBottom: hp(0.1),
   },
   ownMessage: {
     backgroundColor: "#007BFF",
@@ -287,8 +303,8 @@ const styles = StyleSheet.create({
     color: "lightgray",
   },
   profilePhoto: {
-    width: wp(10),
-    height: wp(10),
+    width: wp(9),
+    height: wp(9),
     borderRadius: 20,
     marginRight: wp(2),
   },

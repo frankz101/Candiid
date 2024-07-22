@@ -1,51 +1,24 @@
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
-import React, { useEffect, useState } from "react";
+import { Image, Pressable, StyleSheet, Text } from "react-native";
+import React from "react";
 import { useWarmUpBrowser } from "@/hooks/useWarmUpBrowser";
-import { useOAuth, useUser } from "@clerk/clerk-expo";
-import axios from "axios";
-import { useRouter } from "expo-router";
+import {
+  useGlobalSearchParams,
+  useLocalSearchParams,
+  useRouter,
+} from "expo-router";
 import BaseScreen from "@/components/utils/BaseScreen";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
-enum Strategy {
-  Google = "oauth_google",
-  Apple = "oauth_apple",
-}
-
-const Login = () => {
+const SignUpScreen = () => {
   useWarmUpBrowser();
-
-  // const { startOAuthFlow: googleAuth } = useOAuth({ strategy: "oauth_google" });
-  // const { startOAuthFlow: appleAuth } = useOAuth({ strategy: "oauth_apple" });
 
   const router = useRouter();
 
-  // const onSelectAuth = async (strategy: Strategy) => {
-  //   const selectedAuth = {
-  //     [Strategy.Google]: googleAuth,
-  //     [Strategy.Apple]: appleAuth,
-  //   }[strategy];
-
-  //   try {
-  //     const { createdSessionId, signIn, signUp, setActive } =
-  //       await selectedAuth();
-  //     if (createdSessionId) {
-  //       setActive?.({ session: createdSessionId });
-  //       setUserSignedIn(true);
-  //     }
-  //   } catch (err) {
-  //     console.error("OAuth Error: ", err);
-  //   }
-  // };
-
   return (
     <BaseScreen style={styles.container}>
-      {/* <Pressable onPress={() => onSelectAuth(Strategy.Google)}>
-        <Text>Login with Google</Text>
-      </Pressable> */}
       <Image
         source={require("../../assets/images/icon.png")}
         style={styles.logo}
@@ -84,7 +57,7 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default SignUpScreen;
 
 const styles = StyleSheet.create({
   container: {
