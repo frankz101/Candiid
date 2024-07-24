@@ -208,10 +208,17 @@ const fetchContacts = async (batch, userId) => {
   );
   const usersWithFriendshipStatus = users
     .filter((user) => !friendIds.includes(user.userId))
-    .map((user) => {
+    .map(async (user) => {
+      const friendsRequests = await retrieveFriendRequestsSent(user.id);
+      const incomingFriendRequest = friendsRequests.some(
+        (request) => request.receiverId === userId
+      );
+
       let friendStatus = "Not Friends";
       if (friendRequestsIds.includes(user.userId)) {
         friendStatus = "Friend Requested";
+      } else if (incomingFriendRequest) {
+        friendStatus = "Incoming Request";
       }
       return {
         ...user,
