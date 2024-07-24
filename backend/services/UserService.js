@@ -206,18 +206,19 @@ const fetchContacts = async (batch, userId) => {
   const friendRequestsIds = sentFriendRequests.map(
     (friendRequest) => friendRequest.userId
   );
-  const usersWithFriendshipStatus = users.map((user) => {
-    let friendStatus = "Not Friends";
-    if (friendIds.includes(user.userId)) {
-      friendStatus = "Already Friends";
-    } else if (friendRequestsIds.includes(user.userId)) {
-      friendStatus = "Friend Requested";
-    }
-    return {
-      ...user,
-      friendStatus,
-    };
-  });
+  const usersWithFriendshipStatus = users
+    .filter((user) => !friendIds.includes(user.userId))
+    .map((user) => {
+      let friendStatus = "Not Friends";
+      if (friendRequestsIds.includes(user.userId)) {
+        friendStatus = "Friend Requested";
+      }
+      return {
+        ...user,
+        friendStatus,
+      };
+    });
+
   return usersWithFriendshipStatus;
 };
 

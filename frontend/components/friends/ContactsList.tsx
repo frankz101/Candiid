@@ -37,7 +37,7 @@ const ContactsList: React.FC = () => {
     <View>
       {registeredContacts && registeredContacts?.length > 0 && (
         <View style={styles.container}>
-          <Text style={styles.header}>Active Contacts</Text>
+          <Text style={styles.header}>Add Contacts</Text>
           <FlatList
             data={registeredContacts}
             keyExtractor={(item) => item.userId}
