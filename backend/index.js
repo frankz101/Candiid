@@ -22,6 +22,7 @@ import MemoryRoutes from "./routes/MemoryRoutes.js";
 import NotificationRoutes from "./routes/NotificationRoutes.js";
 import StickerRoutes from "./routes/StickerRoutes.js";
 import ChatRoutes from "./routes/ChatRoutes.js";
+import GroupRoutes from "./routes/GroupRoutes.js";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { db } from "./firebase.js";
 
@@ -33,6 +34,7 @@ app.use("/", MemoryRoutes);
 app.use("/", NotificationRoutes);
 app.use("/", StickerRoutes);
 app.use("/", ChatRoutes);
+app.use("/", GroupRoutes);
 
 const server = app.listen(PORT, "0.0.0.0", () => {
   console.log(`Listening on port ${PORT}`);
