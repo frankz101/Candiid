@@ -564,8 +564,11 @@ const MemoriesScreen = () => {
   };
 
   /* Hangout Submit */
+  const isSubmittingRef = useRef(false);
 
   const handleHangoutSubmit = async () => {
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
     try {
       const memoriesData = {
         userId: user?.id,
@@ -590,6 +593,8 @@ const MemoriesScreen = () => {
         photoUrls: postDetails.photos,
         caption: postDetails.caption,
       };
+
+      console.log("posting");
 
       const postResponse = await axios.post(
         `${process.env.EXPO_PUBLIC_API_URL}/posts`,
@@ -621,6 +626,8 @@ const MemoriesScreen = () => {
       });
     } catch (error) {
       console.error("Error creating memories or hangout requests:", error);
+    } finally {
+      isSubmittingRef.current = false;
     }
   };
 
