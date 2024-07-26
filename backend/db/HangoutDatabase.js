@@ -449,6 +449,37 @@ const removeHangoutInDatabase = async (hangoutId) => {
     await updateDoc(userDoc, {
       createdHangouts: arrayRemove(hangoutId),
     });
+
+    const chatMessagesRef = collection(
+      db,
+      "messages",
+      hangoutId,
+      "chatMessages"
+    );
+
+    try {
+      // Get all documents in the chatMessages subcollection
+      const chatMessagesSnapshot = await getDocs(chatMessagesRef);
+
+      // Delete each document in the chatMessages subcollection
+      const deletePromises = chatMessagesSnapshot.docs.map((doc) =>
+        deleteDoc(doc.ref)
+      );
+      await Promise.all(deletePromises);
+
+      // Reference to the parent document in the messages collection
+      const messageRef = doc(db, "messages", roomId);
+
+      // Delete the parent document
+      await deleteDoc(messageRef);
+
+      console.log(
+        "Document and all subcollection documents successfully deleted!"
+      );
+    } catch (error) {
+      console.error("Error removing documents: ", error);
+    }
+
     await deleteDoc(hangoutDocRef);
     return "deleted";
   } catch (error) {
