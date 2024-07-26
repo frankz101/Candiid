@@ -15,6 +15,7 @@ import {
   putLeaveHangout,
   deleteHangout,
   putHangoutOwnership,
+  putHangoutPhoto,
 } from "../controllers/HangoutController.js";
 
 var router = express.Router();
@@ -37,5 +38,6 @@ router.get("/hangout/join-requests/:userId", getJoinHangoutRequests);
 router.put("/hangout/leave", putLeaveHangout);
 router.delete("/hangout/delete/:hangoutId", deleteHangout);
 router.put("/hangout/transfer", putHangoutOwnership);
+router.put("/hangout/photo/:fileUrl", putHangoutPhoto);
 
 export default router;

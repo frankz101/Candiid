@@ -15,8 +15,9 @@ import {
   deleteDoc,
   arrayRemove,
 } from "firebase/firestore";
-import { db } from "../firebase.js";
+import { db, storage } from "../firebase.js";
 import { searchUserInDatabase } from "./UserDatabase.js";
+import { deleteObject, ref } from "firebase/storage";
 
 // const createHangoutInDatabase = async (hangout) => {
 //   const hangoutCollection = collection(db, "hangouts");
@@ -483,6 +484,36 @@ const transferHangoutOwnershipInDatabase = async (
   }
 };
 
+const removeHangoutPhotoInDatabase = async (fileUrl, hangoutId) => {
+  try {
+    const hangoutDocRef = doc(db, "hangouts", hangoutId);
+
+    const hangoutDoc = await getDoc(hangoutDocRef);
+    if (hangoutDoc.exists()) {
+      const hangoutData = hangoutDoc.data();
+      const updatedSharedAlbum = hangoutData.sharedAlbum.filter(
+        (photo) => photo.fileUrl !== fileUrl
+      );
+
+      await updateDoc(hangoutDocRef, {
+        sharedAlbum: updatedSharedAlbum,
+      });
+
+      console.log("Photo removed successfully from Firestore");
+
+      const fileRef = ref(storage, fileUrl);
+      await deleteObject(fileRef);
+
+      console.log("Photo removed successfully from Firebase Storage");
+    } else {
+      console.log("No such document!");
+    }
+  } catch (error) {
+    console.error("Error removing photo: ", error);
+    throw error;
+  }
+};
+
 export {
   createHangoutInDatabase,
   addPhotoToHangoutInDatabase,
@@ -498,4 +529,5 @@ export {
   leaveHangoutInDatabase,
   removeHangoutInDatabase,
   transferHangoutOwnershipInDatabase,
+  removeHangoutPhotoInDatabase,
 };

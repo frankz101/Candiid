@@ -1,4 +1,5 @@
 import {
+  Alert,
   Dimensions,
   FlatList,
   Pressable,
@@ -30,6 +31,12 @@ const headerHeight = 140;
 const bottomPadding = 20;
 
 const scrollViewHeight = screenHeight - headerHeight - bottomPadding;
+
+interface Photo {
+  fileUrl: string;
+  takenBy: string;
+  takenAt: Date;
+}
 
 const SharedAlbumScreen = () => {
   const { hangoutId, memoryId } = useLocalSearchParams();
@@ -67,12 +74,13 @@ const SharedAlbumScreen = () => {
     });
   };
 
-  interface Photo {
-    fileUrl: string;
-  }
-
   const renderPhoto = ({ item, index }: { item: Photo; index: number }) => (
-    <PhotoSquare imageUrl={item.fileUrl} index={index} />
+    <PhotoSquare
+      imageUrl={item.fileUrl}
+      takenBy={item.takenBy}
+      index={index}
+      hangoutId={hangoutId as string}
+    />
   );
 
   const onRefresh = async () => {
@@ -88,15 +96,13 @@ const SharedAlbumScreen = () => {
       const images = await ImagePicker.openPicker({
         width: 300,
         height: 300,
-        cropping: true,
-        cropperCircleOverlay: true, // Optional: if you want a circular cropper
-        multiple: true, // Enable multiple image selection
+        multiple: true,
       });
 
       const uploadPromises = images.map(async (image) => {
         const { path: uri, filename } = image;
 
-        let takenAt = new Date().toISOString(); // Default to current time if no EXIF data
+        let takenAt = new Date().toISOString();
 
         return RNFetchBlob.fetch(
           "POST",
