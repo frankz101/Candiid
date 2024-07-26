@@ -458,8 +458,6 @@ const styles = StyleSheet.create({
   modalButton: {
     paddingHorizontal: wp(3),
     paddingVertical: hp(1),
-    borderBottomColor: "#4a4a4d",
-    borderBottomWidth: 0.5,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
