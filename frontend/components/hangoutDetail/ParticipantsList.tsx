@@ -18,19 +18,13 @@ import {
 const MAX_VISIBLE_PARTICIPANTS = 6;
 
 interface ParticipantsListProps {
-  // participants: {
-  //   id: string;
-  //   name: string;
-  //   iconUrl: string;
-  // }[];
   participants: string[];
   hangoutId: string;
-  showModal: () => void;
 }
+
 const ParticipantsList: React.FC<ParticipantsListProps> = ({
   participants,
   hangoutId,
-  showModal,
 }) => {
   const users = participants.slice(0, MAX_VISIBLE_PARTICIPANTS + 1);
 
@@ -42,7 +36,7 @@ const ParticipantsList: React.FC<ParticipantsListProps> = ({
       .then((res) => res.data.result);
   };
 
-  const { data: profilePics, isPending } = useQuery({
+  const { data: profilePics } = useQuery({
     queryKey: ["participants", hangoutId],
     queryFn: getProfilePics,
   });
@@ -58,18 +52,6 @@ const ParticipantsList: React.FC<ParticipantsListProps> = ({
       </View>
     );
   };
-
-  if (isPending) {
-    return (
-      <View style={styles.mainContainer}>
-        {participants.slice(0, MAX_VISIBLE_PARTICIPANTS).map((_, idx) => (
-          <View key={idx} style={styles.participantContainer}>
-            <View style={[styles.icon]} />
-          </View>
-        ))}
-      </View>
-    );
-  }
 
   return (
     <View style={styles.mainContainer}>

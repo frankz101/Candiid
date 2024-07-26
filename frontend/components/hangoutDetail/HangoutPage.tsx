@@ -329,7 +329,7 @@ const HangoutPage: React.FC<HangoutPageProps> = ({ hangoutId, memoryId }) => {
                       )}
                   </View>
                 )}
-                keyExtractor={(item) => item}
+                keyExtractor={(item) => item.id}
               />
             </View>
           </Pressable>
@@ -382,7 +382,6 @@ const HangoutPage: React.FC<HangoutPageProps> = ({ hangoutId, memoryId }) => {
           <ParticipantsList
             participants={hangoutData.participantIds}
             hangoutId={hangoutId as string}
-            showModal={() => setEditModalVisible(true)}
           />
         </View>
       ) : null}
