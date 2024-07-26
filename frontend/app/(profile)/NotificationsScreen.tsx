@@ -18,6 +18,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import HangoutRequestBanner from "@/components/friends/HangoutRequestBanner";
 import { useRouter } from "expo-router";
 import BaseScreen from "@/components/utils/BaseScreen";
+import GroupRequestBanner from "@/components/groups/GroupRequestBanner";
 
 interface User {
   id: number;
@@ -54,10 +55,11 @@ const NotificationsScreen = () => {
   };
 
   const fetchGroupRequests = async () => {
-    const res = await axios.get(
-      `${process.env.EXPO_PUBLIC_API_URL}/group/requests/users/${user?.id}`
-    );
-    setGroupRequests(res.data.result);
+    return axios
+      .get(
+        `${process.env.EXPO_PUBLIC_API_URL}/group/requests/users/${user?.id}`
+      )
+      .then((res) => res.data);
   };
 
   const updateFriendRequests = (userId: string) => {
@@ -85,6 +87,19 @@ const NotificationsScreen = () => {
       );
     }
 
+    console.log(status);
+  };
+
+  const updateGroupRequests = (
+    groupId: string,
+    status: string,
+    type: string
+  ) => {
+    if (type === "request") {
+      setGroupRequests((currentRequests) =>
+        currentRequests.filter((request: any) => request.groupId !== groupId)
+      );
+    }
     console.log(status);
   };
 
@@ -135,18 +150,24 @@ const NotificationsScreen = () => {
   };
 
   useEffect(() => {
+    if (groupRequestsData) {
+      setGroupRequests(groupRequestsData.result);
+    }
+  }, [groupRequestsData]);
+
+  useEffect(() => {
     if (hangoutRequestsData) {
       setHangoutRequests(hangoutRequestsData.result);
     }
   }, [hangoutRequestsData]);
+
   useEffect(() => {
     if (joinHangoutRequestsData) {
       setJoinHangoutRequests(joinHangoutRequestsData.result);
     }
   }, [joinHangoutRequestsData]);
 
-  console.log(joinHangoutRequests);
-  if (isPendingHangoutRequests) {
+  if (isPendingHangoutRequests || isPendingGroupRequests) {
     return (
       <BaseScreen>
         <View
@@ -211,16 +232,16 @@ const NotificationsScreen = () => {
           />
         ))}
         {groupRequests?.map((item: any, index: number) => (
-          <HangoutRequestBanner
-            key={"Hangout Request" + index}
+          <GroupRequestBanner
+            key={"Group Request" + index}
             type="request"
             senderName={item.userInfo.username}
             senderId={item.userInfo.userId}
             senderProfilePhoto={item.userInfo.profilePhoto?.fileUrl}
-            hangoutId={item.hangoutId}
-            hangoutName={item.hangoutName}
-            onHandleRequest={(hangoutId: string, status: string) =>
-              updateHangoutRequests(hangoutId, status, "request")
+            groupId={item.groupId}
+            groupName={item.groupName}
+            onHandleRequest={(groupId: string, status: string) =>
+              updateGroupRequests(groupId, status, "request")
             }
           />
         ))}

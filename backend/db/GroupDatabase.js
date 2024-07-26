@@ -2,6 +2,7 @@ import {
   addDoc,
   arrayUnion,
   collection,
+  deleteDoc,
   doc,
   getDocs,
   query,
@@ -95,7 +96,7 @@ const handleGroupRequestInDatabase = async (groupId, groupRequest) => {
   try {
     const groupRequestRef = collection(db, "groupRequests");
     const joingroupRequestRef = collection(db, "joinGroupRequests");
-    console.log(groupRequest.type);
+    console.log(groupRequest);
 
     let q;
 
@@ -131,7 +132,7 @@ const handleGroupRequestInDatabase = async (groupId, groupRequest) => {
       if (groupRequest.type === "request") {
         const userDocRef = doc(db, "users", groupRequest.receiverId);
         updateDoc(groupDocRef, {
-          participantIds: arrayUnion(groupRequest.receiverId),
+          groupMemberIds: arrayUnion(groupRequest.receiverId),
         })
           .then(() => {
             console.log(
@@ -155,7 +156,7 @@ const handleGroupRequestInDatabase = async (groupId, groupRequest) => {
       } else if (groupRequest.type === "join") {
         const userDocRef = doc(db, "users", groupRequest.senderId);
         updateDoc(groupDocRef, {
-          participantIds: arrayUnion(groupRequest.senderId),
+          groupMemberIds: arrayUnion(groupRequest.senderId),
         })
           .then(() => {
             console.log(
