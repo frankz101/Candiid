@@ -54,6 +54,7 @@ import ColorPicker, { Panel5 } from "reanimated-color-picker";
 import type { returnedResults } from "reanimated-color-picker";
 import NewMediaComponent from "@/components/photo/NewMediaComponent";
 import { Image } from "expo-image";
+import DebouncedPressable from "@/components/utils/DebouncedPressable";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
@@ -749,20 +750,20 @@ const MemoriesScreen = () => {
           </Animated.View>
         </GestureDetector>
         {isPostPlacementMode && (
-          <Pressable
+          <DebouncedPressable
             onPress={handleHangoutSubmit}
             style={{ position: "absolute", right: 16, bottom: 75 }}
           >
             <Ionicons name="checkmark-circle" size={64} color="#FFF" />
-          </Pressable>
+          </DebouncedPressable>
         )}
         {isEditMode && (
-          <Pressable
+          <DebouncedPressable
             onPress={handleEditSubmit}
             style={{ position: "absolute", right: 16, bottom: 75 }}
           >
             <Ionicons name="checkmark-circle" size={64} color="#FFF" />
-          </Pressable>
+          </DebouncedPressable>
         )}
       </Animated.View>
       <BottomSheetModal

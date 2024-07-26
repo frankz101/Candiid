@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import {
   Dimensions,
   FlatList,
@@ -6,7 +7,6 @@ import {
   Text,
   View,
 } from "react-native";
-import React from "react";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -14,10 +14,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Image } from "expo-image";
-
-// const screenWidth = Dimensions.get("window").width;
-// const padding = 2;
-// const imageWidth = (screenWidth - padding * 6) / 3; // Subtract total padding and divide by 3
+import DebouncedPressable from "../utils/DebouncedPressable";
 
 const paddingBetweenImages = wp(2);
 const imageWidth = (wp("95%") - paddingBetweenImages * 4) / 3;
@@ -83,16 +80,16 @@ const SharedAlbumPreview: React.FC<SharedAlbumPreviewProps> = ({
           </View>
         }
       />
-      <Pressable
-        onPress={() => {
+      <DebouncedPressable
+        onPress={() =>
           router.push({
             pathname: "/(hangout)/SharedAlbumScreen",
             params: { hangoutId: hangoutId },
-          });
-        }}
+          })
+        }
       >
         <Text style={styles.expandText}>See More</Text>
-      </Pressable>
+      </DebouncedPressable>
     </View>
   );
 };
