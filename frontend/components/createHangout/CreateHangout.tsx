@@ -25,14 +25,26 @@ import {
 } from "react-native-responsive-screen";
 import DebouncedPressable from "../utils/DebouncedPressable";
 
+interface User {
+  result: {
+    userId: string;
+    name: string;
+    username: string;
+    profilePhoto?: {
+      fileUrl: string;
+    };
+    friends?: string[];
+    phoneNumber: string;
+    createdHangouts?: string[];
+    upcomingHangouts?: string[];
+  };
+}
+
 const CreateHangout = () => {
   const [clicked, setClicked] = useState(false);
   const [searchPhrase, setSearchPhrase] = useState("");
   const [hangoutName, setHangoutName] = useState("");
   const [hangoutDescription, setHangoutDescription] = useState("");
-  const hangoutDetails = useStore((state) => state.hangoutDetails);
-  const setHangoutDetails = useStore((state) => state.setHangoutDetails);
-  const { addFriend, removeFriend } = useStore();
   const { user } = useUser();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -48,12 +60,6 @@ const CreateHangout = () => {
     queryFn: fetchFriends,
   });
 
-  useEffect(() => {
-    if (hangoutDetails?.hangoutName) {
-      setHangoutName(hangoutDetails.hangoutName);
-    }
-  }, [hangoutDetails]);
-
   const handleHangoutSubmit = async () => {
     const hangoutData = {
       userId: user?.id,
@@ -66,18 +72,33 @@ const CreateHangout = () => {
         `${process.env.EXPO_PUBLIC_API_URL}/hangout`,
         hangoutData
       );
-      console.log(hangoutResponse.data);
+      const newHangout = hangoutResponse.data.result;
 
-      await queryClient.invalidateQueries({ queryKey: ["hangouts", user?.id] });
+      const currentProfile = queryClient.getQueryData<User>([
+        "profile",
+        user?.id,
+      ]);
 
-      router.push({
-        pathname: "/(hangout)/InviteFriendsScreen",
-        params: {
-          hangoutId: hangoutResponse.data.result,
-          hangoutName: hangoutName,
-          isPressedFromHangoutScreen: "false",
-        },
+      if (currentProfile && newHangout) {
+        const updatedUpcomingHangouts = [
+          ...(currentProfile.result.upcomingHangouts || []),
+          newHangout,
+        ];
+
+        queryClient.setQueryData(["profile", user?.id], {
+          result: {
+            ...currentProfile.result,
+            upcomingHangouts: updatedUpcomingHangouts,
+          },
+        });
+      }
+
+      router.replace(`/(hangout)/${hangoutResponse.data.result}`);
+
+      await queryClient.invalidateQueries({
+        queryKey: ["profile", user?.id],
       });
+
       setHangoutName("");
       setHangoutDescription("");
     } catch (error) {

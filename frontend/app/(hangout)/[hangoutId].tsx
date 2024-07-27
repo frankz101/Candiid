@@ -23,8 +23,6 @@ interface User {
 
 const Hangout = () => {
   const { hangoutId, memoryId } = useLocalSearchParams();
-  const hangoutIdStr = Array.isArray(hangoutId) ? hangoutId[0] : hangoutId;
-  const memoryIdStr = Array.isArray(memoryId) ? memoryId[0] : memoryId;
   const { user } = useUser();
   const queryClient = useQueryClient();
   const userData = queryClient.getQueryData<User>(["profile", user?.id]);
@@ -32,11 +30,14 @@ const Hangout = () => {
 
   return (
     <BaseScreen>
-      {profile?.upcomingHangouts?.includes(hangoutIdStr) ? (
-        <HangoutPage hangoutId={hangoutIdStr} memoryId={memoryIdStr} />
+      {profile?.upcomingHangouts?.includes(hangoutId as string) ? (
+        <HangoutPage hangoutId={hangoutId as string} />
       ) : (
         user && (
-          <PostPage hangoutId={hangoutIdStr} memoryId={memoryId as string} />
+          <PostPage
+            hangoutId={hangoutId as string}
+            memoryId={memoryId as string}
+          />
         )
       )}
     </BaseScreen>
