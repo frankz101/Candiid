@@ -125,7 +125,7 @@ const HangoutPage: React.FC<HangoutPageProps> = ({ hangoutId, memoryId }) => {
                   hangoutId,
                 }
               );
-              queryClient.invalidateQueries({ queryKey: ["hangouts"] });
+              queryClient.invalidateQueries({ queryKey: ["upcomingHangouts"] });
               console.log(res.data.result);
             }
           },
@@ -200,7 +200,7 @@ const HangoutPage: React.FC<HangoutPageProps> = ({ hangoutId, memoryId }) => {
       `${process.env.EXPO_PUBLIC_API_URL}/hangout/delete/${hangoutId}`
     );
     queryClient.invalidateQueries({
-      queryKey: ["hangouts"],
+      queryKey: ["upcomingHangouts", user?.id],
     });
     console.log(res.data.result);
   };

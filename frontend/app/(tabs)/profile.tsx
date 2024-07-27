@@ -84,7 +84,7 @@ const Profile = () => {
         staleTime: 1000 * 60 * 5,
       },
       {
-        queryKey: ["hangouts", user?.id],
+        queryKey: ["upcomingHangouts", user?.id],
         queryFn: fetchUpcomingHangouts,
         staleTime: 1000 * 60 * 5,
       },
@@ -106,7 +106,9 @@ const Profile = () => {
     console.log("CALLED REFESH");
     await queryClient.invalidateQueries({ queryKey: ["memories", user?.id] });
     await queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
-    await queryClient.invalidateQueries({ queryKey: ["hangouts", user?.id] });
+    await queryClient.invalidateQueries({
+      queryKey: ["upcomingHangouts", user?.id],
+    });
     await queryClient.invalidateQueries({ queryKey: ["stickers", user?.id] });
     setRefreshing(false);
   };

@@ -565,12 +565,12 @@ const MemoriesScreen = () => {
   };
 
   /* Hangout Submit */
-  const isSubmittingRef = useRef(false);
 
   const handleHangoutSubmit = async () => {
-    if (isSubmittingRef.current) return;
-    isSubmittingRef.current = true;
     try {
+      router.push({
+        pathname: "/(tabs)/profile",
+      });
       const memoriesData = {
         userId: user?.id,
         hangoutId: hangoutId,
@@ -614,6 +614,7 @@ const MemoriesScreen = () => {
       );
 
       console.log("Memory updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["memories", user?.id] });
 
       // Clear the hangout details and navigate to profile
       setHangoutDetails({
@@ -621,14 +622,8 @@ const MemoriesScreen = () => {
         hangoutDescription: "",
         selectedFriends: [],
       });
-
-      router.push({
-        pathname: "/(tabs)/profile",
-      });
     } catch (error) {
       console.error("Error creating memories or hangout requests:", error);
-    } finally {
-      isSubmittingRef.current = false;
     }
   };
 
