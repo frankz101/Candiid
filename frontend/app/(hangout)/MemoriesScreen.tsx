@@ -54,6 +54,7 @@ import ColorPicker, { Panel5 } from "reanimated-color-picker";
 import type { returnedResults } from "reanimated-color-picker";
 import NewMediaComponent from "@/components/photo/NewMediaComponent";
 import { Image } from "expo-image";
+import DebouncedPressable from "@/components/utils/DebouncedPressable";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
@@ -567,6 +568,9 @@ const MemoriesScreen = () => {
 
   const handleHangoutSubmit = async () => {
     try {
+      router.push({
+        pathname: "/(tabs)/profile",
+      });
       const memoriesData = {
         userId: user?.id,
         hangoutId: hangoutId,
@@ -591,6 +595,8 @@ const MemoriesScreen = () => {
         caption: postDetails.caption,
       };
 
+      console.log("posting");
+
       const postResponse = await axios.post(
         `${process.env.EXPO_PUBLIC_API_URL}/posts`,
         postData
@@ -608,18 +614,13 @@ const MemoriesScreen = () => {
       );
 
       console.log("Memory updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["memories", user?.id] });
 
       // Clear the hangout details and navigate to profile
       setHangoutDetails({
         hangoutName: "",
         hangoutDescription: "",
         selectedFriends: [],
-      });
-
-      await queryClient.invalidateQueries({ queryKey: ["memories", user?.id] });
-
-      router.push({
-        pathname: "/(tabs)/profile",
       });
     } catch (error) {
       console.error("Error creating memories or hangout requests:", error);
@@ -744,20 +745,20 @@ const MemoriesScreen = () => {
           </Animated.View>
         </GestureDetector>
         {isPostPlacementMode && (
-          <Pressable
+          <DebouncedPressable
             onPress={handleHangoutSubmit}
             style={{ position: "absolute", right: 16, bottom: 75 }}
           >
             <Ionicons name="checkmark-circle" size={64} color="#FFF" />
-          </Pressable>
+          </DebouncedPressable>
         )}
         {isEditMode && (
-          <Pressable
+          <DebouncedPressable
             onPress={handleEditSubmit}
             style={{ position: "absolute", right: 16, bottom: 75 }}
           >
             <Ionicons name="checkmark-circle" size={64} color="#FFF" />
-          </Pressable>
+          </DebouncedPressable>
         )}
       </Animated.View>
       <BottomSheetModal

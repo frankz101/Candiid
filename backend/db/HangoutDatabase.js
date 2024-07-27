@@ -15,8 +15,9 @@ import {
   deleteDoc,
   arrayRemove,
 } from "firebase/firestore";
-import { db } from "../firebase.js";
+import { db, storage } from "../firebase.js";
 import { searchUserInDatabase } from "./UserDatabase.js";
+import { deleteObject, ref } from "firebase/storage";
 
 // const createHangoutInDatabase = async (hangout) => {
 //   const hangoutCollection = collection(db, "hangouts");
@@ -56,7 +57,7 @@ const createHangoutInDatabase = async (hangout) => {
       createdHangouts: arrayUnion(docRef.id),
       upcomingHangouts: arrayUnion(docRef.id),
     }); // const userDocRef = doc(db, "users", hangout.userId); ADD THIS IF YOU WANT TO IMPLEMENET MOST RECENT 12 HANGOUTS // await updateDoc(userDocRef, { //   recentHangouts: arrayUnion(docRef.id), // });
-
+    console.log("user doc updated");
     return docRef.id;
   } catch (error) {
     console.error("Error adding hangout to database: ", error);
@@ -472,6 +473,37 @@ const removeHangoutInDatabase = async (hangoutId) => {
     await updateDoc(userDoc, {
       createdHangouts: arrayRemove(hangoutId),
     });
+
+    const chatMessagesRef = collection(
+      db,
+      "messages",
+      hangoutId,
+      "chatMessages"
+    );
+
+    try {
+      // Get all documents in the chatMessages subcollection
+      const chatMessagesSnapshot = await getDocs(chatMessagesRef);
+
+      // Delete each document in the chatMessages subcollection
+      const deletePromises = chatMessagesSnapshot.docs.map((doc) =>
+        deleteDoc(doc.ref)
+      );
+      await Promise.all(deletePromises);
+
+      // Reference to the parent document in the messages collection
+      const messageRef = doc(db, "messages", roomId);
+
+      // Delete the parent document
+      await deleteDoc(messageRef);
+
+      console.log(
+        "Document and all subcollection documents successfully deleted!"
+      );
+    } catch (error) {
+      console.error("Error removing documents: ", error);
+    }
+
     await deleteDoc(hangoutDocRef);
     return "deleted";
   } catch (error) {
@@ -507,6 +539,36 @@ const transferHangoutOwnershipInDatabase = async (
   }
 };
 
+const removeHangoutPhotoInDatabase = async (fileUrl, hangoutId) => {
+  try {
+    const hangoutDocRef = doc(db, "hangouts", hangoutId);
+
+    const hangoutDoc = await getDoc(hangoutDocRef);
+    if (hangoutDoc.exists()) {
+      const hangoutData = hangoutDoc.data();
+      const updatedSharedAlbum = hangoutData.sharedAlbum.filter(
+        (photo) => photo.fileUrl !== fileUrl
+      );
+
+      await updateDoc(hangoutDocRef, {
+        sharedAlbum: updatedSharedAlbum,
+      });
+
+      console.log("Photo removed successfully from Firestore");
+
+      const fileRef = ref(storage, fileUrl);
+      await deleteObject(fileRef);
+
+      console.log("Photo removed successfully from Firebase Storage");
+    } else {
+      console.log("No such document!");
+    }
+  } catch (error) {
+    console.error("Error removing photo: ", error);
+    throw error;
+  }
+};
+
 export {
   createHangoutInDatabase,
   addPhotoToHangoutInDatabase,
@@ -522,4 +584,5 @@ export {
   leaveHangoutInDatabase,
   removeHangoutInDatabase,
   transferHangoutOwnershipInDatabase,
+  removeHangoutPhotoInDatabase,
 };

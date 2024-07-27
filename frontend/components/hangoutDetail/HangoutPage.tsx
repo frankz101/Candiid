@@ -121,7 +121,7 @@ const HangoutPage: React.FC<HangoutPageProps> = ({ hangoutId, memoryId }) => {
                   hangoutId,
                 }
               );
-              queryClient.invalidateQueries({ queryKey: ["hangouts"] });
+              queryClient.invalidateQueries({ queryKey: ["upcomingHangouts"] });
               console.log(res.data.result);
             }
           },
@@ -196,7 +196,7 @@ const HangoutPage: React.FC<HangoutPageProps> = ({ hangoutId, memoryId }) => {
       `${process.env.EXPO_PUBLIC_API_URL}/hangout/delete/${hangoutId}`
     );
     queryClient.invalidateQueries({
-      queryKey: ["hangouts"],
+      queryKey: ["upcomingHangouts", user?.id],
     });
     console.log(res.data.result);
   };
@@ -325,7 +325,7 @@ const HangoutPage: React.FC<HangoutPageProps> = ({ hangoutId, memoryId }) => {
                       )}
                   </View>
                 )}
-                keyExtractor={(item) => item}
+                keyExtractor={(item) => item.id}
               />
             </View>
           </Pressable>
@@ -378,7 +378,6 @@ const HangoutPage: React.FC<HangoutPageProps> = ({ hangoutId, memoryId }) => {
           <ParticipantsList
             participants={hangoutData.participantIds}
             hangoutId={hangoutId as string}
-            showModal={() => setEditModalVisible(true)}
           />
         </View>
       ) : null}
@@ -454,8 +453,6 @@ const styles = StyleSheet.create({
   modalButton: {
     paddingHorizontal: wp(3),
     paddingVertical: hp(1),
-    borderBottomColor: "#4a4a4d",
-    borderBottomWidth: 0.5,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",

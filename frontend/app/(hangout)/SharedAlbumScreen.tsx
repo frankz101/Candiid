@@ -1,4 +1,5 @@
 import {
+  Alert,
   Dimensions,
   FlatList,
   Pressable,
@@ -17,12 +18,25 @@ import BackButton from "@/components/utils/BackButton";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import BaseScreen from "@/components/utils/BaseScreen";
 import Animated from "react-native-reanimated";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+import ImagePicker from "react-native-image-crop-picker";
+import RNFetchBlob from "rn-fetch-blob";
+import { useUser } from "@clerk/clerk-expo";
 
 const screenHeight = Dimensions.get("window").height;
 const headerHeight = 140;
 const bottomPadding = 20;
 
 const scrollViewHeight = screenHeight - headerHeight - bottomPadding;
+
+interface Photo {
+  fileUrl: string;
+  takenBy: string;
+  takenAt: Date;
+}
 
 const SharedAlbumScreen = () => {
   const { hangoutId, memoryId } = useLocalSearchParams();
@@ -32,6 +46,7 @@ const SharedAlbumScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { user } = useUser();
 
   const fetchHangout = async () => {
     return axios
@@ -59,12 +74,13 @@ const SharedAlbumScreen = () => {
     });
   };
 
-  interface Photo {
-    fileUrl: string;
-  }
-
   const renderPhoto = ({ item, index }: { item: Photo; index: number }) => (
-    <PhotoSquare imageUrl={item.fileUrl} index={index} />
+    <PhotoSquare
+      imageUrl={item.fileUrl}
+      takenBy={item.takenBy}
+      index={index}
+      hangoutId={hangoutId as string}
+    />
   );
 
   const onRefresh = async () => {
@@ -75,6 +91,58 @@ const SharedAlbumScreen = () => {
     setRefreshing(false);
   };
 
+  const addPhotos = async () => {
+    try {
+      const images = await ImagePicker.openPicker({
+        width: 300,
+        height: 300,
+        multiple: true,
+      });
+
+      const uploadPromises = images.map(async (image) => {
+        const { path: uri, filename } = image;
+
+        let takenAt = new Date().toISOString();
+
+        return RNFetchBlob.fetch(
+          "POST",
+          `${process.env.EXPO_PUBLIC_API_URL}/hangout/${hangoutId}/photo`,
+          {
+            "Content-Type": "multipart/form-data",
+          },
+          [
+            {
+              name: "file",
+              filename: filename,
+              type: "image/jpeg",
+              data: RNFetchBlob.wrap(uri),
+            },
+            { name: "takenBy", data: user?.id },
+            { name: "takenAt", data: takenAt },
+          ]
+        )
+          .then((response) => {
+            queryClient.invalidateQueries({
+              queryKey: ["hangoutPhotos", hangoutId],
+            });
+            console.log(
+              `${filename} has been successfully uploaded. Response: `,
+              response
+            );
+          })
+          .catch((error) => {
+            console.error("Error uploading image:", error);
+          });
+      });
+
+      // Execute all upload promises concurrently
+      await Promise.all(uploadPromises);
+
+      console.log("All images have been uploaded successfully.");
+    } catch (error) {
+      console.error("Error selecting images:", error);
+    }
+  };
   return (
     <BaseScreen>
       <View
@@ -82,12 +150,19 @@ const SharedAlbumScreen = () => {
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "space-between",
-          paddingBottom: 28,
+          paddingBottom: hp(2),
         }}
       >
         <BackButton />
         <Text style={styles.headerText}>{hangoutData.hangoutName}</Text>
-        <View style={{ width: 32 }} />
+        <Pressable onPress={addPhotos}>
+          <Ionicons
+            style={{ marginRight: wp(2) }}
+            name="add-outline"
+            size={32}
+            color="white"
+          />
+        </Pressable>
       </View>
       <View style={{ flex: 1 }}>
         <FlatList
@@ -144,6 +219,11 @@ export default SharedAlbumScreen;
 
 const styles = StyleSheet.create({
   headerText: {
+    position: "absolute",
+    left: wp(20),
+    right: wp(20),
+    paddingBottom: hp(2),
+    textAlign: "center",
     fontSize: 20,
     fontFamily: "inter",
     fontWeight: "700",

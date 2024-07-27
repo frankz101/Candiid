@@ -23,6 +23,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import DebouncedPressable from "../utils/DebouncedPressable";
 
 const CreateHangout = () => {
   const [clicked, setClicked] = useState(false);
@@ -117,7 +118,7 @@ const CreateHangout = () => {
           </Pressable>
         </View>
         <View style={styles.submitContainer}>
-          <Pressable
+          <DebouncedPressable
             onPress={handleHangoutSubmit}
             style={[
               styles.submitButton,
@@ -128,7 +129,7 @@ const CreateHangout = () => {
           >
             <Text style={{ color: "white" }}>Create your hangout</Text>
             <Ionicons name="arrow-forward" size={32} color="white" />
-          </Pressable>
+          </DebouncedPressable>
         </View>
       </View>
     </BaseScreen>

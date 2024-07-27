@@ -10,6 +10,7 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import FriendInviteBanner from "./FriendInviteBanner";
+import DebouncedPressable from "../utils/DebouncedPressable";
 
 const InviteFriends = () => {
   const [clicked, setClicked] = useState(false);
@@ -56,10 +57,7 @@ const InviteFriends = () => {
           userId: user?.id,
         }
       );
-      console.log(hangoutRequestsResponse.data);
-      await queryClient.invalidateQueries({
-        queryKey: ["profile", user?.id],
-      });
+      console.log(hangoutRequestsResponse.data.result);
       if (isPressedFromHangoutScreen === "false") {
         router.push({
           pathname: "/(tabs)/profile",
@@ -67,6 +65,13 @@ const InviteFriends = () => {
       } else {
         router.back();
       }
+      await queryClient.invalidateQueries({
+        queryKey: ["upcomingHangouts", user?.id],
+      });
+
+      await queryClient.invalidateQueries({
+        queryKey: ["profile", user?.id],
+      });
     } catch (error) {
       console.error("Error sending invites:", error);
     }
@@ -138,9 +143,9 @@ const InviteFriends = () => {
         </View>
       </View>
       <View style={styles.submitButton}>
-        <Pressable onPress={sendInvites}>
+        <DebouncedPressable onPress={sendInvites}>
           <Text style={styles.submitText}>Finish Inviting</Text>
-        </Pressable>
+        </DebouncedPressable>
       </View>
     </View>
   );

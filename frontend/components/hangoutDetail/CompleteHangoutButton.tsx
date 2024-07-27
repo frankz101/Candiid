@@ -6,6 +6,7 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import { useRouter } from "expo-router";
+import DebouncedPressable from "../utils/DebouncedPressable";
 
 interface CompleteHangoutButtonProps {
   hangoutId: string;
@@ -17,7 +18,7 @@ const CompleteHangoutButton: React.FC<CompleteHangoutButtonProps> = ({
   const router = useRouter();
   return (
     <View>
-      <Pressable
+      <DebouncedPressable
         onPress={() => {
           router.push({
             pathname: "/(hangout)/SelectPhotosScreen",
@@ -31,7 +32,7 @@ const CompleteHangoutButton: React.FC<CompleteHangoutButtonProps> = ({
             <Text style={{ color: "#9B9BA1" }}>Complete Hangout</Text>
           </View>
         </View>
-      </Pressable>
+      </DebouncedPressable>
     </View>
   );
 };
