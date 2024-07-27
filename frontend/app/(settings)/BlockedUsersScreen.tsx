@@ -31,7 +31,7 @@ const BlockedUsersScreen = () => {
       `${process.env.EXPO_PUBLIC_API_URL}/user/block/${user?.id}`
     );
     if (res.status === 201) {
-      setUsers(res.data.result);
+      setUsers(res.data);
     }
   };
   useEffect(() => {
@@ -42,7 +42,7 @@ const BlockedUsersScreen = () => {
     const res = await axios.delete(
       `${process.env.EXPO_PUBLIC_API_URL}/user/unblock/${id}`
     );
-    console.log(res.data.result);
+    console.log(res.data);
     setUsers(users.filter((user) => user.id !== id));
   };
 

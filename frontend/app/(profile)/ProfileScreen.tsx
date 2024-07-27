@@ -122,7 +122,7 @@ const ProfileScreen = () => {
                   }
                 );
                 queryClient.invalidateQueries({ queryKey: ["searchResults"] });
-                console.log(res.data.result);
+                console.log(res.data);
               },
             },
           ],
@@ -140,7 +140,7 @@ const ProfileScreen = () => {
         <BackButton />
         <Text
           style={styles.userDetailText}
-        >{`@${profileDetails.result.username}`}</Text>
+        >{`@${profileDetails.username}`}</Text>
         <View>
           <Pressable onPress={() => setModalVisible(true)}>
             <Ionicons
@@ -168,13 +168,13 @@ const ProfileScreen = () => {
                       pathname: "/ReportScreen",
                       params: {
                         userId,
-                        username: profileDetails.result.username,
+                        username: profileDetails.username,
                       },
                     });
                   }}
                 >
                   <Text style={styles.modalButtonText}>
-                    Report {profileDetails.result.username}
+                    Report {profileDetails.username}
                   </Text>
                   <Ionicons name="alert-circle-outline" color="red" size={24} />
                 </Pressable>
@@ -188,12 +188,12 @@ const ProfileScreen = () => {
                   onPress={blockUser}
                 >
                   <Text style={styles.modalButtonText}>
-                    Block {profileDetails.result.username}
+                    Block {profileDetails.username}
                   </Text>
                   <Ionicons name="ban-outline" color="red" size={24} />
                 </Pressable>
 
-                {profileDetails.result.friendStatus === "Already Friends" && (
+                {profileDetails.friendStatus === "Already Friends" && (
                   <Pressable
                     style={({ pressed }) => [
                       styles.modalButton,
@@ -224,18 +224,18 @@ const ProfileScreen = () => {
         }
       >
         <View style={styles.userDetails}>
-          {profileDetails && profileDetails.result.profilePhoto ? (
+          {profileDetails && profileDetails.profilePhoto ? (
             <Image
-              source={{ uri: profileDetails.result.profilePhoto.fileUrl }}
+              source={{ uri: profileDetails.profilePhoto.fileUrl }}
               style={styles.profilePhoto}
             />
           ) : (
             <View style={[styles.profilePhoto, { backgroundColor: "grey" }]} />
           )}
-          <Text style={styles.userText}>{profileDetails.result.name}</Text>
+          <Text style={styles.userText}>{profileDetails.name}</Text>
           <FriendshipButton
             userId={userId as string}
-            status={profileDetails.result.friendStatus}
+            status={profileDetails.friendStatus}
           />
         </View>
         {/* <Text style={styles.headerText}>Memoryboard</Text> */}

@@ -51,7 +51,7 @@ const NotificationsScreen = () => {
     const res = await axios.get(
       `${process.env.EXPO_PUBLIC_API_URL}/friendRequest/get/${user?.id}`
     );
-    setFriendRequests(res.data.result);
+    setFriendRequests(res.data);
   };
 
   const fetchGroupRequests = async () => {
@@ -151,19 +151,19 @@ const NotificationsScreen = () => {
 
   useEffect(() => {
     if (groupRequestsData) {
-      setGroupRequests(groupRequestsData.result);
+      setGroupRequests(groupRequestsData);
     }
   }, [groupRequestsData]);
 
   useEffect(() => {
     if (hangoutRequestsData) {
-      setHangoutRequests(hangoutRequestsData.result);
+      setHangoutRequests(hangoutRequestsData);
     }
   }, [hangoutRequestsData]);
 
   useEffect(() => {
     if (joinHangoutRequestsData) {
-      setJoinHangoutRequests(joinHangoutRequestsData.result);
+      setJoinHangoutRequests(joinHangoutRequestsData);
     }
   }, [joinHangoutRequestsData]);
 

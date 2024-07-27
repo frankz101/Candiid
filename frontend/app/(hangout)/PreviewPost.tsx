@@ -73,7 +73,7 @@ const PreviewPost = () => {
       );
       console.log(response.data);
       setCaption("");
-      const postId = response.data.result;
+      const postId = response.data;
 
       const updateData = {
         postId: postId,

@@ -38,7 +38,7 @@ const FreshCard: React.FC<hangoutCardProps> = ({
       .post(`${process.env.EXPO_PUBLIC_API_URL}/user/profile-pics`, {
         users,
       })
-      .then((res) => res.data.result);
+      .then((res) => res.data);
   };
 
   const { data: profilePics, isPending } = useQuery({

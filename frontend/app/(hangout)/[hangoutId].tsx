@@ -7,18 +7,16 @@ import { useLocalSearchParams } from "expo-router";
 import { Text, View } from "react-native";
 
 interface User {
-  result: {
-    userId: string;
-    name: string;
-    username: string;
-    profilePhoto?: {
-      fileUrl: string;
-    };
-    friends?: string[];
-    phoneNumber: string;
-    createdHangouts?: string[];
-    upcomingHangouts?: string[];
+  userId: string;
+  name: string;
+  username: string;
+  profilePhoto?: {
+    fileUrl: string;
   };
+  friends?: string[];
+  phoneNumber: string;
+  createdHangouts?: string[];
+  upcomingHangouts?: string[];
 }
 
 const Hangout = () => {
@@ -26,7 +24,7 @@ const Hangout = () => {
   const { user } = useUser();
   const queryClient = useQueryClient();
   const userData = queryClient.getQueryData<User>(["profile", user?.id]);
-  const profile = userData?.result;
+  const profile = userData;
 
   return (
     <BaseScreen>

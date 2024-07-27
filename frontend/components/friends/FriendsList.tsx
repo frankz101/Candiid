@@ -24,7 +24,7 @@ const FriendsList = () => {
     const response = await axios.get(
       `${process.env.EXPO_PUBLIC_API_URL}/user/${user?.id}/friends`
     );
-    return response.data.result;
+    return response.data;
   };
 
   const {

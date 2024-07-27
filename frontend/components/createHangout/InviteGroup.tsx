@@ -125,7 +125,7 @@ const InviteGroup = () => {
             <Text>Loading friends...</Text>
           ) : (
             <FlatList
-              data={friendsData.result}
+              data={friendsData}
               keyExtractor={(item) => item.userId}
               renderItem={renderFriendBanner}
             />

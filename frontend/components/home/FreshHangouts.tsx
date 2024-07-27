@@ -12,21 +12,19 @@ import {
 } from "react-native-responsive-screen";
 
 interface FreshHangoutsProps {
-  refreshing?: boolean;
-  onRefresh?: () => void;
+  refreshing: boolean;
+  onRefresh: () => void;
 }
 
 interface UserProfile {
-  result: {
-    friends: string[];
-    name: string;
-    phoneNumber: string;
-    profilePhoto: {
-      fileUrl: string;
-    };
-    userId: string;
-    username: string;
+  friends: string[];
+  name: string;
+  phoneNumber: string;
+  profilePhoto: {
+    fileUrl: string;
   };
+  userId: string;
+  username: string;
 }
 
 const FreshHangouts: React.FC<FreshHangoutsProps> = ({
@@ -38,7 +36,7 @@ const FreshHangouts: React.FC<FreshHangoutsProps> = ({
   const fetchFreshHangouts = async () => {
     return axios
       .get(`${process.env.EXPO_PUBLIC_API_URL}/hangout/${user?.id}/fresh`)
-      .then((res) => res.data.result);
+      .then((res) => res.data);
   };
 
   const { data: freshHangouts, isPending } = useQuery({

@@ -26,18 +26,16 @@ import {
 import DebouncedPressable from "../utils/DebouncedPressable";
 
 interface User {
-  result: {
-    userId: string;
-    name: string;
-    username: string;
-    profilePhoto?: {
-      fileUrl: string;
-    };
-    friends?: string[];
-    phoneNumber: string;
-    createdHangouts?: string[];
-    upcomingHangouts?: string[];
+  userId: string;
+  name: string;
+  username: string;
+  profilePhoto?: {
+    fileUrl: string;
   };
+  friends?: string[];
+  phoneNumber: string;
+  createdHangouts?: string[];
+  upcomingHangouts?: string[];
 }
 
 const CreateHangout = () => {
@@ -72,7 +70,7 @@ const CreateHangout = () => {
         `${process.env.EXPO_PUBLIC_API_URL}/hangout`,
         hangoutData
       );
-      const newHangout = hangoutResponse.data.result;
+      const newHangout = hangoutResponse.data;
 
       const currentProfile = queryClient.getQueryData<User>([
         "profile",
@@ -81,19 +79,17 @@ const CreateHangout = () => {
 
       if (currentProfile && newHangout) {
         const updatedUpcomingHangouts = [
-          ...(currentProfile.result.upcomingHangouts || []),
+          ...(currentProfile.upcomingHangouts || []),
           newHangout,
         ];
 
         queryClient.setQueryData(["profile", user?.id], {
-          result: {
-            ...currentProfile.result,
-            upcomingHangouts: updatedUpcomingHangouts,
-          },
+          ...currentProfile,
+          upcomingHangouts: updatedUpcomingHangouts,
         });
       }
 
-      router.replace(`/(hangout)/${hangoutResponse.data.result}`);
+      router.replace(`/(hangout)/${hangoutResponse.data}`);
 
       await queryClient.invalidateQueries({
         queryKey: ["profile", user?.id],

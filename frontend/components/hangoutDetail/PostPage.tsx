@@ -70,7 +70,7 @@ const PostPage: React.FC<PostProps> = ({ hangoutId, memoryId }) => {
         .post(`${process.env.EXPO_PUBLIC_API_URL}/user/list`, {
           userIds: hangout.participantIds,
         })
-        .then((res) => res.data.result);
+        .then((res) => res.data);
     }
     return [];
   };
@@ -87,7 +87,7 @@ const PostPage: React.FC<PostProps> = ({ hangoutId, memoryId }) => {
         `${process.env.EXPO_PUBLIC_API_URL}/posts/${user?.id}/${hangoutId}`
       );
       if (res.status === 201) {
-        setPost(res.data.result);
+        setPost(res.data);
       }
     } catch (err: any) {
       console.error(err.errors[0].message);
@@ -235,7 +235,7 @@ const PostPage: React.FC<PostProps> = ({ hangoutId, memoryId }) => {
         <ParticipantsList
           participants={hangout.participantIds}
           hangoutId={hangoutId as string}
-          showModal={() => setEditModalVisible(true)}
+          // showModal={() => setEditModalVisible(true)}
         />
       )}
     </BaseScreen>

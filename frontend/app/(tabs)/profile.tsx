@@ -113,7 +113,7 @@ const Profile = () => {
     setRefreshing(false);
   };
 
-  const userProfile = profileDetails?.result || {
+  const userProfile = profileDetails || {
     name: "Unknown User",
     username: "unknown_user",
     profilePhoto: null,

@@ -34,7 +34,7 @@ const CreateGroupScreen = () => {
       router.push({
         pathname: "/(groups)/InviteGroupScreen",
         params: {
-          groupId: groupResponse.data.result,
+          groupId: groupResponse.data,
           groupName: groupName,
           isPressedFromGroupScreen: "false",
         },

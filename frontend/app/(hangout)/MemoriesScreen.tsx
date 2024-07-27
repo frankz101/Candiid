@@ -57,18 +57,16 @@ import { Image } from "expo-image";
 import DebouncedPressable from "@/components/utils/DebouncedPressable";
 
 interface User {
-  result: {
-    userId: string;
-    name: string;
-    username: string;
-    profilePhoto?: {
-      fileUrl: string;
-    };
-    friends?: string[];
-    phoneNumber: string;
-    createdHangouts?: string[];
-    upcomingHangouts?: string[];
+  userId: string;
+  name: string;
+  username: string;
+  profilePhoto?: {
+    fileUrl: string;
   };
+  friends?: string[];
+  phoneNumber: string;
+  createdHangouts?: string[];
+  upcomingHangouts?: string[];
 }
 
 const screenWidth = Dimensions.get("window").width;
@@ -368,7 +366,7 @@ const MemoriesScreen = () => {
   const handleEditMode = useCallback((mode: string) => {
     setIsEditMode(true);
     setEditMode(mode);
-    if (mode === "background") {
+    if (mode === "colorPicker") {
       setModalContent("colorPicker");
     } else if (mode === "stickers") {
       setModalContent("stickers");
@@ -424,10 +422,8 @@ const MemoriesScreen = () => {
           oldData
             ? {
                 ...oldData,
-                result: {
-                  backgroundDetails: {
-                    backgroundColor: selectedColor.value,
-                  },
+                backgroundDetails: {
+                  backgroundColor: selectedColor.value,
                 },
               }
             : oldData
@@ -488,7 +484,7 @@ const MemoriesScreen = () => {
             newStickerRequestBody
           );
           console.log("New stickers added:", response.data);
-          const stickerIds = response.data.result;
+          const stickerIds = response.data;
 
           if (stickerIds.length === Object.keys(tempStickerStore).length) {
             // console.log(
@@ -581,8 +577,7 @@ const MemoriesScreen = () => {
   };
 
   if (!isPendingProfile) {
-    selectedColor.value =
-      profileDetails.result.backgroundDetails?.backgroundColor;
+    selectedColor.value = profileDetails.backgroundDetails?.backgroundColor;
   }
 
   // if (!isPendingMemories) {
@@ -618,7 +613,7 @@ const MemoriesScreen = () => {
         `${process.env.EXPO_PUBLIC_API_URL}/memories`,
         memoriesData
       );
-      const memoryId = memoriesResponse.data.result;
+      const memoryId = memoriesResponse.data;
 
       console.log("Memory created:", memoriesResponse.data);
 
@@ -635,7 +630,7 @@ const MemoriesScreen = () => {
         `${process.env.EXPO_PUBLIC_API_URL}/posts`,
         postData
       );
-      const postId = postResponse.data.result;
+      const postId = postResponse.data;
 
       console.log("Post created:", postResponse.data);
 

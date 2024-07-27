@@ -58,7 +58,7 @@ const HangoutPage: React.FC<HangoutPageProps> = ({ hangoutId }) => {
         .post(`${process.env.EXPO_PUBLIC_API_URL}/user/list`, {
           userIds: hangoutData.participantIds,
         })
-        .then((res) => res.data.result);
+        .then((res) => res.data);
     }
     return [];
   };
@@ -121,7 +121,7 @@ const HangoutPage: React.FC<HangoutPageProps> = ({ hangoutId }) => {
                 }
               );
               queryClient.invalidateQueries({ queryKey: ["upcomingHangouts"] });
-              console.log(res.data.result);
+              console.log(res.data);
             }
           },
         },
@@ -181,7 +181,7 @@ const HangoutPage: React.FC<HangoutPageProps> = ({ hangoutId }) => {
             queryClient.invalidateQueries({
               queryKey: ["hangout"],
             });
-            console.log(res.data.result);
+            console.log(res.data);
           },
         },
       ],
@@ -197,7 +197,7 @@ const HangoutPage: React.FC<HangoutPageProps> = ({ hangoutId }) => {
     queryClient.invalidateQueries({
       queryKey: ["upcomingHangouts", user?.id],
     });
-    console.log(res.data.result);
+    console.log(res.data);
   };
 
   const transferOwnership = async (hangoutId: string, newUserId: string) => {
@@ -210,7 +210,7 @@ const HangoutPage: React.FC<HangoutPageProps> = ({ hangoutId }) => {
         newUserId,
       }
     );
-    console.log(res.data.result);
+    console.log(res.data);
   };
 
   return (
