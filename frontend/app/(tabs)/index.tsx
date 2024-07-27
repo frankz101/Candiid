@@ -89,12 +89,13 @@ const Home = () => {
           <Feather name="bell" size={32} color="#84848B" />
         </Pressable>
       </View>
-      <View>
+      {/* Groups */}
+      {/* <View>
         <Text>Groups</Text>
         <Pressable onPress={() => router.push("/(groups)/CreateGroupScreen")}>
           <Text>Create a group</Text>
         </Pressable>
-      </View>
+      </View> */}
       {/* TabBar Content */}
       <TabView
         navigationState={{ index, routes }}
