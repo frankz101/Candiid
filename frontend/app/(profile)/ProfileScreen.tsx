@@ -9,6 +9,7 @@ import {
   Dimensions,
   Modal,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useState } from "react";
@@ -66,7 +67,14 @@ const ProfileScreen = () => {
       .then((res) => res.data);
   };
 
-  const [memories, profile] = useQueries({
+  const fetchStickers = async () => {
+    console.log("Fetching Stickers in Profile Tab");
+    return axios
+      .get(`${process.env.EXPO_PUBLIC_API_URL}/stickers/${userId}`)
+      .then((res) => res.data);
+  };
+
+  const [memories, profile, fetchedStickers] = useQueries({
     queries: [
       {
         queryKey: ["memories", userId],
@@ -78,11 +86,17 @@ const ProfileScreen = () => {
         queryFn: fetchUser,
         staleTime: 1000 * 60 * 5,
       },
+      {
+        queryKey: ["stickers", user?.id],
+        queryFn: fetchStickers,
+        staleTime: 1000 * 60 * 5,
+      },
     ],
   });
 
   const { data: memoriesData, isPending: isPendingMemories } = memories;
   const { data: profileDetails, isPending: isPendingProfile } = profile;
+  const { data: stickersData, isPending: isPendingStickers } = fetchedStickers;
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -90,8 +104,24 @@ const ProfileScreen = () => {
     setRefreshing(false);
   };
 
-  if (isPendingMemories || isPendingProfile) {
-    return <Text>Is Loading...</Text>;
+  if (isPendingMemories || isPendingProfile || isPendingStickers) {
+    return (
+      <BaseScreen>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingBottom: 28,
+          }}
+        >
+          <BackButton />
+          <Text style={styles.headerText}>Loading...</Text>
+          <View style={{ width: 32 }} />
+        </View>
+        <ActivityIndicator size="large" color="#FFF" />
+      </BaseScreen>
+    );
   }
 
   const blockUser = async () => {
@@ -233,16 +263,20 @@ const ProfileScreen = () => {
             <View style={[styles.profilePhoto, { backgroundColor: "grey" }]} />
           )}
           <Text style={styles.userText}>{profileDetails.name}</Text>
-          <FriendshipButton
-            userId={userId as string}
-            status={profileDetails.friendStatus}
-          />
+          {profileDetails.friendStatus !== "Already Friends" && (
+            <FriendshipButton
+              userId={userId as string}
+              status={profileDetails.friendStatus}
+            />
+          )}
         </View>
         {/* <Text style={styles.headerText}>Memoryboard</Text> */}
         <Animated.View style={styles.animatedView}>
-          <Pressable onPress={() => router.push("/(hangout)/MemoriesScreen")}>
-            {/* <MemoriesView hangouts={memoriesData} /> */}
-          </Pressable>
+          <MemoriesView
+            hangouts={memoriesData}
+            stickers={stickersData}
+            color={profileDetails.backgroundDetails?.backgroundColor}
+          />
         </Animated.View>
         {/* DEFAULT PROFILE PIC NOT CENTERED AND SIZE IS WRONG */}
         {/* <View style={styles.upcomingHangouts}>
@@ -406,12 +440,9 @@ const styles = StyleSheet.create({
   animatedView: {
     justifyContent: "center",
     alignItems: "center",
-    height: 300,
-    borderWidth: 1,
-    borderColor: "black",
-    borderRadius: 10,
     overflow: "hidden",
-    marginVertical: 10,
+    height: hp("60%"),
+    borderRadius: 15,
   },
   upcomingHangouts: {
     paddingTop: hp(2),
