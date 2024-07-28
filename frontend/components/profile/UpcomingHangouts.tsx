@@ -48,7 +48,7 @@ const UpcomingHangouts = () => {
       .then((res) => res.data);
   };
 
-  const { data: upcomingHangouts } = useQuery({
+  const { data: upcomingHangouts, isPending } = useQuery({
     queryKey: ["upcomingHangouts", user?.id],
     queryFn: fetchUpcomingHangouts,
     staleTime: 1000 * 60 * 5,
@@ -224,6 +224,10 @@ const UpcomingHangouts = () => {
     inputRange: [-1, 0, 1],
     outputRange: ["-1deg", "0deg", "1deg"],
   });
+
+  if (isPending) {
+    return <Text>Loading</Text>;
+  }
 
   return (
     <View>

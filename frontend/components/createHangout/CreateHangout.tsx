@@ -89,6 +89,10 @@ const CreateHangout = () => {
           ...currentProfile,
           upcomingHangouts: updatedUpcomingHangouts,
         });
+
+        await queryClient.invalidateQueries({
+          queryKey: ["upcomingHangouts", user?.id],
+        });
       }
 
       const inTab = segments.includes("(tabs)");
@@ -99,13 +103,9 @@ const CreateHangout = () => {
         setTimeout(() => {
           router.push(`/(hangout)/${hangoutResponse.data}`);
         }, 100);
-        Keyboard.dismiss();
       } else {
         router.replace(`/(hangout)/${hangoutResponse.data}`);
       }
-      await queryClient.invalidateQueries({
-        queryKey: ["profile", user?.id],
-      });
 
       setHangoutName("");
       setHangoutDescription("");
