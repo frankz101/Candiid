@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   Dimensions,
   FlatList,
+  Keyboard,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -12,7 +13,7 @@ import {
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { useUser } from "@clerk/clerk-expo";
 import axios from "axios";
-import { useRouter } from "expo-router";
+import { useRouter, useSegments } from "expo-router";
 import useStore from "@/store/useStore";
 // import { HangoutDetails } from "@/store/createHangoutSlice";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -46,6 +47,7 @@ const CreateHangout = () => {
   const { user } = useUser();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const segments = useSegments() as string[];
 
   const fetchFriends = async () => {
     return axios
@@ -89,8 +91,14 @@ const CreateHangout = () => {
         });
       }
 
-      router.replace(`/(hangout)/${hangoutResponse.data}`);
+      const inTab = segments.includes("(tabs)");
 
+      if (inTab) {
+        router.push(`/(hangout)/${hangoutResponse.data}`);
+        Keyboard.dismiss();
+      } else {
+        router.replace(`/(hangout)/${hangoutResponse.data}`);
+      }
       await queryClient.invalidateQueries({
         queryKey: ["profile", user?.id],
       });
@@ -108,7 +116,7 @@ const CreateHangout = () => {
 
   return (
     <BaseScreen>
-      <View style={styles.container}>
+      <Pressable style={styles.container} onPress={() => Keyboard.dismiss()}>
         <View style={styles.nameInputContainer}>
           <TextInput
             placeholder="what's your plan?"
@@ -148,7 +156,7 @@ const CreateHangout = () => {
             <Ionicons name="arrow-forward" size={32} color="white" />
           </DebouncedPressable>
         </View>
-      </View>
+      </Pressable>
     </BaseScreen>
   );
 };
