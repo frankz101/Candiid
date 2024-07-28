@@ -94,7 +94,11 @@ const CreateHangout = () => {
       const inTab = segments.includes("(tabs)");
 
       if (inTab) {
-        router.push(`/(hangout)/${hangoutResponse.data}`);
+        Keyboard.dismiss();
+        router.back();
+        setTimeout(() => {
+          router.push(`/(hangout)/${hangoutResponse.data}`);
+        }, 100);
         Keyboard.dismiss();
       } else {
         router.replace(`/(hangout)/${hangoutResponse.data}`);
