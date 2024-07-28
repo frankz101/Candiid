@@ -492,7 +492,7 @@ const removeHangoutInDatabase = async (hangoutId) => {
       await Promise.all(deletePromises);
 
       // Reference to the parent document in the messages collection
-      const messageRef = doc(db, "messages", roomId);
+      const messageRef = doc(db, "messages", hangoutId);
 
       // Delete the parent document
       await deleteDoc(messageRef);
