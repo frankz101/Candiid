@@ -41,24 +41,24 @@ const screenWidth = Dimensions.get("screen").width;
 
 const Home = () => {
   const [refreshing, setRefreshing] = useState(false);
-  const [index, setIndex] = useState(0);
-  const [routes] = useState([
-    { key: "completedHangouts", title: "Completed Hangouts" },
-    { key: "freshHangouts", title: "Fresh Hangouts" },
-  ]);
+  // const [index, setIndex] = useState(0);
+  // const [routes] = useState([
+  //   { key: "completedHangouts", title: "Completed Hangouts" },
+  //   { key: "freshHangouts", title: "Fresh Hangouts" },
+  // ]);
 
-  const renderScene = ({ route }: any) => {
-    switch (route.key) {
-      case "completedHangouts":
-        return (
-          <CompletedHangouts refreshing={refreshing} onRefresh={onRefresh} />
-        );
-      case "freshHangouts":
-        return <FreshHangouts refreshing={refreshing} onRefresh={onRefresh} />;
-      default:
-        return null;
-    }
-  };
+  // const renderScene = ({ route }: any) => {
+  //   switch (route.key) {
+  //     case "completedHangouts":
+  //       return (
+  //         <CompletedHangouts refreshing={refreshing} onRefresh={onRefresh} />
+  //       );
+  //     case "freshHangouts":
+  //       return <FreshHangouts refreshing={refreshing} onRefresh={onRefresh} />;
+  //     default:
+  //       return null;
+  //   }
+  // };
 
   const router = useRouter();
   const { user } = useUser();
@@ -97,14 +97,15 @@ const Home = () => {
         </Pressable>
       </View> */}
       {/* TabBar Content */}
-      <TabView
+      {/* <TabView
         navigationState={{ index, routes }}
         renderScene={renderScene}
         onIndexChange={setIndex}
         initialLayout={initialLayout}
         lazy={true}
         renderTabBar={(props) => <ProfileTabBar {...props} />}
-      />
+      /> */}
+      <CompletedHangouts refreshing={refreshing} onRefresh={onRefresh} />
     </BaseScreen>
   );
 };
