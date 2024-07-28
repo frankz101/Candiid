@@ -110,7 +110,7 @@ const fetchUpcomingHangoutsFromDatabase = async (userId) => {
     const userDoc = await getDoc(userDocRef);
 
     if (!userDoc.exists()) {
-      throw new Error("User document does not exist");
+      return [];
     }
 
     const upcomingHangouts = userDoc.data().upcomingHangouts || [];

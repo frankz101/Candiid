@@ -316,7 +316,7 @@ const UpcomingHangouts = () => {
             </View>
           </Pressable>
         )}
-        {upcomingHangouts.length % 2 == 1 && (
+        {upcomingHangouts && upcomingHangouts.length % 2 == 1 && (
           <Pressable onPress={() => setEditMode(false)}>
             <View style={[styles.hangoutBanner, { opacity: 0 }]}></View>
           </Pressable>

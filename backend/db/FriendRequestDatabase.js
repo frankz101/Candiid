@@ -12,6 +12,7 @@ import {
   updateDoc,
   arrayUnion,
   arrayRemove,
+  serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../firebase.js";
 
@@ -28,12 +29,16 @@ const createFriendRequestInDatabase = async (friendRequest) => {
     let message;
 
     if (friendRequestDocSnap.empty) {
-      await addDoc(friendRequestRef, friendRequest);
+      const docRef = await addDoc(friendRequestRef, {
+        ...friendRequest,
+        createdAt: serverTimestamp(),
+      });
       message = "Friend request created";
+      return { friendRequestId: docRef.id, message };
     } else {
-      message = "Friend requested";
+      message = "Friend request already exists";
+      return { message };
     }
-    return { friendRequestId: friendRequest.friendRequestId, message };
   } catch (error) {
     console.error("Error creating friend request:", error);
     throw error;
@@ -50,7 +55,7 @@ const getFriendRequestInDatabase = async (userId) => {
       const docRef = doc(db, "users", document.data().senderId);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
-        return docSnap.data();
+        return { ...docSnap.data(), createdAt: document.data().createdAt };
       } else {
         console.log("No friend request sender exists");
         return null;

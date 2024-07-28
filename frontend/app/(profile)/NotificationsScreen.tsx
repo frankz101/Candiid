@@ -1,9 +1,7 @@
 import {
   ActivityIndicator,
   Dimensions,
-  Pressable,
   RefreshControl,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -13,23 +11,15 @@ import React, { useEffect, useState } from "react";
 import BackButton from "@/components/utils/BackButton";
 import { useUser } from "@clerk/clerk-expo";
 import axios from "axios";
-import UserBanner from "@/components/friends/UserBanner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import HangoutRequestBanner from "@/components/friends/HangoutRequestBanner";
-import { useRouter } from "expo-router";
 import BaseScreen from "@/components/utils/BaseScreen";
 import GroupRequestBanner from "@/components/groups/GroupRequestBanner";
-
-interface User {
-  id: number;
-  name: string;
-  username: string;
-  profilePhoto: {
-    fileUrl: string;
-  };
-  userId: string;
-  friendStatus: string;
-}
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+import FriendRequestBanner from "@/components/friends/FriendRequestBanner";
 
 const screenHeight = Dimensions.get("window").height;
 const headerHeight = 120;
@@ -38,145 +28,144 @@ const bottomPadding = 20;
 const scrollViewHeight = screenHeight - headerHeight - bottomPadding;
 
 const NotificationsScreen = () => {
-  const [friendRequests, setFriendRequests] = useState<User[]>([]);
-  const [hangoutRequests, setHangoutRequests] = useState([]);
-  const [groupRequests, setGroupRequests] = useState([]);
-  const [joinHangoutRequests, setJoinHangoutRequests] = useState([]);
+  const [sortedRequests, setSortedRequests] = useState<any>([]);
   const [refreshing, setRefreshing] = useState(false);
   const { user } = useUser();
-  const router = useRouter();
   const queryClient = useQueryClient();
 
-  const getFriendRequests = async () => {
-    const res = await axios.get(
-      `${process.env.EXPO_PUBLIC_API_URL}/friendRequest/get/${user?.id}`
-    );
-    setFriendRequests(res.data);
+  const fetchRequests = async (url: string) => {
+    const res = await axios.get(url);
+    return res.data;
   };
 
-  const fetchGroupRequests = async () => {
-    return axios
-      .get(
-        `${process.env.EXPO_PUBLIC_API_URL}/group/requests/users/${user?.id}`
-      )
-      .then((res) => res.data);
-  };
-
-  const updateFriendRequests = (userId: string) => {
-    setFriendRequests((currentRequests) =>
-      currentRequests?.filter((request: User) => request.userId !== userId)
-    );
-  };
-  const updateHangoutRequests = (
-    hangoutId: string,
-    status: string,
-    type: string
-  ) => {
-    if (type === "request") {
-      setHangoutRequests((currentRequests) =>
-        currentRequests.filter(
-          (request: any) => request.hangoutId !== hangoutId
-        )
-      );
-    }
-    if (type === "join") {
-      setJoinHangoutRequests((currentRequests) =>
-        currentRequests.filter(
-          (request: any) => request.hangoutId !== hangoutId
-        )
-      );
-    }
-
-    console.log(status);
-  };
-
-  const updateGroupRequests = (
-    groupId: string,
-    status: string,
-    type: string
-  ) => {
-    if (type === "request") {
-      setGroupRequests((currentRequests) =>
-        currentRequests.filter((request: any) => request.groupId !== groupId)
-      );
-    }
-    console.log(status);
-  };
-
-  useEffect(() => {
-    getFriendRequests();
-  }, []);
-
-  const fetchHangoutRequests = async () => {
-    return axios
-      .get(
-        `${process.env.EXPO_PUBLIC_API_URL}/hangout/requests/users/${user?.id}`
-      )
-      .then((res) => res.data);
-  };
+  const { data: friendRequestsData, isPending: isPendingFriendRequests } =
+    useQuery({
+      queryKey: ["friendRequestsData", user?.id],
+      queryFn: () =>
+        fetchRequests(
+          `${process.env.EXPO_PUBLIC_API_URL}/friendRequest/get/${user?.id}`
+        ),
+    });
 
   const { data: hangoutRequestsData, isPending: isPendingHangoutRequests } =
     useQuery({
       queryKey: ["hangoutRequestsData", user?.id],
-      queryFn: fetchHangoutRequests,
+      queryFn: () =>
+        fetchRequests(
+          `${process.env.EXPO_PUBLIC_API_URL}/hangout/requests/users/${user?.id}`
+        ),
     });
 
   const { data: groupRequestsData, isPending: isPendingGroupRequests } =
     useQuery({
       queryKey: ["groupRequestsData", user?.id],
-      queryFn: fetchGroupRequests,
+      queryFn: () =>
+        fetchRequests(
+          `${process.env.EXPO_PUBLIC_API_URL}/group/requests/users/${user?.id}`
+        ),
     });
 
-  const fetchJoinHangoutRequests = async () => {
-    return axios
-      .get(
-        `${process.env.EXPO_PUBLIC_API_URL}/hangout/join-requests/${user?.id}`
-      )
-      .then((res) => res.data);
-  };
-  const { data: joinHangoutRequestsData, isPending: joinRequestsPending } =
+  const { data: joinHangoutRequestsData, isPending: isPendingJoinRequests } =
     useQuery({
       queryKey: ["joinHangoutRequestsData", user?.id],
-      queryFn: fetchJoinHangoutRequests,
+      queryFn: () =>
+        fetchRequests(
+          `${process.env.EXPO_PUBLIC_API_URL}/hangout/join-requests/${user?.id}`
+        ),
     });
 
   const onRefresh = async () => {
     setRefreshing(true);
     await queryClient.invalidateQueries({
+      queryKey: ["friendRequestsData", user?.id],
+    });
+    await queryClient.invalidateQueries({
       queryKey: ["hangoutRequestsData", user?.id],
     });
-    await getFriendRequests();
+    await queryClient.invalidateQueries({
+      queryKey: ["groupRequestsData", user?.id],
+    });
+    await queryClient.invalidateQueries({
+      queryKey: ["joinHangoutRequestsData", user?.id],
+    });
     setRefreshing(false);
   };
 
   useEffect(() => {
-    if (groupRequestsData) {
-      setGroupRequests(groupRequestsData);
-    }
-  }, [groupRequestsData]);
+    if (
+      friendRequestsData ||
+      hangoutRequestsData ||
+      groupRequestsData ||
+      joinHangoutRequestsData
+    ) {
+      const combinedRequests = [
+        ...(friendRequestsData?.map((request: any) => ({
+          ...request,
+          type: "friendRequest",
+        })) || []),
+        ...(hangoutRequestsData?.map((request: any) => ({
+          ...request,
+          type: "hangoutRequest",
+        })) || []),
+        ...(groupRequestsData?.map((request: any) => ({
+          ...request,
+          type: "groupRequest",
+        })) || []),
+        ...(joinHangoutRequestsData?.map((request: any) => ({
+          ...request,
+          type: "joinHangoutRequest",
+        })) || []),
+      ];
 
-  useEffect(() => {
-    if (hangoutRequestsData) {
-      setHangoutRequests(hangoutRequestsData);
-    }
-  }, [hangoutRequestsData]);
+      combinedRequests.sort((a, b) => {
+        const aTime =
+          a.createdAt.seconds * 1000 + a.createdAt.nanoseconds / 1000000;
+        const bTime =
+          b.createdAt.seconds * 1000 + b.createdAt.nanoseconds / 1000000;
+        return bTime - aTime;
+      });
 
-  useEffect(() => {
-    if (joinHangoutRequestsData) {
-      setJoinHangoutRequests(joinHangoutRequestsData);
-    }
-  }, [joinHangoutRequestsData]);
+      console.log(combinedRequests.map((request) => request.createdAt));
 
-  if (isPendingHangoutRequests || isPendingGroupRequests) {
+      setSortedRequests(combinedRequests);
+    }
+  }, [
+    friendRequestsData,
+    hangoutRequestsData,
+    groupRequestsData,
+    joinHangoutRequestsData,
+  ]);
+
+  const updateRequests = (type: string, filterId: string) => {
+    switch (type) {
+      case "friendRequest":
+        return setSortedRequests((requests: any) =>
+          requests.filter((request: any) => request.userId !== filterId)
+        );
+      case "hangoutRequest":
+        return setSortedRequests((requests: any) =>
+          requests.filter((request: any) => request.hangoutId !== filterId)
+        );
+      case "joinHangoutRequest":
+        return setSortedRequests((requests: any) =>
+          requests.filter((request: any) => request.hangoutId !== filterId)
+        );
+      case "groupRequest":
+        return setSortedRequests((requests: any) =>
+          requests.filter((request: any) => request.groupId !== filterId)
+        );
+    }
+  };
+
+  if (
+    isPendingHangoutRequests ||
+    isPendingGroupRequests ||
+    isPendingFriendRequests ||
+    isPendingGroupRequests
+  ) {
     return (
       <BaseScreen>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
+        <View style={styles.header}>
           <BackButton />
           <Text style={styles.headerText}>Notifications</Text>
           <View style={{ width: 32 }} />
@@ -188,13 +177,7 @@ const NotificationsScreen = () => {
 
   return (
     <BaseScreen>
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
+      <View style={styles.header}>
         <BackButton />
         <Text style={styles.headerText}>Notifications</Text>
         <View style={{ width: 32 }} />
@@ -205,60 +188,71 @@ const NotificationsScreen = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={"#FFF"}
+            tintColor="#FFF"
           />
         }
       >
-        {friendRequests?.map((contact: User) => (
-          <UserBanner
-            key={contact.userId}
-            user={contact}
-            type="friendRequests"
-            onHandleRequest={() => updateFriendRequests(contact.userId)}
-          />
-        ))}
-        {hangoutRequests?.map((item: any, index: number) => (
-          <HangoutRequestBanner
-            key={"Hangout Request" + index}
-            type="request"
-            senderName={item.userInfo.username}
-            senderId={item.userInfo.userId}
-            senderProfilePhoto={item.userInfo.profilePhoto?.fileUrl}
-            hangoutId={item.hangoutId}
-            hangoutName={item.hangoutName}
-            onHandleRequest={(hangoutId: string, status: string) =>
-              updateHangoutRequests(hangoutId, status, "request")
-            }
-          />
-        ))}
-        {groupRequests?.map((item: any, index: number) => (
-          <GroupRequestBanner
-            key={"Group Request" + index}
-            type="request"
-            senderName={item.userInfo.username}
-            senderId={item.userInfo.userId}
-            senderProfilePhoto={item.userInfo.profilePhoto?.fileUrl}
-            groupId={item.groupId}
-            groupName={item.groupName}
-            onHandleRequest={(groupId: string, status: string) =>
-              updateGroupRequests(groupId, status, "request")
-            }
-          />
-        ))}
-        {joinHangoutRequests?.map((item: any, index: number) => (
-          <HangoutRequestBanner
-            key={index}
-            type="join"
-            senderName={item.userInfo.username}
-            senderId={item.userInfo.userId}
-            senderProfilePhoto={item.userInfo.profilePhoto?.fileUrl}
-            hangoutId={item.hangoutId}
-            hangoutName={item.hangoutName}
-            onHandleRequest={(hangoutId: string, status: string) =>
-              updateHangoutRequests(hangoutId, status, "join")
-            }
-          />
-        ))}
+        {sortedRequests.map((request: any, index: any) => {
+          switch (request.type) {
+            case "friendRequest":
+              return (
+                <FriendRequestBanner
+                  key={index}
+                  user={request}
+                  onHandleRequest={() =>
+                    updateRequests("friendRequest", request.userId)
+                  }
+                />
+              );
+            case "hangoutRequest":
+              return (
+                <HangoutRequestBanner
+                  key={`Hangout Request${index}`}
+                  type="request"
+                  senderName={request.userInfo.username}
+                  senderId={request.userInfo.userId}
+                  senderProfilePhoto={request.userInfo.profilePhoto?.fileUrl}
+                  hangoutId={request.hangoutId}
+                  hangoutName={request.hangoutName}
+                  onHandleRequest={(hangoutId) =>
+                    updateRequests("hangoutRequest", hangoutId)
+                  }
+                />
+              );
+            case "groupRequest":
+              return (
+                <GroupRequestBanner
+                  key={`Group Request${index}`}
+                  type="request"
+                  senderName={request.userInfo.username}
+                  senderId={request.userInfo.userId}
+                  senderProfilePhoto={request.userInfo.profilePhoto?.fileUrl}
+                  groupId={request.groupId}
+                  groupName={request.groupName}
+                  onHandleRequest={(groupId) =>
+                    updateRequests("groupRequest", groupId)
+                  }
+                />
+              );
+            case "joinHangoutRequest":
+              return (
+                <HangoutRequestBanner
+                  key={`Join Hangout Request${index}`}
+                  type="join"
+                  senderName={request.userInfo.username}
+                  senderId={request.userInfo.userId}
+                  senderProfilePhoto={request.userInfo.profilePhoto?.fileUrl}
+                  hangoutId={request.hangoutId}
+                  hangoutName={request.hangoutName}
+                  onHandleRequest={(hangoutId) =>
+                    updateRequests("joinHangoutRequest", hangoutId)
+                  }
+                />
+              );
+            default:
+              return null;
+          }
+        })}
       </ScrollView>
     </BaseScreen>
   );
@@ -267,8 +261,11 @@ const NotificationsScreen = () => {
 export default NotificationsScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: hp(1),
   },
   headerText: {
     fontSize: 20,
