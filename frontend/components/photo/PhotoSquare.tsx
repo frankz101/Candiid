@@ -11,7 +11,6 @@ import {
 } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
-import { Link, useRouter } from "expo-router";
 import axios from "axios";
 import { useUser } from "@clerk/clerk-expo";
 import { useQueryClient } from "@tanstack/react-query";
@@ -32,17 +31,16 @@ const screenWidth = Dimensions.get("window").width;
 const padding = 2;
 const imageWidth = (screenWidth - padding * 6) / 3; // Subtract total padding and divide by 3
 
-interface PhotoSquareSelectProps {
+interface PhotoSquareProps {
   imageUrl: string;
   takenBy: string;
   index: number;
   hangoutId: string;
 }
 
-const PhotoSquareSelect: React.FC<PhotoSquareSelectProps> = ({
+const PhotoSquare: React.FC<PhotoSquareProps> = ({
   imageUrl,
   takenBy,
-  index,
   hangoutId,
 }) => {
   const { user } = useUser();
@@ -180,56 +178,53 @@ const PhotoSquareSelect: React.FC<PhotoSquareSelectProps> = ({
               >
                 <Pressable style={styles.overlay} onPress={closeModal}>
                   <BlurView style={styles.modalContainer} intensity={20}>
-                    <View style={styles.modalContent}>
-                      <Image
-                        source={{
-                          uri: imageUrl,
-                        }}
-                        style={styles.magnifiedImage}
-                      />
-                      <View style={styles.buttonContainer}>
-                        <Pressable
+                    <Image
+                      source={{ uri: imageUrl }}
+                      style={{
+                        width: wp(80),
+                        aspectRatio: 1,
+                        borderRadius: 20,
+                      }}
+                    />
+                    <View style={styles.buttonContainer}>
+                      <Pressable
+                        style={[
+                          styles.button,
+                          takenBy === user?.id && {
+                            borderBottomWidth: 1,
+                            borderBottomColor: "#3a3a3d",
+                          },
+                        ]}
+                        onPress={savePhoto}
+                      >
+                        <Text
                           style={[
-                            styles.button,
-                            takenBy === user?.id && {
-                              borderBottomWidth: 1,
-                              borderBottomColor: "#3a3a3d",
+                            styles.buttonText,
+                            {
+                              color: "white",
                             },
                           ]}
-                          onPress={savePhoto}
                         >
-                          <Text
-                            style={[
-                              styles.buttonText,
-                              {
-                                color: "white",
-                              },
-                            ]}
-                          >
-                            Save
+                          Save
+                        </Text>
+                        <Ionicons
+                          name="download-outline"
+                          size={24}
+                          color={"white"}
+                        />
+                      </Pressable>
+                      {takenBy === user?.id && (
+                        <Pressable style={styles.button} onPress={deletePhoto}>
+                          <Text style={[styles.buttonText, { color: "red" }]}>
+                            Delete
                           </Text>
                           <Ionicons
-                            name="download-outline"
+                            name="trash-outline"
                             size={24}
-                            color={"white"}
+                            color={"red"}
                           />
                         </Pressable>
-                        {takenBy === user?.id && (
-                          <Pressable
-                            style={styles.button}
-                            onPress={deletePhoto}
-                          >
-                            <Text style={[styles.buttonText, { color: "red" }]}>
-                              Delete
-                            </Text>
-                            <Ionicons
-                              name="trash-outline"
-                              size={24}
-                              color={"red"}
-                            />
-                          </Pressable>
-                        )}
-                      </View>
+                      )}
                     </View>
                   </BlurView>
                 </Pressable>
@@ -246,17 +241,13 @@ const PhotoSquareSelect: React.FC<PhotoSquareSelectProps> = ({
                   style={[styles.overlay, { backgroundColor: "black" }]}
                   onPress={closeModal}
                 >
-                  <View style={styles.fullScreenContainer}>
-                    <Image
-                      source={{
-                        uri: imageUrl,
-                      }}
-                      style={{
-                        width: "100%",
-                        aspectRatio: 1,
-                      }}
-                    />
-                  </View>
+                  <Image
+                    source={{
+                      uri: imageUrl,
+                    }}
+                    style={styles.fullScreenContainer}
+                    contentFit="contain"
+                  />
                 </Pressable>
               </Modal>
             )}
@@ -267,7 +258,7 @@ const PhotoSquareSelect: React.FC<PhotoSquareSelectProps> = ({
   );
 };
 
-export default PhotoSquareSelect;
+export default PhotoSquare;
 
 const styles = StyleSheet.create({
   imageContainer: {
@@ -288,16 +279,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  modalContent: {
-    width: wp(80),
-    borderRadius: 10,
-    alignItems: "center",
-  },
   magnifiedImage: {
-    width: "100%",
-    maxHeight: hp(80),
-    aspectRatio: 1,
-    borderRadius: 10,
+    width: wp(80),
+    height: hp(60),
+    borderRadius: 20,
   },
   buttonContainer: {
     marginTop: hp(2),
