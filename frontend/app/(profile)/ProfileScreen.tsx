@@ -87,7 +87,7 @@ const ProfileScreen = () => {
         staleTime: 1000 * 60 * 5,
       },
       {
-        queryKey: ["stickers", user?.id],
+        queryKey: ["stickers", userId],
         queryFn: fetchStickers,
         staleTime: 1000 * 60 * 5,
       },

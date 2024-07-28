@@ -3,7 +3,7 @@
     "name": "Candiid",
     "slug": "memories",
     "owner": "franklinzhu26",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -16,7 +16,7 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "buildNumber": "7",
+      "buildNumber": "8",
       "infoPlist": {
         "NSContactsUsageDescription": "$(PRODUCT_NAME) needs access to your Contacts.",
         "NSCameraUsageDescription": "$(PRODUCT_NAME) needs access to your Camera.",

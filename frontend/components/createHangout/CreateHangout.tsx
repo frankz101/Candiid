@@ -95,6 +95,10 @@ const CreateHangout = () => {
         queryKey: ["profile", user?.id],
       });
 
+      await queryClient.invalidateQueries({
+        queryKey: ["upcomingHangouts", user?.id],
+      });
+
       setHangoutName("");
       setHangoutDescription("");
     } catch (error) {
