@@ -57,7 +57,7 @@ const InviteFriends = () => {
           userId: user?.id,
         }
       );
-      console.log(hangoutRequestsResponse.data.result);
+      console.log(hangoutRequestsResponse.data);
       if (isPressedFromHangoutScreen === "false") {
         router.push({
           pathname: "/(tabs)/profile",
@@ -130,7 +130,7 @@ const InviteFriends = () => {
             <Text>Loading friends...</Text>
           ) : (
             <FlatList
-              data={friendsData.result}
+              data={friendsData}
               keyExtractor={(item) => item.userId}
               renderItem={renderFriendBanner}
             />

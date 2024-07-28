@@ -19,7 +19,7 @@ import {
 const postHangout = async (req, res) => {
   try {
     const result = await createHangout(req.body);
-    res.status(201).send({ result });
+    res.status(201).send(result);
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
@@ -36,7 +36,7 @@ const postPhotoToHangout = async (req, res) => {
     };
 
     const result = await addPhotoToHangout(hangoutId, photoData);
-    res.status(201).send({ result });
+    res.status(201).send(result);
   } catch (err) {
     console.log(err);
     res.status(500).send({ message: err.message });
@@ -81,7 +81,7 @@ const getHangout = async (req, res) => {
 const getHangoutRequests = async (req, res) => {
   try {
     const result = await fetchHangoutRequests(req.params.userId);
-    res.status(201).send({ result });
+    res.status(201).send(result);
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
@@ -91,7 +91,7 @@ const postHangoutRequests = async (req, res) => {
   try {
     const hangoutId = req.params.hangoutId;
     const result = await createHangoutRequests(hangoutId, req.body);
-    res.status(201).send({ result });
+    res.status(201).send(result);
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
@@ -101,7 +101,7 @@ const putHangoutRequest = async (req, res) => {
   try {
     const hangoutId = req.params.hangoutId;
     const result = await handleHangoutRequest(hangoutId, req.body);
-    res.status(201).send({ result });
+    res.status(201).send(result);
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
@@ -111,7 +111,7 @@ const getFreshHangouts = async (req, res) => {
   try {
     const userId = req.params.userId;
     const result = await fetchFreshHangouts(userId);
-    res.status(201).send({ result });
+    res.status(201).send(result);
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
@@ -126,7 +126,7 @@ const postJoinHangoutRequest = async (req, res) => {
       hangoutName,
       hangoutId
     );
-    res.status(201).send({ result });
+    res.status(201).send(result);
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
@@ -136,7 +136,7 @@ const getJoinHangoutRequests = async (req, res) => {
   try {
     const userId = req.params.userId;
     const result = await fetchJoinhangoutRequests(userId);
-    res.status(201).send({ result });
+    res.status(201).send(result);
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
@@ -146,7 +146,7 @@ const putLeaveHangout = async (req, res) => {
   try {
     const { userId, hangoutId } = req.body;
     const result = await leaveHangout(hangoutId, userId);
-    res.status(201).send({ result });
+    res.status(201).send(result);
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
@@ -156,7 +156,7 @@ const deleteHangout = async (req, res) => {
   try {
     const { hangoutId } = req.params;
     const result = await removeHangout(hangoutId);
-    res.status(201).send({ result });
+    res.status(201).send(result);
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
@@ -166,7 +166,7 @@ const putHangoutOwnership = async (req, res) => {
   try {
     const { hangoutId, userId, newUserId } = req.body;
     const result = await transferHangoutOwnership(hangoutId, userId, newUserId);
-    res.status(201).send({ result });
+    res.status(201).send(result);
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
@@ -177,7 +177,7 @@ const putHangoutPhoto = async (req, res) => {
     const { hangoutId } = req.body;
     const { fileUrl } = req.params;
     const result = await removeHangoutPhotoInDatabase(fileUrl, hangoutId);
-    res.status(201).send({ result });
+    res.status(201).send(result);
   } catch (err) {
     res.status(500).send({ message: err.message });
   }

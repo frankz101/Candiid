@@ -8,7 +8,7 @@ const postMessage = async (req, res) => {
     const { message } = req.body;
     const { roomId } = req.params;
     const result = await addMessageToDatabase(roomId, message);
-    res.status(201).send({ result });
+    res.status(201).send(result);
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
@@ -23,7 +23,7 @@ const getMessages = async (req, res) => {
       limitQuery,
       lastMessageId
     );
-    res.status(200).send({ result });
+    res.status(200).send(result);
   } catch (err) {
     res.status(500).send({ message: err.message });
   }

@@ -32,7 +32,7 @@ const ContactUsScreen = () => {
           ticketDetails,
         }
       );
-      console.log(res.data.result);
+      console.log(res.data);
       if (res.status === 201) {
         Toast.show({
           type: "success",

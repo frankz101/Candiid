@@ -56,9 +56,9 @@ const SearchFriends = () => {
             process.env.EXPO_PUBLIC_API_URL
           }/user/search/${debouncedSearchPhrase.trim()}/users/${user.id}`
         );
-        if (res.status === 201 && res.data.result) {
+        if (res.status === 201 && res.data) {
           setSearchResults(
-            res.data.result.filter((result: User) => result.userId !== user.id)
+            res.data.filter((result: User) => result.userId !== user.id)
           );
         } else {
           setSearchResults([]);

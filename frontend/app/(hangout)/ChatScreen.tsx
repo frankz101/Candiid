@@ -81,7 +81,7 @@ const ChatScreen = () => {
           },
         }
       );
-      return response.data.result;
+      return response.data;
     } catch (error) {
       console.error("Error fetching messages: ", error);
       return [];

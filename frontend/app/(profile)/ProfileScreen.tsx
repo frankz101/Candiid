@@ -9,6 +9,7 @@ import {
   Dimensions,
   Modal,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useState } from "react";
@@ -66,7 +67,14 @@ const ProfileScreen = () => {
       .then((res) => res.data);
   };
 
-  const [memories, profile] = useQueries({
+  const fetchStickers = async () => {
+    console.log("Fetching Stickers in Profile Tab");
+    return axios
+      .get(`${process.env.EXPO_PUBLIC_API_URL}/stickers/${userId}`)
+      .then((res) => res.data);
+  };
+
+  const [memories, profile, fetchedStickers] = useQueries({
     queries: [
       {
         queryKey: ["memories", userId],
@@ -78,11 +86,17 @@ const ProfileScreen = () => {
         queryFn: fetchUser,
         staleTime: 1000 * 60 * 5,
       },
+      {
+        queryKey: ["stickers", user?.id],
+        queryFn: fetchStickers,
+        staleTime: 1000 * 60 * 5,
+      },
     ],
   });
 
   const { data: memoriesData, isPending: isPendingMemories } = memories;
   const { data: profileDetails, isPending: isPendingProfile } = profile;
+  const { data: stickersData, isPending: isPendingStickers } = fetchedStickers;
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -90,8 +104,24 @@ const ProfileScreen = () => {
     setRefreshing(false);
   };
 
-  if (isPendingMemories || isPendingProfile) {
-    return <Text>Is Loading...</Text>;
+  if (isPendingMemories || isPendingProfile || isPendingStickers) {
+    return (
+      <BaseScreen>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingBottom: 28,
+          }}
+        >
+          <BackButton />
+          <Text style={styles.headerText}>Loading...</Text>
+          <View style={{ width: 32 }} />
+        </View>
+        <ActivityIndicator size="large" color="#FFF" />
+      </BaseScreen>
+    );
   }
 
   const blockUser = async () => {
@@ -122,7 +152,7 @@ const ProfileScreen = () => {
                   }
                 );
                 queryClient.invalidateQueries({ queryKey: ["searchResults"] });
-                console.log(res.data.result);
+                console.log(res.data);
               },
             },
           ],
@@ -140,7 +170,7 @@ const ProfileScreen = () => {
         <BackButton />
         <Text
           style={styles.userDetailText}
-        >{`@${profileDetails.result.username}`}</Text>
+        >{`@${profileDetails.username}`}</Text>
         <View>
           <Pressable onPress={() => setModalVisible(true)}>
             <Ionicons
@@ -168,13 +198,13 @@ const ProfileScreen = () => {
                       pathname: "/ReportScreen",
                       params: {
                         userId,
-                        username: profileDetails.result.username,
+                        username: profileDetails.username,
                       },
                     });
                   }}
                 >
                   <Text style={styles.modalButtonText}>
-                    Report {profileDetails.result.username}
+                    Report {profileDetails.username}
                   </Text>
                   <Ionicons name="alert-circle-outline" color="red" size={24} />
                 </Pressable>
@@ -188,12 +218,12 @@ const ProfileScreen = () => {
                   onPress={blockUser}
                 >
                   <Text style={styles.modalButtonText}>
-                    Block {profileDetails.result.username}
+                    Block {profileDetails.username}
                   </Text>
                   <Ionicons name="ban-outline" color="red" size={24} />
                 </Pressable>
 
-                {profileDetails.result.friendStatus === "Already Friends" && (
+                {profileDetails.friendStatus === "Already Friends" && (
                   <Pressable
                     style={({ pressed }) => [
                       styles.modalButton,
@@ -224,25 +254,29 @@ const ProfileScreen = () => {
         }
       >
         <View style={styles.userDetails}>
-          {profileDetails && profileDetails.result.profilePhoto ? (
+          {profileDetails && profileDetails.profilePhoto ? (
             <Image
-              source={{ uri: profileDetails.result.profilePhoto.fileUrl }}
+              source={{ uri: profileDetails.profilePhoto.fileUrl }}
               style={styles.profilePhoto}
             />
           ) : (
             <View style={[styles.profilePhoto, { backgroundColor: "grey" }]} />
           )}
-          <Text style={styles.userText}>{profileDetails.result.name}</Text>
-          <FriendshipButton
-            userId={userId as string}
-            status={profileDetails.result.friendStatus}
-          />
+          <Text style={styles.userText}>{profileDetails.name}</Text>
+          {profileDetails.friendStatus !== "Already Friends" && (
+            <FriendshipButton
+              userId={userId as string}
+              status={profileDetails.friendStatus}
+            />
+          )}
         </View>
         {/* <Text style={styles.headerText}>Memoryboard</Text> */}
         <Animated.View style={styles.animatedView}>
-          <Pressable onPress={() => router.push("/(hangout)/MemoriesScreen")}>
-            {/* <MemoriesView hangouts={memoriesData} /> */}
-          </Pressable>
+          <MemoriesView
+            hangouts={memoriesData}
+            stickers={stickersData}
+            color={profileDetails.backgroundDetails?.backgroundColor}
+          />
         </Animated.View>
         {/* DEFAULT PROFILE PIC NOT CENTERED AND SIZE IS WRONG */}
         {/* <View style={styles.upcomingHangouts}>
@@ -406,12 +440,9 @@ const styles = StyleSheet.create({
   animatedView: {
     justifyContent: "center",
     alignItems: "center",
-    height: 300,
-    borderWidth: 1,
-    borderColor: "black",
-    borderRadius: 10,
     overflow: "hidden",
-    marginVertical: 10,
+    height: hp("60%"),
+    borderRadius: 15,
   },
   upcomingHangouts: {
     paddingTop: hp(2),

@@ -86,8 +86,8 @@ const InitialLayout = () => {
           }
         );
 
-        if (res.data && res.data.result) {
-          registeredUsers = registeredUsers.concat(res.data.result);
+        if (res.data && res.data) {
+          registeredUsers = registeredUsers.concat(res.data);
         }
       }
       return registeredUsers;
