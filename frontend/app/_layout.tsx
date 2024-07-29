@@ -15,6 +15,7 @@ import Toast from "react-native-toast-message";
 import toastConfig from "@/toastConfig";
 import axios from "axios";
 import Contacts, { Contact } from "react-native-contacts";
+import { GiphySDK } from "@giphy/react-native-sdk";
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -37,6 +38,7 @@ const InitialLayout = () => {
   const queryClient = useQueryClient();
 
   SplashScreen.preventAutoHideAsync();
+  GiphySDK.configure({ apiKey: "QDW5PFQZJ8MYnbeJ6mjQhPrRC5v9UI1b" });
   setTimeout(SplashScreen.hideAsync, 1000);
 
   const fetchUser = async () => {

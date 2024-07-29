@@ -20,7 +20,8 @@ const Layout = () => {
         headerShown: false,
         tabBarStyle: {
           backgroundColor: "#121212",
-          borderTopWidth: 0,
+          borderTopWidth: 0.5,
+          borderTopColor: "#3a3a3d",
           paddingHorizontal: wp(7),
         },
         tabBarItemStyle: {

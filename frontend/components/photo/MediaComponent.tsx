@@ -6,7 +6,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
-import { Alert, Pressable, StyleSheet, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { GiphyMedia, GiphyMediaView } from "@giphy/react-native-sdk";
 import {
   widthPercentageToDP as wp,
@@ -107,6 +107,20 @@ const MediaComponent: React.FC<MediaComponentProps> = ({
                 aspectRatio: media.aspectRatio,
               }}
             />
+            {/* <Image
+              style={{
+                width: "100%",
+                height: "100%",
+                aspectRatio: media.aspectRatio,
+              }}
+              source={{ uri: media.data.images.original.url }}
+              testID={`gph-dynamic-text-view-${media.id}`}
+            /> */}
+            {/* <GiphyMediaView
+              media={media}
+              style={{ aspectRatio: media.aspectRatio }}
+              testID={`gph-media-view-${media.id}`}
+            /> */}
           </Pressable>
         );
       default:

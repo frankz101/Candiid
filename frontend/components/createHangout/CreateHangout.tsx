@@ -91,14 +91,8 @@ const CreateHangout = () => {
         });
       }
 
-      const inTab = segments.includes("(tabs)");
+      router.navigate(`/(hangout)/${hangoutResponse.data}`);
 
-      if (inTab) {
-        router.push(`/(hangout)/${hangoutResponse.data}`);
-        Keyboard.dismiss();
-      } else {
-        router.replace(`/(hangout)/${hangoutResponse.data}`);
-      }
       await queryClient.invalidateQueries({
         queryKey: ["profile", user?.id],
       });
