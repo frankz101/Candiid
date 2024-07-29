@@ -14,7 +14,6 @@ import {
   FlatList,
   Keyboard,
   KeyboardAvoidingView,
-  PanResponder,
   Platform,
   Pressable,
   StyleSheet,
@@ -28,6 +27,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import { io } from "socket.io-client";
 
 const LIMIT = 20;
 
@@ -99,15 +99,15 @@ const ChatScreen = () => {
     };
 
     fetchData();
-    const socket = new WebSocket(`${process.env.EXPO_PUBLIC_WEBSOCKET_URL}`);
 
-    socket.onopen = () => {
+    const socket = io(`${process.env.EXPO_PUBLIC_WEBSOCKET_URL}`);
+
+    socket.on("connect", () => {
       console.log("Connected to websocket");
-      socket.send(JSON.stringify({ roomId }));
-    };
+      socket.emit("joinRoom", roomId);
+    });
 
-    socket.onmessage = (e) => {
-      const data = JSON.parse(e.data);
+    socket.on("message", (data) => {
       if (
         data.type === "added" ||
         data.type === "modified" ||
@@ -117,13 +117,14 @@ const ChatScreen = () => {
           return [{ id: data.doc.id, ...data.doc }, ...prevMessages];
         });
       }
-    };
-    socket.onclose = () => {
+    });
+
+    socket.on("disconnect", () => {
       console.log("Disconnected from WebSocket server");
-    };
+    });
 
     return () => {
-      socket.close();
+      socket.disconnect();
     };
   }, []);
 

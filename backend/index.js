@@ -1,8 +1,10 @@
 import express from "express";
 import cors from "cors";
 import { Expo } from "expo-server-sdk";
-import { WebSocketServer } from "ws";
+import { Server } from "socket.io";
 import dotenv from "dotenv";
+import { collection, onSnapshot, query } from "firebase/firestore";
+import { db } from "./firebase.js";
 
 dotenv.config();
 
@@ -23,8 +25,6 @@ import NotificationRoutes from "./routes/NotificationRoutes.js";
 import StickerRoutes from "./routes/StickerRoutes.js";
 import ChatRoutes from "./routes/ChatRoutes.js";
 import GroupRoutes from "./routes/GroupRoutes.js";
-import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
-import { db } from "./firebase.js";
 
 app.use("/", UserRoutes);
 app.use("/", HangoutRoutes);
@@ -40,19 +40,21 @@ const server = app.listen(PORT, "0.0.0.0", () => {
   console.log(`Listening on port ${PORT}`);
 });
 
-const wss = new WebSocketServer({ server });
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
+});
 
-wss.on("connection", (ws) => {
+io.on("connection", (socket) => {
   console.log("Client connected");
 
   let unsubscribe = null;
 
-  ws.on("message", (message) => {
-    const parsedMessage = JSON.parse(message);
-    const { roomId } = parsedMessage;
-
+  socket.on("joinRoom", (roomId) => {
     if (!roomId) {
-      ws.send(JSON.stringify({ error: "roomId is required" }));
+      socket.emit("error", { error: "roomId is required" });
       return;
     }
 
@@ -73,12 +75,10 @@ wss.on("connection", (ws) => {
             change.type === "modified" ||
             change.type === "removed"
           ) {
-            ws.send(
-              JSON.stringify({
-                type: change.type,
-                doc: { id: change.doc.id, ...change.doc.data() },
-              })
-            );
+            socket.emit("message", {
+              type: change.type,
+              doc: { id: change.doc.id, ...change.doc.data() },
+            });
           }
         }
       });
@@ -89,10 +89,10 @@ wss.on("connection", (ws) => {
     });
   });
 
-  ws.on("close", () => {
+  socket.on("disconnect", () => {
     console.log("Client disconnected");
     if (unsubscribe) {
-      unsubscribe(); // Stop listening to changes when the client disconnects
+      unsubscribe();
     }
   });
 });
