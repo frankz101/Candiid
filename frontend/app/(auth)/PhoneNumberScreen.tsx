@@ -8,6 +8,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import DebouncedPressable from "@/components/utils/DebouncedPressable";
 
 const PhoneNumberScreen = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -26,7 +27,7 @@ const PhoneNumberScreen = () => {
           placeholder="Enter your phone number"
           placeholderTextColor="#555555"
         />
-        <Pressable
+        <DebouncedPressable
           style={({ pressed }) => [
             styles.button,
             pressed
@@ -43,7 +44,7 @@ const PhoneNumberScreen = () => {
           }}
         >
           <Text style={styles.text}>Confirm</Text>
-        </Pressable>
+        </DebouncedPressable>
       </View>
     </BaseScreen>
   );

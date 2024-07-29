@@ -11,6 +11,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import DebouncedPressable from "@/components/utils/DebouncedPressable";
 
 const SignUpScreen = () => {
   useWarmUpBrowser();
@@ -23,7 +24,7 @@ const SignUpScreen = () => {
         source={require("../../assets/images/icon.png")}
         style={styles.logo}
       ></Image>
-      <Pressable
+      <DebouncedPressable
         style={({ pressed }) => [
           styles.button,
           {
@@ -37,8 +38,8 @@ const SignUpScreen = () => {
         }}
       >
         <Text style={styles.text}>Get started</Text>
-      </Pressable>
-      <Pressable
+      </DebouncedPressable>
+      <DebouncedPressable
         style={({ pressed }) => [
           styles.button,
           {
@@ -52,7 +53,7 @@ const SignUpScreen = () => {
         }}
       >
         <Text style={styles.text}>I already have an account</Text>
-      </Pressable>
+      </DebouncedPressable>
     </BaseScreen>
   );
 };
