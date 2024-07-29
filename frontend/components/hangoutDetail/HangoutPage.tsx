@@ -26,10 +26,10 @@ import HangoutDetailCard from "@/components/hangoutDetail/HangoutDetailCard";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useUser } from "@clerk/clerk-expo";
 import UserBanner from "@/components/friends/UserBanner";
+import useStore from "@/store/useStore";
 
 interface HangoutPageProps {
   hangoutId: string;
-  memoryId: string;
 }
 
 const screenHeight = Dimensions.get("window").height;
@@ -38,14 +38,13 @@ const bottomPadding = 20;
 
 const scrollViewHeight = screenHeight - headerHeight - bottomPadding;
 
-const HangoutPage: React.FC<HangoutPageProps> = ({ hangoutId, memoryId }) => {
+const HangoutPage: React.FC<HangoutPageProps> = ({ hangoutId }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [transferModalVisible, setTransferModalVisible] = useState(false);
   const router = useRouter();
   const { user } = useUser();
   const queryClient = useQueryClient();
-  console.log("Memory ID Hangout: " + memoryId);
 
   const fetchHangout = async () => {
     return axios
@@ -59,7 +58,7 @@ const HangoutPage: React.FC<HangoutPageProps> = ({ hangoutId, memoryId }) => {
         .post(`${process.env.EXPO_PUBLIC_API_URL}/user/list`, {
           userIds: hangoutData.participantIds,
         })
-        .then((res) => res.data.result);
+        .then((res) => res.data);
     }
     return [];
   };
@@ -122,7 +121,7 @@ const HangoutPage: React.FC<HangoutPageProps> = ({ hangoutId, memoryId }) => {
                 }
               );
               queryClient.invalidateQueries({ queryKey: ["upcomingHangouts"] });
-              console.log(res.data.result);
+              console.log(res.data);
             }
           },
         },
@@ -182,7 +181,7 @@ const HangoutPage: React.FC<HangoutPageProps> = ({ hangoutId, memoryId }) => {
             queryClient.invalidateQueries({
               queryKey: ["hangout"],
             });
-            console.log(res.data.result);
+            console.log(res.data);
           },
         },
       ],
@@ -198,7 +197,7 @@ const HangoutPage: React.FC<HangoutPageProps> = ({ hangoutId, memoryId }) => {
     queryClient.invalidateQueries({
       queryKey: ["upcomingHangouts", user?.id],
     });
-    console.log(res.data.result);
+    console.log(res.data);
   };
 
   const transferOwnership = async (hangoutId: string, newUserId: string) => {
@@ -211,7 +210,7 @@ const HangoutPage: React.FC<HangoutPageProps> = ({ hangoutId, memoryId }) => {
         newUserId,
       }
     );
-    console.log(res.data.result);
+    console.log(res.data);
   };
 
   return (
@@ -227,7 +226,21 @@ const HangoutPage: React.FC<HangoutPageProps> = ({ hangoutId, memoryId }) => {
         <BackButton />
 
         <View style={{ flexDirection: "row", gap: wp(2) }}>
-          <MaterialCommunityIcons name="share" size={30} color="#FFF" />
+          <Pressable
+            onPress={() =>
+              router.push({
+                pathname: "/(hangout)/InviteFriendsScreen",
+                params: {
+                  hangoutId: hangoutId,
+                  hangoutName: hangoutData.hangoutName,
+                  isPressedFromHangoutScreen: "true",
+                },
+              })
+            }
+          >
+            <MaterialCommunityIcons name="share" size={30} color="#FFF" />
+          </Pressable>
+
           <Pressable onPress={() => setModalVisible(true)}>
             <Ionicons name="ellipsis-horizontal" size={30} color="#FFF" />
           </Pressable>

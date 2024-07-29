@@ -302,7 +302,7 @@ const AnimatedMemory = ({
             >
               <Animated.View>
                 <Image
-                  source={{ uri: photoData.result.photoUrls[0].fileUrl }}
+                  source={{ uri: photoData.photoUrls[0].fileUrl }}
                   style={[styles.baseImageStyle, viewStyles[frame].image]}
                 />
               </Animated.View>

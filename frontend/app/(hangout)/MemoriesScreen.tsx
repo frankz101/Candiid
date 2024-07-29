@@ -56,6 +56,19 @@ import NewMediaComponent from "@/components/photo/NewMediaComponent";
 import { Image } from "expo-image";
 import DebouncedPressable from "@/components/utils/DebouncedPressable";
 
+interface User {
+  userId: string;
+  name: string;
+  username: string;
+  profilePhoto?: {
+    fileUrl: string;
+  };
+  friends?: string[];
+  phoneNumber: string;
+  createdHangouts?: string[];
+  upcomingHangouts?: string[];
+}
+
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
 
@@ -353,7 +366,7 @@ const MemoriesScreen = () => {
   const handleEditMode = useCallback((mode: string) => {
     setIsEditMode(true);
     setEditMode(mode);
-    if (mode === "background") {
+    if (mode === "colorPicker") {
       setModalContent("colorPicker");
     } else if (mode === "stickers") {
       setModalContent("stickers");
@@ -402,8 +415,22 @@ const MemoriesScreen = () => {
           `${process.env.EXPO_PUBLIC_API_URL}/user/${user?.id}/background`,
           { backgroundColor: selectedColor.value }
         );
-        console.log(backgroundChangeResponse);
-        setInitialBackgroundColor(selectedColor.value);
+        console.log("Changed background color");
+
+        console.log("COLOR: " + selectedColor.value);
+        queryClient.setQueryData(["profile", user?.id], (oldData) =>
+          oldData
+            ? {
+                ...oldData,
+                backgroundDetails: {
+                  backgroundColor: selectedColor.value,
+                },
+              }
+            : oldData
+        );
+
+        const userData = queryClient.getQueryData<User>(["profile", user?.id]);
+        console.log(userData);
       } catch {
         console.log("Error changing background");
       }
@@ -457,7 +484,7 @@ const MemoriesScreen = () => {
             newStickerRequestBody
           );
           console.log("New stickers added:", response.data);
-          const stickerIds = response.data.result;
+          const stickerIds = response.data;
 
           if (stickerIds.length === Object.keys(tempStickerStore).length) {
             // console.log(
@@ -500,6 +527,9 @@ const MemoriesScreen = () => {
               modifiedStickersResponse.data
             );
             resetStickers(modifiedStickersResponse.data);
+            await queryClient.invalidateQueries({
+              queryKey: ["stickers", user?.id],
+            });
           }
         } catch (error: any) {
           console.error(
@@ -547,8 +577,7 @@ const MemoriesScreen = () => {
   };
 
   if (!isPendingProfile) {
-    selectedColor.value =
-      profileDetails.result.backgroundDetails?.backgroundColor;
+    selectedColor.value = profileDetails.backgroundDetails?.backgroundColor;
   }
 
   // if (!isPendingMemories) {
@@ -584,7 +613,7 @@ const MemoriesScreen = () => {
         `${process.env.EXPO_PUBLIC_API_URL}/memories`,
         memoriesData
       );
-      const memoryId = memoriesResponse.data.result;
+      const memoryId = memoriesResponse.data;
 
       console.log("Memory created:", memoriesResponse.data);
 
@@ -601,7 +630,7 @@ const MemoriesScreen = () => {
         `${process.env.EXPO_PUBLIC_API_URL}/posts`,
         postData
       );
-      const postId = postResponse.data.result;
+      const postId = postResponse.data;
 
       console.log("Post created:", postResponse.data);
 
@@ -614,13 +643,12 @@ const MemoriesScreen = () => {
       );
 
       console.log("Memory updated successfully");
-      queryClient.invalidateQueries({ queryKey: ["memories", user?.id] });
+      await queryClient.invalidateQueries({ queryKey: ["memories", user?.id] });
 
       // Clear the hangout details and navigate to profile
       setHangoutDetails({
         hangoutName: "",
         hangoutDescription: "",
-        selectedFriends: [],
       });
     } catch (error) {
       console.error("Error creating memories or hangout requests:", error);

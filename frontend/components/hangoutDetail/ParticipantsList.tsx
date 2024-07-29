@@ -20,6 +20,7 @@ const MAX_VISIBLE_PARTICIPANTS = 6;
 interface ParticipantsListProps {
   participants: string[];
   hangoutId: string;
+  // showModal: () => void;
 }
 
 const ParticipantsList: React.FC<ParticipantsListProps> = ({
@@ -33,7 +34,7 @@ const ParticipantsList: React.FC<ParticipantsListProps> = ({
       .post(`${process.env.EXPO_PUBLIC_API_URL}/user/profile-pics`, {
         users,
       })
-      .then((res) => res.data.result);
+      .then((res) => res.data);
   };
 
   const { data: profilePics } = useQuery({

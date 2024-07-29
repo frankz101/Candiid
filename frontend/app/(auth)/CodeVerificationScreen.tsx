@@ -30,7 +30,7 @@ const CodeVerificationScreen = () => {
         username: user.username,
       };
 
-      queryClient.setQueryData(["profile", user.id], { result: userData });
+      queryClient.setQueryData(["profile", user.id], { userData });
 
       axios
         .post(`${process.env.EXPO_PUBLIC_API_URL}/users`, userData)

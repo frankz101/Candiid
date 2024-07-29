@@ -1,3 +1,4 @@
+import React, { useRef, useState } from "react";
 import {
   Alert,
   Animated,
@@ -6,14 +7,10 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  TouchableOpacity,
-  Vibration,
   View,
 } from "react-native";
-import React, { useRef, useState } from "react";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
-import { Link, useRouter } from "expo-router";
 import axios from "axios";
 import { useUser } from "@clerk/clerk-expo";
 import { useQueryClient } from "@tanstack/react-query";
@@ -24,22 +21,26 @@ import {
 } from "react-native-responsive-screen";
 import * as Haptics from "expo-haptics";
 import * as MediaLibrary from "expo-media-library";
+import {
+  LongPressGestureHandler,
+  TapGestureHandler,
+  State,
+} from "react-native-gesture-handler";
 
 const screenWidth = Dimensions.get("window").width;
 const padding = 2;
 const imageWidth = (screenWidth - padding * 6) / 3; // Subtract total padding and divide by 3
 
-interface PhotoSquareSelectProps {
+interface PhotoSquareProps {
   imageUrl: string;
   takenBy: string;
   index: number;
   hangoutId: string;
 }
 
-const PhotoSquareSelect: React.FC<PhotoSquareSelectProps> = ({
+const PhotoSquare: React.FC<PhotoSquareProps> = ({
   imageUrl,
   takenBy,
-  index,
   hangoutId,
 }) => {
   const { user } = useUser();
@@ -47,9 +48,6 @@ const PhotoSquareSelect: React.FC<PhotoSquareSelectProps> = ({
   const [longPressModalVisible, setLongPressModalVisible] = useState(false);
   const [shortPressModalVisible, setShortPressModalVisible] = useState(false);
   const scaleValue = useRef(new Animated.Value(1)).current;
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const isLongPressRef = useRef(false);
-  const LONG_PRESS_DURATION = 300;
 
   const savePhoto = async () => {
     const { status } = await MediaLibrary.requestPermissionsAsync();
@@ -109,7 +107,6 @@ const PhotoSquareSelect: React.FC<PhotoSquareSelectProps> = ({
   };
 
   const openModal = (isLongPress: boolean) => {
-    isLongPressRef.current = isLongPress;
     isLongPress && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     if (isLongPress) {
       setLongPressModalVisible(true);
@@ -126,75 +123,68 @@ const PhotoSquareSelect: React.FC<PhotoSquareSelectProps> = ({
     }
   };
 
-  const handlePressIn = () => {
-    Animated.spring(scaleValue, {
-      toValue: 1.08,
-      friction: 3,
-      useNativeDriver: true,
-    }).start();
-
-    isLongPressRef.current = false;
-
-    timerRef.current = setTimeout(() => {
-      isLongPressRef.current = true;
+  const handleLongPress = ({ nativeEvent }: any) => {
+    if (nativeEvent.state === State.BEGAN) {
+      Animated.spring(scaleValue, {
+        toValue: 1.08,
+        friction: 3,
+        useNativeDriver: true,
+      }).start();
+    } else if (nativeEvent.state === State.ACTIVE) {
       openModal(true);
-    }, LONG_PRESS_DURATION);
+    } else if (
+      nativeEvent.state === State.END ||
+      nativeEvent.state === State.CANCELLED
+    ) {
+      Animated.spring(scaleValue, {
+        toValue: 1,
+        friction: 3,
+        useNativeDriver: true,
+      }).start();
+    }
   };
 
-  const handlePressOut = () => {
+  const handleTap = ({ nativeEvent }: any) => {
     Animated.spring(scaleValue, {
-      toValue: 1, // Scale back to 1
+      toValue: 1,
       friction: 3,
       useNativeDriver: true,
     }).start();
-
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    } else {
-      return;
-    }
-
-    if (!isLongPressRef.current) {
+    if (nativeEvent.state === State.END) {
       openModal(false);
     }
   };
 
   return (
     <View style={styles.imageContainer}>
-      <Link
-        href={{
-          pathname: "/(hangout)/FullScreenImage",
-          params: { imageUrl, index },
-        }}
-        asChild
+      <LongPressGestureHandler
+        onHandlerStateChange={handleLongPress}
+        minDurationMs={200}
       >
-        <View>
-          <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut}>
-            <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
-              <Image
-                source={{
-                  uri: imageUrl,
-                }}
-                style={styles.image}
-              />
-            </Animated.View>
-          </Pressable>
+        <TapGestureHandler onHandlerStateChange={handleTap}>
+          <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+            <Image
+              source={{
+                uri: imageUrl,
+              }}
+              style={styles.image}
+            />
 
-          {isLongPressRef.current ? (
-            <Modal
-              animationType="fade"
-              transparent={true}
-              visible={longPressModalVisible}
-            >
-              <Pressable style={styles.overlay} onPress={closeModal}>
-                <BlurView style={styles.modalContainer} intensity={20}>
-                  <View style={styles.modalContent}>
+            {longPressModalVisible && (
+              <Modal
+                animationType="fade"
+                transparent={true}
+                visible={longPressModalVisible}
+              >
+                <Pressable style={styles.overlay} onPress={closeModal}>
+                  <BlurView style={styles.modalContainer} intensity={20}>
                     <Image
-                      source={{
-                        uri: imageUrl,
+                      source={{ uri: imageUrl }}
+                      style={{
+                        width: wp(80),
+                        aspectRatio: 1,
+                        borderRadius: 20,
                       }}
-                      style={styles.magnifiedImage}
                     />
                     <View style={styles.buttonContainer}>
                       <Pressable
@@ -236,41 +226,39 @@ const PhotoSquareSelect: React.FC<PhotoSquareSelectProps> = ({
                         </Pressable>
                       )}
                     </View>
-                  </View>
-                </BlurView>
-              </Pressable>
-            </Modal>
-          ) : (
-            <Modal
-              animationType="fade"
-              transparent={true}
-              visible={shortPressModalVisible}
-            >
-              <Pressable
-                style={[styles.overlay, { backgroundColor: "black" }]}
-                onPress={closeModal}
+                  </BlurView>
+                </Pressable>
+              </Modal>
+            )}
+
+            {shortPressModalVisible && (
+              <Modal
+                animationType="fade"
+                transparent={true}
+                visible={shortPressModalVisible}
               >
-                <View style={styles.fullScreenContainer}>
+                <Pressable
+                  style={[styles.overlay, { backgroundColor: "black" }]}
+                  onPress={closeModal}
+                >
                   <Image
                     source={{
                       uri: imageUrl,
                     }}
-                    style={{
-                      width: "100%",
-                      aspectRatio: 1,
-                    }}
+                    style={styles.fullScreenContainer}
+                    contentFit="contain"
                   />
-                </View>
-              </Pressable>
-            </Modal>
-          )}
-        </View>
-      </Link>
+                </Pressable>
+              </Modal>
+            )}
+          </Animated.View>
+        </TapGestureHandler>
+      </LongPressGestureHandler>
     </View>
   );
 };
 
-export default PhotoSquareSelect;
+export default PhotoSquare;
 
 const styles = StyleSheet.create({
   imageContainer: {
@@ -291,16 +279,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  modalContent: {
-    width: wp(80),
-    borderRadius: 10,
-    alignItems: "center",
-  },
   magnifiedImage: {
-    width: "100%",
-    maxHeight: hp(80),
-    aspectRatio: 1,
-    borderRadius: 10,
+    width: wp(80),
+    height: hp(60),
+    borderRadius: 20,
   },
   buttonContainer: {
     marginTop: hp(2),

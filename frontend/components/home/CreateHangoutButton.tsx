@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#282828",
     backgroundColor: "rgba(44, 44, 48, 0.5)",
-    marginTop: hp(2),
+    marginVertical: hp(2),
     justifyContent: "center",
     alignItems: "center",
   },

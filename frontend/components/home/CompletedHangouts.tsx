@@ -26,7 +26,7 @@ const CompletedHangouts: React.FC<CompletedHangoutsProps> = ({
   const fetchFriendsPosts = async () => {
     return axios
       .get(`${process.env.EXPO_PUBLIC_API_URL}/user/${user?.id}/feed`)
-      .then((res) => res.data.result);
+      .then((res) => res.data);
   };
 
   const { data: posts, isPending } = useQuery({

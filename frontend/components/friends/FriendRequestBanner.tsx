@@ -8,52 +8,47 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
-interface Hangout {
-  hangoutId: string;
-  hangoutName: string;
-  userInfo: {
-    username: string;
-    userId: string;
-    profilePhoto?: {
-      fileUrl: string;
-    };
+interface User {
+  name: string;
+  username: string;
+  profilePhoto: {
+    fileUrl: string;
   };
+  userId: string;
+  friendStatus?: string;
   createdAt: any;
 }
 
-interface HangoutRequestBannerProps {
-  type: string;
-  hangout: Hangout;
-  onHandleRequest?: (hangoutId: string) => void;
+interface FriendRequestBannerProps {
+  user: User;
+  onHandleRequest?: (userId: string) => void;
 }
 
-const HangoutRequestBanner: React.FC<HangoutRequestBannerProps> = ({
-  type,
-  hangout,
+const FriendRequestBanner: React.FC<FriendRequestBannerProps> = ({
+  user,
   onHandleRequest,
 }) => {
   const { user: currentUser } = useUser();
-  const userInfo = hangout.userInfo;
   const handleRequest = async (status: string) => {
-    const res = await axios.put(
-      `${process.env.EXPO_PUBLIC_API_URL}/hangout/${hangout.hangoutId}/requests`,
+    const res = await axios.post(
+      `${process.env.EXPO_PUBLIC_API_URL}/friendRequest/handle`,
       {
+        senderId: user.userId,
         receiverId: currentUser?.id,
-        senderId: userInfo.userId,
         status,
-        type,
       }
     );
 
     if (res.status === 201 && onHandleRequest) {
-      onHandleRequest(hangout.hangoutId);
+      onHandleRequest(user.userId);
     }
   };
 
   const getTimeDifference = () => {
     const now = Date.now();
-    const createdAtDate = new Date();
-    hangout.createdAt.seconds * 1000 + hangout.createdAt.nanoseconds / 1000000;
+    const createdAtDate = new Date(
+      user.createdAt.seconds * 1000 + user.createdAt.nanoseconds / 1000000
+    );
     const differenceInMillis = now - createdAtDate.getTime();
 
     const differenceInMinutes = differenceInMillis / (1000 * 60);
@@ -82,9 +77,9 @@ const HangoutRequestBanner: React.FC<HangoutRequestBannerProps> = ({
 
   return (
     <View style={styles.container}>
-      {userInfo.profilePhoto ? (
+      {user.profilePhoto ? (
         <Image
-          source={{ uri: userInfo.profilePhoto.fileUrl }}
+          source={{ uri: user.profilePhoto.fileUrl }}
           style={styles.profilePhoto}
         />
       ) : (
@@ -92,9 +87,8 @@ const HangoutRequestBanner: React.FC<HangoutRequestBannerProps> = ({
       )}
       <View style={styles.textContainer}>
         <Text style={styles.inviteText}>
-          <Text style={styles.boldText}>{userInfo.username}</Text>{" "}
-          {type === "request" ? "has invited you to" : "wants to join"}{" "}
-          <Text style={styles.boldText}>{hangout.hangoutName}</Text>{" "}
+          <Text style={styles.boldText}>{user.username}</Text>{" "}
+          <Text>wants to be friends!</Text>{" "}
           <Text style={{ color: "gray" }}>
             {"\u2022"}
             {getTimeDifference()}
@@ -128,11 +122,11 @@ const HangoutRequestBanner: React.FC<HangoutRequestBannerProps> = ({
   );
 };
 
-export default HangoutRequestBanner;
+export default FriendRequestBanner;
 
 const styles = StyleSheet.create({
   container: {
-    padding: 10,
+    padding: wp(2),
     flexDirection: "row",
     alignItems: "center",
   },
@@ -156,7 +150,7 @@ const styles = StyleSheet.create({
     paddingVertical: hp(0.7),
   },
   textContainer: {
-    marginLeft: 10,
+    marginLeft: wp(2),
     flex: 1,
   },
   inviteText: {

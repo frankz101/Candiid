@@ -9,7 +9,7 @@ import {
 const postMemory = async (req, res) => {
   try {
     const result = await createMemory(req.body);
-    res.status(201).send({ result });
+    res.status(201).send(result);
   } catch (err) {
     res.status(500).send({ message: err.message });
   }

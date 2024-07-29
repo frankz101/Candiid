@@ -24,18 +24,16 @@ import { Image } from "expo-image";
 
 //GET RID OF RESULT WHEN FETCHING PROFILE
 interface User {
-  result: {
-    userId: string;
-    name: string;
-    username: string;
-    profilePhoto?: {
-      fileUrl: string;
-    };
-    friends?: string[];
-    phoneNumber: string;
-    createdHangouts?: string[];
-    upcomingHangouts?: string[];
+  userId: string;
+  name: string;
+  username: string;
+  profilePhoto?: {
+    fileUrl: string;
   };
+  friends?: string[];
+  phoneNumber: string;
+  createdHangouts?: string[];
+  upcomingHangouts?: string[];
 }
 
 //profile pic updates automatically even without pressing save
@@ -58,11 +56,11 @@ const EditProfileScreen = () => {
     queryFn: fetchUser,
   });
 
-  const [name, setName] = useState(profile?.result.name);
-  const [username, setUsername] = useState(profile?.result.username);
+  const [name, setName] = useState(profile?.name);
+  const [username, setUsername] = useState(profile?.username);
 
-  const [originalName] = useState(profile?.result.name);
-  const [originalUsername] = useState(profile?.result.username);
+  const [originalName] = useState(profile?.name);
+  const [originalUsername] = useState(profile?.username);
 
   const nameRef = useRef(name);
   const usernameRef = useRef(username);
@@ -135,9 +133,9 @@ const EditProfileScreen = () => {
 
       <View style={{ alignItems: "center", marginBottom: hp(2) }}>
         <Pressable onPress={() => setPhotoSheetVisible(true)}>
-          {profile?.result.profilePhoto ? (
+          {profile?.profilePhoto ? (
             <Image
-              source={{ uri: profile?.result.profilePhoto?.fileUrl }}
+              source={{ uri: profile?.profilePhoto?.fileUrl }}
               style={styles.profilePhoto}
             />
           ) : (

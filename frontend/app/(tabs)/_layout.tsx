@@ -9,7 +9,7 @@ import {
 
 const iconNames = {
   index: "home-outline",
-  camera: "camera-outline",
+  createHangout: "add-circle-outline",
   profile: "person-outline",
 } as const;
 
@@ -27,17 +27,33 @@ const Layout = () => {
           alignItems: "center",
           paddingTop: hp(1.2),
         },
-        tabBarIcon: ({ focused, color, size }) => {
+        tabBarIcon: ({ color }) => {
           const iconName = iconNames[route.name as keyof typeof iconNames];
+          let iconSize;
 
-          return <Ionicons name={iconName} size={size} color={color} />;
+          switch (route.name) {
+            case "index":
+              iconSize = 24; // Size for the index tab
+              break;
+            case "createHangout":
+              iconSize = 30; // Size for the createHangout tab
+              break;
+            case "profile":
+              iconSize = 24; // Size for the profile tab
+              break;
+            default:
+              iconSize = 24; // Default size
+              break;
+          }
+
+          return <Ionicons name={iconName} size={iconSize} color={color} />;
         },
         tabBarActiveTintColor: "white",
         tabBarShowLabel: false,
       })}
     >
       <Tabs.Screen name="index" />
-      <Tabs.Screen name="camera" />
+      <Tabs.Screen name="createHangout" />
       <Tabs.Screen name="profile" />
     </Tabs>
   );

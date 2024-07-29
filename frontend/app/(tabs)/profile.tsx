@@ -21,21 +21,8 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import BaseScreen from "@/components/utils/BaseScreen";
-import ProfileHangout from "@/components/profile/ProfileHangout";
 import ChangePhotoSheet from "@/components/profile/ChangePhotoSheet";
-
-export interface Hangout {
-  hangoutName: string;
-  hangoutDescription: string;
-  id: string;
-  participantIds: string[];
-  participants: Participant[];
-}
-
-export interface Participant {
-  userId: string;
-  profilePhoto: null | { fileUrl: string };
-}
+import UpcomingHangouts from "@/components/profile/UpcomingHangouts";
 
 const Profile = () => {
   const router = useRouter();
@@ -58,13 +45,6 @@ const Profile = () => {
       .then((res) => res.data);
   };
 
-  const fetchUpcomingHangouts = async () => {
-    console.log("Fetching Upcoming Hangouts in Profile Tab");
-    return axios
-      .get(`${process.env.EXPO_PUBLIC_API_URL}/hangout/upcoming/${user?.id}`)
-      .then((res) => res.data);
-  };
-
   const fetchStickers = async () => {
     console.log("Fetching Stickers in Profile Tab");
     return axios
@@ -72,7 +52,7 @@ const Profile = () => {
       .then((res) => res.data);
   };
 
-  const [memories, profile, hangouts, fetchedStickers] = useQueries({
+  const [memories, profile, fetchedStickers] = useQueries({
     queries: [
       {
         queryKey: ["memories", user?.id],
@@ -85,11 +65,6 @@ const Profile = () => {
         staleTime: 1000 * 60 * 5,
       },
       {
-        queryKey: ["upcomingHangouts", user?.id],
-        queryFn: fetchUpcomingHangouts,
-        staleTime: 1000 * 60 * 5,
-      },
-      {
         queryKey: ["stickers", user?.id],
         queryFn: fetchStickers,
         staleTime: 1000 * 60 * 5,
@@ -99,7 +74,6 @@ const Profile = () => {
 
   const { data: memoriesData, isPending: isPendingMemories } = memories;
   const { data: profileDetails, isPending: isPendingProfile } = profile;
-  const { data: upcomingHangouts, isPending: isPendingHangouts } = hangouts;
   const { data: stickersData, isPending: isPendingStickers } = fetchedStickers;
 
   const onRefresh = async () => {
@@ -113,7 +87,7 @@ const Profile = () => {
     setRefreshing(false);
   };
 
-  const userProfile = profileDetails?.result || {
+  const userProfile = profileDetails || {
     name: "Unknown User",
     username: "unknown_user",
     profilePhoto: null,
@@ -194,17 +168,7 @@ const Profile = () => {
             />
           </Pressable>
         </Animated.View>
-        {/* DEFAULT PROFILE PIC NOT CENTERED AND SIZE IS WRONG */}
-        <Text style={styles.headerText}>Upcoming Hangouts</Text>
-        <View style={styles.upcomingHangouts}>
-          {upcomingHangouts && upcomingHangouts.length > 0 ? (
-            upcomingHangouts.map((hangout: Hangout) => (
-              <ProfileHangout key={hangout.id} hangout={hangout} />
-            ))
-          ) : (
-            <ProfileHangout isEmpty={true} />
-          )}
-        </View>
+        <UpcomingHangouts />
       </ScrollView>
     </BaseScreen>
   );
@@ -268,12 +232,6 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     height: hp("60%"),
     borderRadius: 15,
-  },
-  upcomingHangouts: {
-    marginVertical: hp(1),
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
   },
   hangoutBanner: {
     marginTop: hp(1),

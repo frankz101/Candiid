@@ -201,31 +201,33 @@ const fetchContacts = async (batch, userId) => {
   const users = await fetchContactsInDatabase(batch);
   const friends = await fetchFriends(userId);
   const friendIds = friends.map((friend) => friend.userId);
-
   const sentFriendRequests = await retrieveFriendRequestsSent(userId);
   const friendRequestsIds = sentFriendRequests.map(
-    (friendRequest) => friendRequest.userId
+    (friendRequest) => friendRequest.receiverId
   );
-  const usersWithFriendshipStatus = users
-    .filter((user) => !friendIds.includes(user.userId))
-    .map(async (user) => {
-      const friendsRequests = await retrieveFriendRequestsSent(user.id);
-      const incomingFriendRequest = friendsRequests.some(
-        (request) => request.receiverId === userId
-      );
+  const usersWithFriendshipStatus = await Promise.all(
+    users
+      .filter(
+        (user) => !friendIds.includes(user.userId) && user.userId !== userId
+      )
+      .map(async (user) => {
+        const friendsRequests = await retrieveFriendRequestsSent(user.userId);
+        const incomingFriendRequest = friendsRequests.some(
+          (request) => request.receiverId === userId
+        );
 
-      let friendStatus = "Not Friends";
-      if (friendRequestsIds.includes(user.userId)) {
-        friendStatus = "Friend Requested";
-      } else if (incomingFriendRequest) {
-        friendStatus = "Incoming Request";
-      }
-      return {
-        ...user,
-        friendStatus,
-      };
-    });
-
+        let friendStatus = "Not Friends";
+        if (friendRequestsIds.includes(user.userId)) {
+          friendStatus = "Friend Requested";
+        } else if (incomingFriendRequest) {
+          friendStatus = "Incoming Request";
+        }
+        return {
+          ...user,
+          friendStatus,
+        };
+      })
+  );
   return usersWithFriendshipStatus;
 };
 
