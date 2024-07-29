@@ -5,6 +5,7 @@ import {
   Text,
   View,
   Alert,
+  Linking,
 } from "react-native";
 import React from "react";
 import { useClerk, useUser } from "@clerk/clerk-expo";
@@ -17,11 +18,13 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import axios from "axios";
+import { useQueryClient } from "@tanstack/react-query";
 
 const SettingsScreen = () => {
   const router = useRouter();
   const { user } = useUser();
   const { signOut } = useClerk();
+  const queryClient = useQueryClient();
   const toEditProfile = () => {
     router.push("/(settings)/EditProfileScreen");
   };
@@ -45,6 +48,7 @@ const SettingsScreen = () => {
                   `${process.env.EXPO_PUBLIC_API_URL}/user/delete/${user.id}`
                 );
                 console.log("User deleted successfully");
+                // Linking.openURL("yourapp://"); to do
               } else {
                 console.log("No user to delete");
               }

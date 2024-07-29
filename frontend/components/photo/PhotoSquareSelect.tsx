@@ -1,8 +1,19 @@
-import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Dimensions,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import React, { useState } from "react";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 const screenWidth = Dimensions.get("window").width;
 const padding = 2;
@@ -19,28 +30,36 @@ const PhotoSquareSelect: React.FC<PhotoSquareSelectProps> = ({
   imageUrl,
   onPhotoSelect,
   isSelected,
-  index,
 }) => {
   const router = useRouter();
   const handlePhotoPress = () => {
     onPhotoSelect(!isSelected);
   };
+  const [modalVisible, setModalVisible] = useState(false);
 
   return (
     <View style={styles.imageContainer}>
       <Pressable
         onPress={() => {
-          router.push({
-            pathname: "/(hangout)/FullScreenImage",
-            params: {
-              imageUrl,
-              index,
-            },
-          });
+          setModalVisible(true);
         }}
       >
         <Image source={{ uri: imageUrl }} style={styles.image} />
       </Pressable>
+      <Modal animationType="fade" transparent={true} visible={modalVisible}>
+        <Pressable
+          style={styles.overlay}
+          onPress={() => setModalVisible(false)}
+        >
+          <Image
+            source={{
+              uri: imageUrl,
+            }}
+            style={styles.fullScreenContainer}
+            contentFit="contain"
+          />
+        </Pressable>
+      </Modal>
 
       <Pressable style={styles.icon} onPress={handlePhotoPress}>
         {isSelected ? (
@@ -74,5 +93,15 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 2,
     right: 2,
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: "black",
+  },
+  fullScreenContainer: {
+    flex: 1,
+    width: wp(100),
+    height: hp(100),
+    justifyContent: "center",
   },
 });

@@ -1,18 +1,11 @@
-import React, { useState } from "react";
-import {
-  Dimensions,
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import React from "react";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { Image } from "expo-image";
 import DebouncedPressable from "../utils/DebouncedPressable";
 
@@ -36,21 +29,9 @@ const SharedAlbumPreview: React.FC<SharedAlbumPreviewProps> = ({
 }) => {
   const router = useRouter();
 
-  const renderPhoto = ({ item, index }: { item: Photo; index: number }) => (
+  const renderPhoto = ({ item }: { item: Photo }) => (
     <View style={styles.imageContainer}>
-      <Pressable
-        onPress={() => {
-          router.push({
-            pathname: "/(hangout)/FullScreenImage",
-            params: {
-              imageUrl: item.fileUrl,
-              index,
-            },
-          });
-        }}
-      >
-        <Image source={{ uri: item.fileUrl }} style={styles.image} />
-      </Pressable>
+      <Image source={{ uri: item.fileUrl }} style={styles.image} />
     </View>
   );
 

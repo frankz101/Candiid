@@ -89,17 +89,23 @@ const CreateHangout = () => {
           ...currentProfile,
           upcomingHangouts: updatedUpcomingHangouts,
         });
+
+        await queryClient.invalidateQueries({
+          queryKey: ["upcomingHangouts", user?.id],
+        });
       }
 
-      router.navigate(`/(hangout)/${hangoutResponse.data}`);
+      const inTab = segments.includes("(tabs)");
 
-      await queryClient.invalidateQueries({
-        queryKey: ["profile", user?.id],
-      });
-
-      await queryClient.invalidateQueries({
-        queryKey: ["upcomingHangouts", user?.id],
-      });
+      if (inTab) {
+        Keyboard.dismiss();
+        router.back();
+        setTimeout(() => {
+          router.push(`/(hangout)/${hangoutResponse.data}`);
+        }, 100);
+      } else {
+        router.replace(`/(hangout)/${hangoutResponse.data}`);
+      }
 
       setHangoutName("");
       setHangoutDescription("");
