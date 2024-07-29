@@ -8,56 +8,97 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
-interface HangoutRequestBannerProps {
-  type: string;
-  senderName: string;
-  senderId: string;
-  senderProfilePhoto: string;
+interface Hangout {
   hangoutId: string;
   hangoutName: string;
+  userInfo: {
+    username: string;
+    userId: string;
+    profilePhoto?: {
+      fileUrl: string;
+    };
+  };
+  createdAt: any;
+}
+
+interface HangoutRequestBannerProps {
+  type: string;
+  hangout: Hangout;
   onHandleRequest?: (hangoutId: string) => void;
 }
 
 const HangoutRequestBanner: React.FC<HangoutRequestBannerProps> = ({
   type,
-  senderName,
-  senderId,
-  senderProfilePhoto,
-  hangoutId,
-  hangoutName,
+  hangout,
   onHandleRequest,
 }) => {
   const { user: currentUser } = useUser();
+  const userInfo = hangout.userInfo;
   const handleRequest = async (status: string) => {
     const res = await axios.put(
-      `${process.env.EXPO_PUBLIC_API_URL}/hangout/${hangoutId}/requests`,
+      `${process.env.EXPO_PUBLIC_API_URL}/hangout/${hangout.hangoutId}/requests`,
       {
         receiverId: currentUser?.id,
-        senderId,
+        senderId: userInfo.userId,
         status,
         type,
       }
     );
 
     if (res.status === 201 && onHandleRequest) {
-      onHandleRequest(hangoutId);
+      onHandleRequest(hangout.hangoutId);
     }
   };
+
+  const getTimeDifference = () => {
+    const now = Date.now();
+    const createdAtDate = new Date();
+    hangout.createdAt.seconds * 1000 + hangout.createdAt.nanoseconds / 1000000;
+    const differenceInMillis = now - createdAtDate.getTime();
+
+    const differenceInMinutes = differenceInMillis / (1000 * 60);
+    const differenceInHours = differenceInMillis / (1000 * 60 * 60);
+    const differenceInDays = differenceInMillis / (1000 * 60 * 60 * 24);
+    const differenceInWeeks = differenceInDays / 7;
+    const differenceInMonths = differenceInDays / 30.44;
+    const differenceInYears = differenceInDays / 365.25;
+
+    if (differenceInYears >= 1) {
+      return `${Math.floor(differenceInYears)}y`;
+    } else if (differenceInMonths >= 1) {
+      return `${Math.floor(differenceInMonths)}m`;
+    } else if (differenceInWeeks >= 1) {
+      return `${Math.floor(differenceInWeeks)}w`;
+    } else if (differenceInDays >= 1) {
+      return `${Math.floor(differenceInDays)}d`;
+    } else if (differenceInHours >= 1) {
+      return `${Math.floor(differenceInHours)}h`;
+    } else if (differenceInMinutes >= 1) {
+      return `${Math.floor(differenceInMinutes)}m`;
+    } else {
+      return "Just now";
+    }
+  };
+
   return (
     <View style={styles.container}>
-      {senderProfilePhoto ? (
+      {userInfo.profilePhoto ? (
         <Image
-          source={{ uri: senderProfilePhoto }}
+          source={{ uri: userInfo.profilePhoto.fileUrl }}
           style={styles.profilePhoto}
         />
       ) : (
-        <Ionicons name="person-circle-outline" size={40} color="black" />
+        <Ionicons name="person-circle-outline" size={48} color="white" />
       )}
       <View style={styles.textContainer}>
         <Text style={styles.inviteText}>
-          <Text style={styles.boldText}>{senderName}</Text>{" "}
+          <Text style={styles.boldText}>{userInfo.username}</Text>{" "}
           {type === "request" ? "has invited you to" : "wants to join"}{" "}
-          <Text style={styles.boldText}>{hangoutName}</Text>
+          <Text style={styles.boldText}>{hangout.hangoutName}</Text>{" "}
+          <Text style={{ color: "gray" }}>
+            {"\u2022"}
+            {getTimeDifference()}
+          </Text>
         </Text>
       </View>
       <View style={{ flexDirection: "row" }}>

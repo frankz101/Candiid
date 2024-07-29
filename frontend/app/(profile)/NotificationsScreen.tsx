@@ -21,6 +21,19 @@ import {
 } from "react-native-responsive-screen";
 import FriendRequestBanner from "@/components/friends/FriendRequestBanner";
 
+interface User {
+  userId: string;
+  name: string;
+  username: string;
+  profilePhoto?: {
+    fileUrl: string;
+  };
+  friends?: string[];
+  phoneNumber: string;
+  createdHangouts?: string[];
+  upcomingHangouts?: string[];
+}
+
 const screenHeight = Dimensions.get("window").height;
 const headerHeight = 120;
 const bottomPadding = 20;
@@ -125,8 +138,6 @@ const NotificationsScreen = () => {
         return bTime - aTime;
       });
 
-      console.log(combinedRequests.map((request) => request.createdAt));
-
       setSortedRequests(combinedRequests);
     }
   }, [
@@ -143,6 +154,25 @@ const NotificationsScreen = () => {
           requests.filter((request: any) => request.userId !== filterId)
         );
       case "hangoutRequest":
+        const currentProfile = queryClient.getQueryData<User>([
+          "profile",
+          user?.id,
+        ]);
+
+        if (currentProfile && filterId) {
+          const updatedUpcomingHangouts = [
+            ...(currentProfile.upcomingHangouts || []),
+            filterId,
+          ];
+
+          queryClient.setQueryData(["profile", user?.id], {
+            ...currentProfile,
+            upcomingHangouts: updatedUpcomingHangouts,
+          });
+        }
+        queryClient.invalidateQueries({
+          queryKey: ["upcomingHangouts", user?.id],
+        });
         return setSortedRequests((requests: any) =>
           requests.filter((request: any) => request.hangoutId !== filterId)
         );
@@ -209,11 +239,7 @@ const NotificationsScreen = () => {
                 <HangoutRequestBanner
                   key={`Hangout Request${index}`}
                   type="request"
-                  senderName={request.userInfo.username}
-                  senderId={request.userInfo.userId}
-                  senderProfilePhoto={request.userInfo.profilePhoto?.fileUrl}
-                  hangoutId={request.hangoutId}
-                  hangoutName={request.hangoutName}
+                  hangout={request}
                   onHandleRequest={(hangoutId) =>
                     updateRequests("hangoutRequest", hangoutId)
                   }
@@ -239,11 +265,7 @@ const NotificationsScreen = () => {
                 <HangoutRequestBanner
                   key={`Join Hangout Request${index}`}
                   type="join"
-                  senderName={request.userInfo.username}
-                  senderId={request.userInfo.userId}
-                  senderProfilePhoto={request.userInfo.profilePhoto?.fileUrl}
-                  hangoutId={request.hangoutId}
-                  hangoutName={request.hangoutName}
+                  hangout={request}
                   onHandleRequest={(hangoutId) =>
                     updateRequests("joinHangoutRequest", hangoutId)
                   }

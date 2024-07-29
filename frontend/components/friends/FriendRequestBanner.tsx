@@ -16,6 +16,7 @@ interface User {
   };
   userId: string;
   friendStatus?: string;
+  createdAt: any;
 }
 
 interface FriendRequestBannerProps {
@@ -42,6 +43,38 @@ const FriendRequestBanner: React.FC<FriendRequestBannerProps> = ({
       onHandleRequest(user.userId);
     }
   };
+
+  const getTimeDifference = () => {
+    const now = Date.now();
+    const createdAtDate = new Date(
+      user.createdAt.seconds * 1000 + user.createdAt.nanoseconds / 1000000
+    );
+    const differenceInMillis = now - createdAtDate.getTime();
+
+    const differenceInMinutes = differenceInMillis / (1000 * 60);
+    const differenceInHours = differenceInMillis / (1000 * 60 * 60);
+    const differenceInDays = differenceInMillis / (1000 * 60 * 60 * 24);
+    const differenceInWeeks = differenceInDays / 7;
+    const differenceInMonths = differenceInDays / 30.44;
+    const differenceInYears = differenceInDays / 365.25;
+
+    if (differenceInYears >= 1) {
+      return `${Math.floor(differenceInYears)}y`;
+    } else if (differenceInMonths >= 1) {
+      return `${Math.floor(differenceInMonths)}m`;
+    } else if (differenceInWeeks >= 1) {
+      return `${Math.floor(differenceInWeeks)}w`;
+    } else if (differenceInDays >= 1) {
+      return `${Math.floor(differenceInDays)}d`;
+    } else if (differenceInHours >= 1) {
+      return `${Math.floor(differenceInHours)}h`;
+    } else if (differenceInMinutes >= 1) {
+      return `${Math.floor(differenceInMinutes)}m`;
+    } else {
+      return "Just now";
+    }
+  };
+
   return (
     <View style={styles.container}>
       {user.profilePhoto ? (
@@ -55,7 +88,11 @@ const FriendRequestBanner: React.FC<FriendRequestBannerProps> = ({
       <View style={styles.textContainer}>
         <Text style={styles.inviteText}>
           <Text style={styles.boldText}>{user.username}</Text>{" "}
-          <Text>wants to be friends!</Text>
+          <Text>wants to be friends!</Text>{" "}
+          <Text style={{ color: "gray" }}>
+            {"\u2022"}
+            {getTimeDifference()}
+          </Text>
         </Text>
       </View>
       <View style={{ flexDirection: "row" }}>
