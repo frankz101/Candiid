@@ -1,5 +1,6 @@
 import BackButton from "@/components/utils/BackButton";
 import BaseScreen from "@/components/utils/BaseScreen";
+import DebouncedPressable from "@/components/utils/DebouncedPressable";
 import { useRoute } from "@react-navigation/native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
@@ -35,7 +36,7 @@ const NameScreen = () => {
           placeholder="Enter your first name"
           placeholderTextColor="#555555"
         />
-        <Pressable
+        <DebouncedPressable
           style={({ pressed }) => [
             styles.button,
             pressed
@@ -53,7 +54,7 @@ const NameScreen = () => {
           }}
         >
           <Text style={styles.text}>Confirm</Text>
-        </Pressable>
+        </DebouncedPressable>
       </View>
     </BaseScreen>
   );

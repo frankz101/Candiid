@@ -1,5 +1,6 @@
 import BackButton from "@/components/utils/BackButton";
 import BaseScreen from "@/components/utils/BaseScreen";
+import DebouncedPressable from "@/components/utils/DebouncedPressable";
 import { useSignUp, useUser } from "@clerk/clerk-expo";
 import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
@@ -102,7 +103,7 @@ const CodeVerificationScreen = () => {
               Resend code in {resendTimer} seconds
             </Text>
           ) : (
-            <Pressable onPress={handleResendCode}>
+            <DebouncedPressable onPress={handleResendCode}>
               {({ pressed }) => (
                 <Text
                   style={[
@@ -113,7 +114,7 @@ const CodeVerificationScreen = () => {
                   Resend Verification Code
                 </Text>
               )}
-            </Pressable>
+            </DebouncedPressable>
           )}
         </View>
       </View>

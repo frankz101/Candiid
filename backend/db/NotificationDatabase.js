@@ -1,4 +1,4 @@
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase.js";
 import { Expo } from "expo-server-sdk";
 import { expo } from "../index.js";
@@ -6,17 +6,11 @@ import { expo } from "../index.js";
 const saveTokenInDatabase = async (userId, expoPushToken) => {
   try {
     const userDocRef = doc(db, "users", userId);
-    const userDocSnap = await getDoc(userDocRef);
 
-    if (userDocSnap.exists()) {
-      const result = await updateDoc(userDocRef, {
-        expoPushToken: expoPushToken,
-      });
-      console.log(`Expo push token saved for user ${userId}`);
-      return `Expo push token saved for user ${userId}`;
-    } else {
-      console.log(`User ${userId} does not exist in the database`);
-    }
+    await setDoc(userDocRef, { expoPushToken }, { merge: true });
+
+    console.log(`Expo push token saved for user ${userId}`);
+    return `Expo push token saved for user ${userId}`;
   } catch (error) {
     console.error("Error saving Expo push token in database:", error);
     throw error;

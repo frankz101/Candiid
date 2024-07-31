@@ -6,6 +6,7 @@ import Constants from "expo-constants";
 
 import { Platform } from "react-native";
 import { useRouter } from "expo-router";
+import axios from "axios";
 
 export interface PushNotificationState {
   expoPushToken?: Notifications.ExpoPushToken;
@@ -68,8 +69,14 @@ export const usePushNotifications = (): PushNotificationState => {
   }
 
   useEffect(() => {
-    registerForPushNotificationsAsync().then((token) => {
+    registerForPushNotificationsAsync().then(async (token) => {
       setExpoPushToken(token);
+      await axios.post(
+        `${process.env.EXPO_PUBLIC_API_URL}/user/save-push-token`,
+        {
+          token,
+        }
+      );
     });
 
     notificationListener.current =

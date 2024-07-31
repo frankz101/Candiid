@@ -8,6 +8,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import DebouncedPressable from "@/components/utils/DebouncedPressable";
 
 const LoginScreen = () => {
   const { signIn } = useSignIn();
@@ -60,7 +61,7 @@ const LoginScreen = () => {
           placeholder="Enter your phone number"
           placeholderTextColor="#555555"
         />
-        <Pressable
+        <DebouncedPressable
           style={({ pressed }) => [
             styles.button,
             pressed
@@ -70,7 +71,7 @@ const LoginScreen = () => {
           onPress={handleSendCode}
         >
           <Text style={styles.text}>Send Code</Text>
-        </Pressable>
+        </DebouncedPressable>
         <Text style={styles.error}>{error}</Text>
       </View>
     </BaseScreen>

@@ -18,7 +18,6 @@ import { useUser } from "@clerk/clerk-expo";
 import axios from "axios";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Carousel from "react-native-reanimated-carousel";
-import { usePushNotifications } from "@/hooks/usePushNotifications";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -62,8 +61,6 @@ const Home = () => {
 
   const router = useRouter();
   const { user } = useUser();
-  const { expoPushToken, notification } = usePushNotifications();
-  const data = JSON.stringify(notification, undefined, 2);
 
   const onRefresh = async () => {
     setRefreshing(true);

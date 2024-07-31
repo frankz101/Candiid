@@ -1,5 +1,6 @@
 import BackButton from "@/components/utils/BackButton";
 import BaseScreen from "@/components/utils/BaseScreen";
+import DebouncedPressable from "@/components/utils/DebouncedPressable";
 import { useSignUp, useUser } from "@clerk/clerk-expo";
 import axios from "axios";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -86,7 +87,7 @@ const UsernameScreen = () => {
           placeholder="Enter a username"
           placeholderTextColor="#555555"
         />
-        <Pressable
+        <DebouncedPressable
           style={({ pressed }) => [
             styles.button,
             pressed
@@ -96,7 +97,7 @@ const UsernameScreen = () => {
           onPress={() => handleSubmit()}
         >
           <Text style={styles.text}>Confirm</Text>
-        </Pressable>
+        </DebouncedPressable>
         <Text style={styles.error}>{error}</Text>
       </View>
     </BaseScreen>
