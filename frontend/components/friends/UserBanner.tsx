@@ -104,16 +104,6 @@ const UserBanner: React.FC<UserBannerProps> = ({
           );
           if (response.status === 201) {
             console.log("Added");
-            await axios.post(
-              `${process.env.EXPO_PUBLIC_API_URL}/notification/send`,
-              {
-                userId: update.friendId,
-                title: "New Friend Request",
-                body: `${
-                  currentUser?.fullName || "Someone"
-                } has sent you a friend request!`,
-              }
-            );
           }
         } else if (update.action === "removeFriend") {
           console.log("Remove Friend");

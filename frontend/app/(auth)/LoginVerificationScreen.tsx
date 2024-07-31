@@ -1,5 +1,6 @@
 import BackButton from "@/components/utils/BackButton";
 import BaseScreen from "@/components/utils/BaseScreen";
+import DebouncedPressable from "@/components/utils/DebouncedPressable";
 import { useSignIn, useSignUp, useUser } from "@clerk/clerk-expo";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -102,7 +103,7 @@ const LoginVerificationScreen = () => {
               Resend code in {resendTimer} seconds
             </Text>
           ) : (
-            <Pressable onPress={handleResendCode}>
+            <DebouncedPressable onPress={handleResendCode}>
               {({ pressed }) => (
                 <Text
                   style={[
@@ -113,7 +114,7 @@ const LoginVerificationScreen = () => {
                   Resend Verification Code
                 </Text>
               )}
-            </Pressable>
+            </DebouncedPressable>
           )}
         </View>
       </View>

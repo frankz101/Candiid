@@ -131,6 +131,7 @@ const NotificationsScreen = () => {
       ];
 
       combinedRequests.sort((a, b) => {
+        console.log(a, b);
         const aTime =
           a.createdAt.seconds * 1000 + a.createdAt.nanoseconds / 1000000;
         const bTime =

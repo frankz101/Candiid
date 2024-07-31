@@ -15,6 +15,7 @@ import Toast from "react-native-toast-message";
 import toastConfig from "@/toastConfig";
 import axios from "axios";
 import Contacts, { Contact } from "react-native-contacts";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { GiphySDK } from "@giphy/react-native-sdk";
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
@@ -36,6 +37,7 @@ const InitialLayout = () => {
   const segments = useSegments();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { expoPushToken } = usePushNotifications();
 
   SplashScreen.preventAutoHideAsync();
   GiphySDK.configure({ apiKey: "QDW5PFQZJ8MYnbeJ6mjQhPrRC5v9UI1b" });
@@ -115,6 +117,15 @@ const InitialLayout = () => {
             staleTime: 1000 * 60 * 5,
           }),
         ]);
+        if (expoPushToken && expoPushToken.data) {
+          await axios.post(
+            `${process.env.EXPO_PUBLIC_API_URL}/notification/token`,
+            {
+              userId: user.id,
+              pushToken: expoPushToken.data,
+            }
+          );
+        }
       }
 
       SplashScreen.hideAsync();

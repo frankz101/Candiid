@@ -4,7 +4,6 @@ import BaseScreen from "@/components/utils/BaseScreen";
 import { useUser } from "@clerk/clerk-expo";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
-import { Text, View } from "react-native";
 
 interface User {
   userId: string;

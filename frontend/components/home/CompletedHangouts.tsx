@@ -42,7 +42,7 @@ const CompletedHangouts: React.FC<CompletedHangoutsProps> = ({
         data={posts}
         keyExtractor={(item) => item.id}
         nestedScrollEnabled
-        ListHeaderComponent={<Groups />}
+        // ListHeaderComponent={<Groups />}
         // ListHeaderComponentStyle={styles.main}
         refreshControl={
           <RefreshControl
