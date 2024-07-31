@@ -171,6 +171,7 @@ const removeFriendInDatabase = async (userId, friendId) => {
     console.log(
       `User ${userId} removed from friend ${friendId}'s friends list.`
     );
+    return friendId;
   } catch (error) {
     console.error("Error removing friend from database:", error);
     throw error;

@@ -38,9 +38,9 @@ const scrollViewHeight = screenHeight - headerHeight - bottomPadding;
 
 //STATE DOES NOT UPDATE WHEN PRESSING BACK BUTTON ONTO SEARCH SCREEN
 const ProfileScreen = () => {
-  const { user } = useUser();
+  const { user: currentUser } = useUser();
   const router = useRouter();
-  const { userId } = useLocalSearchParams();
+  const { userId, debouncedSearchPhrase } = useLocalSearchParams();
 
   // const userIdStr = Array.isArray(userId) ? userId[0] : userId;
   // const profilePhotoStr = Array.isArray(profilePhoto)
@@ -56,7 +56,9 @@ const ProfileScreen = () => {
   const fetchUser = async () => {
     console.log("Fetching User Information in profile screen");
     return axios
-      .get(`${process.env.EXPO_PUBLIC_API_URL}/users/${userId}/${user?.id}`)
+      .get(
+        `${process.env.EXPO_PUBLIC_API_URL}/users/${userId}/${currentUser?.id}`
+      )
       .then((res) => res.data);
   };
 
@@ -126,7 +128,7 @@ const ProfileScreen = () => {
 
   const blockUser = async () => {
     try {
-      if (user) {
+      if (currentUser) {
         Alert.alert(
           "Are you sure you want to block this user?",
           "You will no longer be able to view their profile",
@@ -142,7 +144,7 @@ const ProfileScreen = () => {
                 router.back();
                 setModalVisible(false);
                 const details = {
-                  userId: user.id,
+                  userId: currentUser.id,
                   blockedUserId: userId,
                 };
                 const res = await axios.post(
@@ -162,6 +164,35 @@ const ProfileScreen = () => {
     } catch (err) {
       console.error("Error blocking user: ", err);
     }
+  };
+
+  const removeFriend = async () => {
+    Alert.alert(
+      "Remove Friend",
+      "Are you sure you want to remove this friend?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "OK",
+          style: "destructive",
+          onPress: async () => {
+            setModalVisible(false);
+            const res = await axios.put(
+              `${process.env.EXPO_PUBLIC_API_URL}/friends/remove/users/${currentUser?.id}`,
+              {
+                receiverId: userId,
+              }
+            );
+
+            console.log("Friendship removed: " + res.data);
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   return (
@@ -231,6 +262,7 @@ const ProfileScreen = () => {
                         ? { backgroundColor: "#3a3a3d" }
                         : { backgroundColor: "#2a2a2d" },
                     ]}
+                    onPress={removeFriend}
                   >
                     <Text style={styles.modalButtonText}>
                       Remove friendship
@@ -267,6 +299,7 @@ const ProfileScreen = () => {
             <FriendshipButton
               userId={userId as string}
               status={profileDetails.friendStatus}
+              searchPhrase={debouncedSearchPhrase}
             />
           )}
         </View>

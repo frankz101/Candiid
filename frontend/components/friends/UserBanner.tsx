@@ -1,5 +1,6 @@
 import { useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
+import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
@@ -41,6 +42,7 @@ const UserBanner: React.FC<UserBannerProps> = ({
   onHandleRequest,
 }) => {
   const { user: currentUser } = useUser();
+  const queryClient = useQueryClient();
   const [pendingUpdates, setPendingUpdates] = useState<FriendUpdateAction[]>(
     []
   );
@@ -73,6 +75,26 @@ const UserBanner: React.FC<UserBannerProps> = ({
     await Promise.all(
       Object.values(finalUpdates).map(async (update: any) => {
         if (update.action === "add") {
+          queryClient.setQueryData(["profile", user.userId], (oldData) =>
+            oldData
+              ? {
+                  ...oldData,
+                  friendStatus: "Friend Requested",
+                }
+              : oldData
+          );
+          // queryClient.setQueryData(
+          //   ["searchResults", searchPhrase],
+          //   (oldData: any) => {
+          //     return oldData
+          //       ? oldData.map((userIndex: User) =>
+          //           userIndex.userId === user.userId
+          //             ? { ...user, friendStatus: "Friend Requested" }
+          //             : user
+          //         )
+          //       : oldData;
+          //   }
+          // );
           const response = await axios.post(
             `${process.env.EXPO_PUBLIC_API_URL}/friendRequest`,
             {
@@ -95,6 +117,14 @@ const UserBanner: React.FC<UserBannerProps> = ({
           }
         } else if (update.action === "removeFriend") {
           console.log("Remove Friend");
+          queryClient.setQueryData(["profile", user.userId], (oldData) =>
+            oldData
+              ? {
+                  ...oldData,
+                  friendStatus: "Not Friends",
+                }
+              : oldData
+          );
           await axios.put(
             `${process.env.EXPO_PUBLIC_API_URL}/friends/remove/users/${currentUser?.id}`,
             {
@@ -102,6 +132,26 @@ const UserBanner: React.FC<UserBannerProps> = ({
             }
           );
         } else if (update.action === "removeRequest") {
+          queryClient.setQueryData(["profile", user.userId], (oldData) =>
+            oldData
+              ? {
+                  ...oldData,
+                  friendStatus: "Not Friends",
+                }
+              : oldData
+          );
+          // queryClient.setQueryData(
+          //   ["searchResults", searchPhrase],
+          //   (oldData: any) => {
+          //     return oldData
+          //       ? oldData.map((userIndex: User) =>
+          //           userIndex.userId === user.userId
+          //             ? { ...user, friendStatus: "Not Friends" }
+          //             : user
+          //         )
+          //       : oldData;
+          //   }
+          // );
           await axios.post(
             `${process.env.EXPO_PUBLIC_API_URL}/friendRequest/handle`,
             {
@@ -228,6 +278,7 @@ const UserBanner: React.FC<UserBannerProps> = ({
             username: user.username,
             profilePhoto: encodeURIComponent(user.profilePhoto?.fileUrl),
             friendStatus: friendStatus ? friendStatus : "",
+            debouncedSearchPhrase: searchPhrase,
           },
         });
       }}
