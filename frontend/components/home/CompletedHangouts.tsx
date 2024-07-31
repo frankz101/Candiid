@@ -5,6 +5,7 @@ import FeedPost from "./FeedPost";
 import axios from "axios";
 import { useUser } from "@clerk/clerk-expo";
 import { useQuery } from "@tanstack/react-query";
+import Groups from "../groups/Groups";
 
 interface CompletedHangoutsProps {
   refreshing: boolean;
@@ -36,12 +37,13 @@ const CompletedHangouts: React.FC<CompletedHangoutsProps> = ({
   });
 
   return (
-    <View>
+    <View style={{ flex: 1 }}>
       <FlatList
         data={posts}
         keyExtractor={(item) => item.id}
-        ListHeaderComponent={<CreateHangoutButton />}
-        ListHeaderComponentStyle={styles.main}
+        nestedScrollEnabled
+        ListHeaderComponent={<Groups />}
+        // ListHeaderComponentStyle={styles.main}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

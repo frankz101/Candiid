@@ -27,14 +27,14 @@ interface FriendshipButtonProps {
   userId: string;
   status: string;
   onHandleRequest?: (userId: string) => void;
-  searchPhrase: string;
+  // searchPhrase: string;
 }
 
 const FriendshipButton: React.FC<FriendshipButtonProps> = ({
   userId,
   status,
   onHandleRequest,
-  searchPhrase,
+  // searchPhrase,
 }) => {
   const { user: currentUser } = useUser();
   const queryClient = useQueryClient();
@@ -117,7 +117,7 @@ const FriendshipButton: React.FC<FriendshipButtonProps> = ({
         } else if (update.action === "removeRequest") {
           console.log("Remove Request");
 
-          console.log("Search Phrase: " + searchPhrase);
+          // console.log("Search Phrase: " + searchPhrase);
 
           // queryClient.setQueryData(
           //   ["searchResults", searchPhrase],

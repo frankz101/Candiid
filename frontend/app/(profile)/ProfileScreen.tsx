@@ -299,7 +299,6 @@ const ProfileScreen = () => {
             <FriendshipButton
               userId={userId as string}
               status={profileDetails.friendStatus}
-              searchPhrase={debouncedSearchPhrase}
             />
           )}
         </View>

@@ -1,12 +1,24 @@
 import {
   createGroupInDatabase,
   createGroupRequestsInDatabase,
+  fetchGroupInDatabase,
   fetchGroupRequestsInDatabase,
+  fetchGroupsInDatabase,
   handleGroupRequestInDatabase,
 } from "../db/GroupDatabase.js";
 
 const createGroup = async (groupData) => {
   const result = await createGroupInDatabase(groupData);
+  return result;
+};
+
+const fetchGroup = async (groupId) => {
+  const result = await fetchGroupInDatabase(groupId);
+  return result;
+};
+
+const fetchGroups = async (userId) => {
+  const result = await fetchGroupsInDatabase(userId);
   return result;
 };
 
@@ -33,6 +45,8 @@ const handleGroupRequest = async (groupId, handleRequestData) => {
 
 export {
   createGroup,
+  fetchGroup,
+  fetchGroups,
   fetchGroupRequests,
   createGroupRequests,
   handleGroupRequest,

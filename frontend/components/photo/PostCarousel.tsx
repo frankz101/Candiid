@@ -38,6 +38,7 @@ const PostCarousel: React.FC<PostCarouselProps> = ({
       animated: true,
     });
   };
+
   return (
     <View>
       <Carousel
@@ -52,6 +53,10 @@ const PostCarousel: React.FC<PostCarouselProps> = ({
         )}
         autoPlay={false}
         loop={false}
+        onConfigurePanGesture={(panGesture) => {
+          panGesture.activeOffsetX([-10, 10]);
+          panGesture.failOffsetY([-10, 10]);
+        }}
       />
       <Pagination.Basic
         progress={progress}

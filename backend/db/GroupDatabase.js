@@ -4,6 +4,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   query,
   serverTimestamp,
@@ -31,6 +32,46 @@ const createGroupInDatabase = async (group) => {
   } catch (error) {
     console.error("Error adding group to database: ", error);
     throw new Error("Failed to add group");
+  }
+};
+
+const fetchGroupInDatabase = async (groupId) => {
+  try {
+    const groupDocRef = doc(db, "groups", groupId);
+    const groupDoc = await getDoc(groupDocRef);
+
+    if (groupDoc.exists()) {
+      return {
+        id: groupDoc.id,
+        ...groupDoc.data(),
+      };
+    } else {
+      throw new Error("No such document!");
+    }
+  } catch (error) {
+    console.error("Error fetching group by ID:", error);
+    throw new Error("Error fetching group by ID");
+  }
+};
+
+const fetchGroupsInDatabase = async (userId) => {
+  try {
+    const groupsCollection = collection(db, "groups");
+    const q = query(
+      groupsCollection,
+      where("groupMemberIds", "array-contains", userId)
+    );
+    const querySnapshot = await getDocs(q);
+
+    const groups = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      groupName: doc.data().groupName,
+    }));
+
+    return groups;
+  } catch (error) {
+    console.error("Error fetching groups:", error);
+    throw new Error("Error fetching groups");
   }
 };
 
@@ -187,6 +228,8 @@ const handleGroupRequestInDatabase = async (groupId, groupRequest) => {
 
 export {
   createGroupInDatabase,
+  fetchGroupInDatabase,
+  fetchGroupsInDatabase,
   fetchGroupRequestsInDatabase,
   createGroupRequestsInDatabase,
   handleGroupRequestInDatabase,
