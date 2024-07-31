@@ -1,10 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { Expo } from "expo-server-sdk";
-import { Server } from "socket.io";
 import dotenv from "dotenv";
-import { collection, onSnapshot, query } from "firebase/firestore";
-import { db } from "./firebase.js";
 
 dotenv.config();
 
@@ -25,6 +22,10 @@ import NotificationRoutes from "./routes/NotificationRoutes.js";
 import StickerRoutes from "./routes/StickerRoutes.js";
 import ChatRoutes from "./routes/ChatRoutes.js";
 import GroupRoutes from "./routes/GroupRoutes.js";
+import { initializeSocket } from "./socket.js";
+import { collection, doc, getDoc, onSnapshot } from "firebase/firestore";
+import { sendPushNotification } from "./db/NotificationDatabase.js";
+import { db } from "./firebase.js";
 
 app.use("/", UserRoutes);
 app.use("/", HangoutRoutes);
@@ -40,59 +41,46 @@ const server = app.listen(PORT, "0.0.0.0", () => {
   console.log(`Listening on port ${PORT}`);
 });
 
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"],
-  },
-});
+initializeSocket(server);
 
-io.on("connection", (socket) => {
-  console.log("Client connected");
+const listenToAllFriendRequests = () => {
+  console.log("listening to friend requests");
+  const friendRequestsRef = collection(db, "friendRequests");
+  let isInitialLoad = true;
 
-  let unsubscribe = null;
-
-  socket.on("joinRoom", (roomId) => {
-    if (!roomId) {
-      socket.emit("error", { error: "roomId is required" });
-      return;
-    }
-
-    console.log(`Listening to room: ${roomId}`);
-
-    const colRef = collection(db, "messages", roomId, "chatMessages");
-    const q = query(colRef);
-
-    let isInitialLoad = true;
-
-    unsubscribe = onSnapshot(q, (snapshot) => {
-      snapshot.docChanges().forEach((change) => {
-        if (isInitialLoad) {
-          console.log("Initial load document:", change.doc.data());
-        } else {
-          if (
-            change.type === "added" ||
-            change.type === "modified" ||
-            change.type === "removed"
-          ) {
-            socket.emit("message", {
-              type: change.type,
-              doc: { id: change.doc.id, ...change.doc.data() },
-            });
-          }
-        }
-      });
-
+  const unsubscribe = onSnapshot(
+    friendRequestsRef,
+    (snapshot) => {
       if (isInitialLoad) {
         isInitialLoad = false;
+      } else {
+        snapshot.docChanges().forEach(async (change) => {
+          if (change.type === "added") {
+            const data = change.doc.data();
+            const receiverDocRef = doc(db, "users", data.receiverId);
+            const senderDocRef = doc(db, "users", data.senderId);
+            const senderDocSnap = await getDoc(senderDocRef);
+            const userId = receiverDocRef.id;
+            if (senderDocSnap.exists()) {
+              await sendPushNotification(
+                userId,
+                "New Friend Request yeahhhhhh",
+                `${
+                  senderDocSnap.data().username
+                } has sent you a friend request!`,
+                "/(profile)/NotificationsScreen"
+              );
+            }
+          }
+        });
       }
-    });
-  });
-
-  socket.on("disconnect", () => {
-    console.log("Client disconnected");
-    if (unsubscribe) {
-      unsubscribe();
+    },
+    (error) => {
+      console.error("Error listening to friend requests:", error);
     }
-  });
-});
+  );
+
+  return unsubscribe;
+};
+
+const unsubscribe = listenToAllFriendRequests();

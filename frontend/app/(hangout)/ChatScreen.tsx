@@ -119,12 +119,10 @@ const ChatScreen = () => {
       }
     });
 
-    socket.on("disconnect", () => {
-      console.log("Disconnected from WebSocket server");
-    });
-
     return () => {
+      socket.emit("leaveRoom");
       socket.disconnect();
+      console.log("Disconnected from WebSocket server");
     };
   }, []);
 
