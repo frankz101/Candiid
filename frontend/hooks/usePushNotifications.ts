@@ -96,7 +96,7 @@ export const usePushNotifications = (): PushNotificationState => {
 
     responseListener.current =
       Notifications.addNotificationResponseReceivedListener((response) => {
-        console.log(response);
+        Notifications.dismissAllNotificationsAsync();
         const screen = response.notification.request.content.data.screen;
         if (screen) {
           router.navigate(screen);
