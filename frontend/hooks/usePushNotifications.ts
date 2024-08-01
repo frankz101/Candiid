@@ -87,6 +87,9 @@ export const usePushNotifications = (): PushNotificationState => {
             text2: body as string,
             position: "top",
             visibilityTime: 3000,
+            onPress: () => {
+              router.push("/(profile)/NotificationsScreen");
+            },
           });
         }
       });
