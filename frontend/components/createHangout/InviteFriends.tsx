@@ -11,6 +11,7 @@ import {
 } from "react-native-responsive-screen";
 import FriendInviteBanner from "./FriendInviteBanner";
 import DebouncedPressable from "../utils/DebouncedPressable";
+import ShareButton from "../friends/ShareButton";
 
 const InviteFriends = () => {
   const [clicked, setClicked] = useState(false);
@@ -136,10 +137,9 @@ const InviteFriends = () => {
             />
           )}
         </View>
-        <View>
-          <Text style={styles.listHeaderText}>
-            Invite Friends from Contacts
-          </Text>
+        <Text style={styles.listHeaderText}>Invite Friends from Contacts</Text>
+        <View style={{ marginLeft: wp(-2), marginTop: hp(-2) }}>
+          <ShareButton type="hangout" id={hangoutId as string} />
         </View>
       </View>
       <View style={styles.submitButton}>

@@ -569,6 +569,25 @@ const removeHangoutPhotoInDatabase = async (fileUrl, hangoutId) => {
   }
 };
 
+const addUserToHangoutInDatabase = async (hangoutId, userId) => {
+  try {
+    const hangoutDocRef = doc(db, "hangouts", hangoutId);
+    const userDocRef = doc(db, "users", userId);
+    await updateDoc(hangoutDocRef, {
+      participantIds: arrayUnion(userId),
+    });
+    await updateDoc(userDocRef, {
+      upcomingHangouts: arrayUnion(hangoutId),
+    });
+    console.log("user added to hangout");
+
+    return "added user to hangout";
+  } catch (error) {
+    console.error("Error adding to hangout from deep link: ", error);
+    throw error;
+  }
+};
+
 export {
   createHangoutInDatabase,
   addPhotoToHangoutInDatabase,
@@ -585,4 +604,5 @@ export {
   removeHangoutInDatabase,
   transferHangoutOwnershipInDatabase,
   removeHangoutPhotoInDatabase,
+  addUserToHangoutInDatabase,
 };

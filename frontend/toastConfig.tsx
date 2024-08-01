@@ -1,6 +1,6 @@
 import React from "react";
-import Toast, { BaseToast, BaseToastProps } from "react-native-toast-message";
-import { StyleSheet, View } from "react-native";
+import { BaseToast, BaseToastProps } from "react-native-toast-message";
+import { Pressable, StyleSheet, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
   widthPercentageToDP as wp,
@@ -8,6 +8,24 @@ import {
 } from "react-native-responsive-screen";
 
 const toastConfig = {
+  info: (props: BaseToastProps) => (
+    <Pressable onPress={props.onPress}>
+      <BaseToast
+        {...props}
+        style={{ marginTop: hp(2), backgroundColor: "#2a2a2d" }}
+        contentContainerStyle={{ paddingHorizontal: wp(3), borderRadius: 10 }}
+        text1Style={{
+          fontSize: 16,
+          fontWeight: "bold",
+          color: "white",
+        }}
+        text2Style={{
+          fontSize: 14,
+          color: "white",
+        }}
+      />
+    </Pressable>
+  ),
   success: (props: BaseToastProps) => (
     <BaseToast
       {...props}

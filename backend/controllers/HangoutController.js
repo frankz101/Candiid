@@ -1,4 +1,7 @@
-import { removeHangoutPhotoInDatabase } from "../db/HangoutDatabase.js";
+import {
+  addUserToHangoutInDatabase,
+  removeHangoutPhotoInDatabase,
+} from "../db/HangoutDatabase.js";
 import {
   addPhotoToHangout,
   createHangout,
@@ -183,6 +186,16 @@ const putHangoutPhoto = async (req, res) => {
   }
 };
 
+const putUserInHangout = async (req, res) => {
+  try {
+    const { hangoutId, userId } = req.body;
+    const result = await addUserToHangoutInDatabase(hangoutId, userId);
+    res.status(201).send(result);
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export {
   postHangout,
   postPhotoToHangout,
@@ -199,4 +212,5 @@ export {
   deleteHangout,
   putHangoutOwnership,
   putHangoutPhoto,
+  putUserInHangout,
 };

@@ -4,7 +4,7 @@ import {
   QueryClient,
   useQueryClient,
 } from "@tanstack/react-query";
-import { Slot, Stack, useRouter, useSegments } from "expo-router";
+import { Slot, Stack, usePathname, useRouter, useSegments } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import * as SecureStore from "expo-secure-store";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -16,6 +16,7 @@ import toastConfig from "@/toastConfig";
 import axios from "axios";
 import Contacts, { Contact } from "react-native-contacts";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import * as Linking from "expo-linking";
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -37,15 +38,82 @@ const InitialLayout = () => {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { expoPushToken } = usePushNotifications();
+  const [deepLinkData, setDeepLinkData] = useState<{
+    id?: string;
+    hostname?: string;
+  } | null>(null);
+  const pathname = usePathname();
 
   SplashScreen.preventAutoHideAsync();
   setTimeout(SplashScreen.hideAsync, 1000);
 
+  const handleDeepLink = async (event: { url: string }) => {
+    const { url } = event;
+    const parsedUrl = Linking.parse(url);
+    const { hostname, path } = parsedUrl;
+
+    if (isSignedIn && user) {
+      if (hostname === "invite" && path) {
+        router.replace({
+          pathname: "/(profile)/FriendsScreen",
+          params: { id: path },
+        });
+      } else if (hostname === "hangout" && path) {
+        try {
+          await axios.put(
+            `${process.env.EXPO_PUBLIC_API_URL}/hangout/add-user`,
+            {
+              hangoutId: path,
+              userId: user.id,
+            }
+          );
+          queryClient.setQueryData(["profile", user?.id], (oldData: any) =>
+            oldData
+              ? {
+                  ...oldData,
+                  upcomingHangouts: [...(oldData.upcomingHangouts || []), path],
+                }
+              : { ...oldData, upcomingHangouts: [path] }
+          );
+
+          router.replace(`/(hangout)/${path}`);
+        } catch (error) {
+          console.error("Error fetching hangout data:", error);
+        }
+      } else {
+        console.warn("Invalid deep link or unsupported action:", parsedUrl);
+      }
+    } else {
+      if (hostname && path) {
+        setDeepLinkData({ id: path, hostname });
+        if (pathname !== "/SignUpScreen") {
+          console.log("handling deep link when not logged in");
+          router.replace("/(auth)/SignUpScreen");
+        }
+      } else {
+        console.warn("Invalid deep link or unsupported action:", parsedUrl);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (isLoaded) {
+      const subscription = Linking.addEventListener("url", handleDeepLink);
+      return () => {
+        subscription.remove();
+      };
+    }
+  }, [isLoaded]);
+
   const fetchUser = async () => {
-    console.log("Fetching User Information in Initial Layout");
-    return axios
-      .get(`${process.env.EXPO_PUBLIC_API_URL}/users/${user?.id}/${user?.id}`)
-      .then((res) => res.data);
+    try {
+      console.log("Fetching User Information in Initial Layout");
+      return axios
+        .get(`${process.env.EXPO_PUBLIC_API_URL}/users/${user?.id}/${user?.id}`)
+        .then((res) => res.data);
+    } catch (error) {
+      console.error("Error prefetching user: ", error);
+    }
   };
 
   const getContacts = async (): Promise<Contact[]> => {
@@ -99,40 +167,73 @@ const InitialLayout = () => {
   };
 
   useEffect(() => {
-    SplashScreen.preventAutoHideAsync();
-
     const fetchDataAndNavigate = async () => {
-      if (isSignedIn && user) {
-        Promise.all([
-          queryClient.prefetchQuery({
-            queryKey: ["profile", user.id],
-            queryFn: fetchUser,
-            staleTime: 1000 * 60 * 5,
-          }),
-          queryClient.prefetchQuery({
-            queryKey: ["registeredContacts", user.id],
-            queryFn: fetchRegisteredContacts,
-            staleTime: 1000 * 60 * 5,
-          }),
-        ]);
-        if (expoPushToken && expoPushToken.data) {
-          await axios.post(
-            `${process.env.EXPO_PUBLIC_API_URL}/notification/token`,
-            {
-              userId: user.id,
-              pushToken: expoPushToken.data,
+      try {
+        if (isSignedIn && user) {
+          await Promise.all([
+            queryClient.prefetchQuery({
+              queryKey: ["profile", user.id],
+              queryFn: fetchUser,
+              staleTime: 1000 * 60 * 5,
+            }),
+            queryClient.prefetchQuery({
+              queryKey: ["registeredContacts", user.id],
+              queryFn: fetchRegisteredContacts,
+              staleTime: 1000 * 60 * 5,
+            }),
+          ]);
+
+          if (expoPushToken && expoPushToken.data) {
+            await axios.post(
+              `${process.env.EXPO_PUBLIC_API_URL}/notification/token`,
+              {
+                userId: user.id,
+                pushToken: expoPushToken.data,
+              }
+            );
+          }
+
+          if (deepLinkData) {
+            if (deepLinkData.hostname === "invite") {
+              router.replace("/(tabs)/");
+              router.push({
+                pathname: "/(profile)/FriendsScreen",
+                params: { id: deepLinkData.id as string },
+              });
+            } else if (deepLinkData.hostname === "hangout") {
+              await axios.put(
+                `${process.env.EXPO_PUBLIC_API_URL}/hangout/add-user`,
+                {
+                  hangoutId: deepLinkData.id,
+                  userId: user.id,
+                }
+              );
+              queryClient.setQueryData(["profile", user?.id], (oldData: any) =>
+                oldData
+                  ? {
+                      ...oldData,
+                      upcomingHangouts: [
+                        ...(oldData.upcomingHangouts || []),
+                        deepLinkData.id,
+                      ],
+                    }
+                  : { upcomingHangouts: [deepLinkData.id] }
+              );
+              router.replace("/(tabs)/");
+              router.push(`/(hangout)/${deepLinkData.id}`);
             }
-          );
+            setDeepLinkData(null); // Clear deep link data after handling
+          } else if (segments[0] !== "(tabs)") {
+            router.replace("/(tabs)/");
+          }
+        } else if (!isSignedIn) {
+          console.log("not signed in and going signupscreen");
+          router.replace("/SignUpScreen");
         }
-      }
-
-      SplashScreen.hideAsync();
-
-      const inTabsGroup = segments[0] === "(tabs)";
-      if (isSignedIn && !inTabsGroup) {
-        router.replace("/(tabs)/");
-      } else if (!isSignedIn) {
-        router.replace("/SignUpScreen");
+      } catch (error) {
+        console.error("Error in fetchDataAndNavigate: ", error);
+      } finally {
+        SplashScreen.hideAsync();
       }
     };
 

@@ -8,15 +8,30 @@ import {
 } from "react-native-responsive-screen";
 import { Ionicons } from "@expo/vector-icons";
 
-const ShareButton = () => {
-  const { user } = useUser();
+interface ShareButtonProps {
+  type: "hangout" | "user";
+  id: string;
+}
+
+const ShareButton: React.FC<ShareButtonProps> = ({ type, id }) => {
   const shareLink = async () => {
-    const shareOptions = {
-      title: "Invite Friends to Candiid!",
-      message: "Add me on Candiid!",
-      url: `candiid://invite/${user?.username}`,
-      failOnCancel: false,
-    };
+    let shareOptions;
+
+    if (type === "hangout") {
+      shareOptions = {
+        title: "Join My Hangout on Candiid!",
+        message: "Check out this awesome hangout I'm hosting on Candiid!",
+        url: `exp+memories://hangout/${id}`,
+        failOnCancel: false,
+      };
+    } else {
+      shareOptions = {
+        title: "Invite Friends to Candiid!",
+        message: "Add me on Candiid!",
+        url: `exp+memories://invite/${id}`,
+        failOnCancel: false,
+      };
+    }
 
     try {
       await Share.open(shareOptions);
@@ -36,7 +51,11 @@ const ShareButton = () => {
         ]}
         onPress={shareLink}
       >
-        <Text style={styles.text}>Invite friends to Candiid!</Text>
+        <Text style={styles.text}>
+          {type === "hangout"
+            ? "Invite Friends to this Hangout!"
+            : "Invite Friends to Candiid!"}
+        </Text>
         <Ionicons name="share-outline" size={25} color="white" />
       </Pressable>
     </View>
@@ -52,7 +71,7 @@ const styles = StyleSheet.create({
   },
   button: {
     borderRadius: 5,
-    height: hp(8),
+    height: hp(7),
     width: wp(95),
     paddingHorizontal: wp(4),
     display: "flex",

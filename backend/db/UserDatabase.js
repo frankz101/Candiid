@@ -14,6 +14,7 @@ import {
   or,
   arrayRemove,
   limit,
+  arrayUnion,
 } from "firebase/firestore";
 import { db } from "../firebase.js";
 import { deleteObject, ref } from "firebase/storage";
@@ -704,6 +705,29 @@ const fetchUserListInDatabase = async (userIds) => {
   }
 };
 
+const addFriendsInDatabase = async (userId1, userId2) => {
+  try {
+    if (userId1 !== userId2) {
+      const user1Doc = doc(db, "users", userId1);
+      const user2Doc = doc(db, "users", userId2);
+
+      await updateDoc(user1Doc, {
+        friends: arrayUnion(userId2),
+      });
+
+      await updateDoc(user2Doc, {
+        friends: arrayUnion(userId1),
+      });
+      return `${userId1} and ${userId2} are now friends`;
+    } else {
+      return;
+    }
+  } catch (error) {
+    console.error("Error adding friends from invite: ", error);
+    throw error;
+  }
+};
+
 export {
   createUserInDatabase,
   changeProfilePhotoInDatabase,
@@ -726,4 +750,5 @@ export {
   fetchBlocksInDatabase,
   removeBlockInDatabase,
   fetchUserListInDatabase,
+  addFriendsInDatabase,
 };
