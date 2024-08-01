@@ -98,7 +98,7 @@ const SearchFriends = () => {
           setClicked={setClicked}
           onSubmit={fetchSearchResults}
         />
-        <ShareButton />
+        <ShareButton type="user" id={user?.id as string} />
         <FlatList
           data={searchResults}
           renderItem={renderItem}

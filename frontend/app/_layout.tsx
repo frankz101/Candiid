@@ -47,29 +47,49 @@ const InitialLayout = () => {
   SplashScreen.preventAutoHideAsync();
   setTimeout(SplashScreen.hideAsync, 1000);
 
-  const handleDeepLink = (event: { url: string }) => {
+  const handleDeepLink = async (event: { url: string }) => {
     const { url } = event;
     const parsedUrl = Linking.parse(url);
-
     const { hostname, path } = parsedUrl;
 
-    if (user && isSignedIn) {
-      console.log(user.id, isSignedIn);
+    if (isSignedIn && user) {
       if (hostname === "invite" && path) {
-        console.log("signed in bringing");
         router.replace({
           pathname: "/(profile)/FriendsScreen",
           params: { id: path },
         });
+      } else if (hostname === "hangout" && path) {
+        try {
+          await axios.put(
+            `${process.env.EXPO_PUBLIC_API_URL}/hangout/add-user`,
+            {
+              hangoutId: path,
+              userId: user.id,
+            }
+          );
+          queryClient.setQueryData(["profile", user?.id], (oldData: any) =>
+            oldData
+              ? {
+                  ...oldData,
+                  upcomingHangouts: [...(oldData.upcomingHangouts || []), path],
+                }
+              : { ...oldData, upcomingHangouts: [path] }
+          );
+
+          router.replace(`/(hangout)/${path}`);
+        } catch (error) {
+          console.error("Error fetching hangout data:", error);
+        }
       } else {
         console.warn("Invalid deep link or unsupported action:", parsedUrl);
       }
     } else {
       if (hostname && path) {
+        setDeepLinkData({ id: path, hostname });
         if (pathname !== "/SignUpScreen") {
+          console.log("handling deep link when not logged in");
           router.replace("/(auth)/SignUpScreen");
         }
-        setDeepLinkData({ id: path, hostname });
       } else {
         console.warn("Invalid deep link or unsupported action:", parsedUrl);
       }
@@ -77,12 +97,13 @@ const InitialLayout = () => {
   };
 
   useEffect(() => {
-    const subscription = Linking.addEventListener("url", handleDeepLink);
-
-    return () => {
-      subscription.remove();
-    };
-  }, []);
+    if (isLoaded) {
+      const subscription = Linking.addEventListener("url", handleDeepLink);
+      return () => {
+        subscription.remove();
+      };
+    }
+  }, [isLoaded]);
 
   const fetchUser = async () => {
     try {
@@ -146,12 +167,10 @@ const InitialLayout = () => {
   };
 
   useEffect(() => {
-    SplashScreen.preventAutoHideAsync();
-
     const fetchDataAndNavigate = async () => {
       try {
         if (isSignedIn && user) {
-          Promise.all([
+          await Promise.all([
             queryClient.prefetchQuery({
               queryKey: ["profile", user.id],
               queryFn: fetchUser,
@@ -163,6 +182,7 @@ const InitialLayout = () => {
               staleTime: 1000 * 60 * 5,
             }),
           ]);
+
           if (expoPushToken && expoPushToken.data) {
             await axios.post(
               `${process.env.EXPO_PUBLIC_API_URL}/notification/token`,
@@ -172,27 +192,48 @@ const InitialLayout = () => {
               }
             );
           }
+
+          if (deepLinkData) {
+            if (deepLinkData.hostname === "invite") {
+              router.replace("/(tabs)/");
+              router.push({
+                pathname: "/(profile)/FriendsScreen",
+                params: { id: deepLinkData.id as string },
+              });
+            } else if (deepLinkData.hostname === "hangout") {
+              await axios.put(
+                `${process.env.EXPO_PUBLIC_API_URL}/hangout/add-user`,
+                {
+                  hangoutId: deepLinkData.id,
+                  userId: user.id,
+                }
+              );
+              queryClient.setQueryData(["profile", user?.id], (oldData: any) =>
+                oldData
+                  ? {
+                      ...oldData,
+                      upcomingHangouts: [
+                        ...(oldData.upcomingHangouts || []),
+                        deepLinkData.id,
+                      ],
+                    }
+                  : { upcomingHangouts: [deepLinkData.id] }
+              );
+              router.replace("/(tabs)/");
+              router.push(`/(hangout)/${deepLinkData.id}`);
+            }
+            setDeepLinkData(null); // Clear deep link data after handling
+          } else if (segments[0] !== "(tabs)") {
+            router.replace("/(tabs)/");
+          }
+        } else if (!isSignedIn) {
+          console.log("not signed in and going signupscreen");
+          router.replace("/SignUpScreen");
         }
       } catch (error) {
-        console.error("Error in prefetch: ", error);
-      }
-
-      SplashScreen.hideAsync();
-
-      const inTabsGroup = segments[0] === "(tabs)";
-      if (isSignedIn && !inTabsGroup) {
-        router.replace("/(tabs)/");
-        if (deepLinkData) {
-          if (deepLinkData.hostname === "invite") {
-            console.log("bringing after sign in");
-            router.push({
-              pathname: "/(profile)/FriendsScreen",
-              params: { id: deepLinkData.id as string },
-            });
-          }
-        }
-      } else if (!isSignedIn) {
-        router.replace("/SignUpScreen");
+        console.error("Error in fetchDataAndNavigate: ", error);
+      } finally {
+        SplashScreen.hideAsync();
       }
     };
 
