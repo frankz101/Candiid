@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef } from "react";
+import { AppState, Platform } from "react-native";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
-
 import Constants from "expo-constants";
-
-import { Platform } from "react-native";
 import { useRouter } from "expo-router";
 import axios from "axios";
+import Toast from "react-native-toast-message";
 
 export interface PushNotificationState {
   expoPushToken?: Notifications.ExpoPushToken;
@@ -15,18 +14,10 @@ export interface PushNotificationState {
 
 export const usePushNotifications = (): PushNotificationState => {
   const router = useRouter();
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldPlaySound: false,
-      shouldShowAlert: true,
-      shouldSetBadge: false,
-    }),
-  });
-
+  const [appState, setAppState] = useState(AppState.currentState);
   const [expoPushToken, setExpoPushToken] = useState<
     Notifications.ExpoPushToken | undefined
   >();
-
   const [notification, setNotification] = useState<
     Notifications.Notification | undefined
   >();
@@ -69,19 +60,35 @@ export const usePushNotifications = (): PushNotificationState => {
   }
 
   useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      setAppState(nextAppState);
+    });
+
     registerForPushNotificationsAsync().then(async (token) => {
       setExpoPushToken(token);
-      await axios.post(
-        `${process.env.EXPO_PUBLIC_API_URL}/user/save-push-token`,
-        {
-          token,
-        }
-      );
+    });
+
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldPlaySound: false,
+        shouldShowAlert: appState !== "active",
+        shouldSetBadge: false,
+      }),
     });
 
     notificationListener.current =
       Notifications.addNotificationReceivedListener((notification) => {
         setNotification(notification);
+        if (appState === "active") {
+          const { title, body } = notification.request.content;
+          Toast.show({
+            type: "info",
+            text1: title as string,
+            text2: body as string,
+            position: "top",
+            visibilityTime: 3000,
+          });
+        }
       });
 
     responseListener.current =
@@ -94,13 +101,13 @@ export const usePushNotifications = (): PushNotificationState => {
       });
 
     return () => {
+      subscription.remove();
       Notifications.removeNotificationSubscription(
         notificationListener.current!
       );
-
       Notifications.removeNotificationSubscription(responseListener.current!);
     };
-  }, []);
+  }, [appState]);
 
   return {
     expoPushToken,

@@ -42,10 +42,14 @@ const InitialLayout = () => {
   setTimeout(SplashScreen.hideAsync, 1000);
 
   const fetchUser = async () => {
-    console.log("Fetching User Information in Initial Layout");
-    return axios
-      .get(`${process.env.EXPO_PUBLIC_API_URL}/users/${user?.id}/${user?.id}`)
-      .then((res) => res.data);
+    try {
+      console.log("Fetching User Information in Initial Layout");
+      return axios
+        .get(`${process.env.EXPO_PUBLIC_API_URL}/users/${user?.id}/${user?.id}`)
+        .then((res) => res.data);
+    } catch (error) {
+      console.error("Error prefetching user: ", error);
+    }
   };
 
   const getContacts = async (): Promise<Contact[]> => {
@@ -102,28 +106,32 @@ const InitialLayout = () => {
     SplashScreen.preventAutoHideAsync();
 
     const fetchDataAndNavigate = async () => {
-      if (isSignedIn && user) {
-        Promise.all([
-          queryClient.prefetchQuery({
-            queryKey: ["profile", user.id],
-            queryFn: fetchUser,
-            staleTime: 1000 * 60 * 5,
-          }),
-          queryClient.prefetchQuery({
-            queryKey: ["registeredContacts", user.id],
-            queryFn: fetchRegisteredContacts,
-            staleTime: 1000 * 60 * 5,
-          }),
-        ]);
-        if (expoPushToken && expoPushToken.data) {
-          await axios.post(
-            `${process.env.EXPO_PUBLIC_API_URL}/notification/token`,
-            {
-              userId: user.id,
-              pushToken: expoPushToken.data,
-            }
-          );
+      try {
+        if (isSignedIn && user) {
+          Promise.all([
+            queryClient.prefetchQuery({
+              queryKey: ["profile", user.id],
+              queryFn: fetchUser,
+              staleTime: 1000 * 60 * 5,
+            }),
+            queryClient.prefetchQuery({
+              queryKey: ["registeredContacts", user.id],
+              queryFn: fetchRegisteredContacts,
+              staleTime: 1000 * 60 * 5,
+            }),
+          ]);
+          if (expoPushToken && expoPushToken.data) {
+            await axios.post(
+              `${process.env.EXPO_PUBLIC_API_URL}/notification/token`,
+              {
+                userId: user.id,
+                pushToken: expoPushToken.data,
+              }
+            );
+          }
         }
+      } catch (error) {
+        console.error("Error in prefetch: ", error);
       }
 
       SplashScreen.hideAsync();
