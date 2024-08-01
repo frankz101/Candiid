@@ -14,7 +14,7 @@ const ShareButton = () => {
     const shareOptions = {
       title: "Invite Friends to Candiid!",
       message: "Add me on Candiid!",
-      url: `candiid://invite/${user?.username}`,
+      url: `exp+memories://invite/${user?.id}`,
       failOnCancel: false,
     };
 

@@ -44,7 +44,7 @@ export const usePushNotifications = (): PushNotificationState => {
         projectId: "fc5076d9-8f6e-4b4c-bd9e-59b535b52c34",
       });
     } else {
-      alert("Must be using a physical device for Push notifications");
+      console.log("Must be using a physical device for Push notifications");
     }
 
     if (Platform.OS === "android") {

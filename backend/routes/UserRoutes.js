@@ -22,6 +22,7 @@ import {
   deleteBlock,
   getUserList,
   deleteUserProfilePhoto,
+  putFriends,
 } from "../controllers/UserController.js";
 
 var router = express.Router();
@@ -53,5 +54,6 @@ router.post("/user/block", postBlock);
 router.get("/user/block/:userId", getBlocks);
 router.delete("/user/unblock/:id", deleteBlock);
 router.post("/user/list", getUserList);
+router.put("/user/friends", putFriends);
 
 export default router;

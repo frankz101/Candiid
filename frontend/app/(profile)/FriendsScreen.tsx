@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -16,12 +16,16 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-import { useFocusEffect } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
+import axios from "axios";
+import { useUser } from "@clerk/clerk-expo";
 
 const FriendsScreen = () => {
   const [isSearch, setIsSearch] = useState(true);
+  const { id } = useLocalSearchParams();
+  const { user } = useUser();
 
-  const animation = useRef(new Animated.Value(0)).current; // Initialize animated value
+  const animation = useRef(new Animated.Value(0)).current;
 
   const toggle = (toSearch: boolean) => {
     setIsSearch(toSearch);
@@ -30,6 +34,25 @@ const FriendsScreen = () => {
       useNativeDriver: false,
     }).start();
   };
+
+  useEffect(() => {
+    const addFriend = async () => {
+      if (id && user?.id) {
+        toggle(false);
+        try {
+          await axios.put(`${process.env.EXPO_PUBLIC_API_URL}/user/friends`, {
+            userId1: user.id,
+            userId2: id,
+          });
+          console.log("Friend added successfully");
+        } catch (error) {
+          console.error("Error adding friend from invite: ", error);
+        }
+      }
+    };
+
+    addFriend();
+  }, [id]);
 
   const translateX = animation.interpolate({
     inputRange: [0, 1],

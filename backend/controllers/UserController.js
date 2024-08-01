@@ -1,4 +1,7 @@
-import { deleteProfilePhotoInDatabase } from "../db/UserDatabase.js";
+import {
+  addFriendsInDatabase,
+  deleteProfilePhotoInDatabase,
+} from "../db/UserDatabase.js";
 import {
   changeProfilePhoto,
   createUser,
@@ -257,6 +260,16 @@ const getUserList = async (req, res) => {
   }
 };
 
+const putFriends = async (req, res) => {
+  try {
+    const { userId1, userId2 } = req.body;
+    const result = await addFriendsInDatabase(userId1, userId2);
+    res.status(201).send(result);
+  } catch (error) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export {
   postUser,
   putUserProfilePhoto,
@@ -279,4 +292,5 @@ export {
   getBlocks,
   deleteBlock,
   getUserList,
+  putFriends,
 };
