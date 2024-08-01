@@ -52,8 +52,9 @@ const HangoutRequestBanner: React.FC<HangoutRequestBannerProps> = ({
 
   const getTimeDifference = () => {
     const now = Date.now();
-    const createdAtDate = new Date();
-    hangout.createdAt.seconds * 1000 + hangout.createdAt.nanoseconds / 1000000;
+    const createdAtDate = new Date(
+      hangout.createdAt.seconds * 1000 + hangout.createdAt.nanoseconds / 1000000
+    );
     const differenceInMillis = now - createdAtDate.getTime();
 
     const differenceInMinutes = differenceInMillis / (1000 * 60);
@@ -62,7 +63,6 @@ const HangoutRequestBanner: React.FC<HangoutRequestBannerProps> = ({
     const differenceInWeeks = differenceInDays / 7;
     const differenceInMonths = differenceInDays / 30.44;
     const differenceInYears = differenceInDays / 365.25;
-
     if (differenceInYears >= 1) {
       return `${Math.floor(differenceInYears)}y`;
     } else if (differenceInMonths >= 1) {

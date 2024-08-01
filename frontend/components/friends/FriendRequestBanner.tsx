@@ -45,6 +45,7 @@ const FriendRequestBanner: React.FC<FriendRequestBannerProps> = ({
   };
 
   const getTimeDifference = () => {
+    console.log("Test");
     const now = Date.now();
     const createdAtDate = new Date(
       user.createdAt.seconds * 1000 + user.createdAt.nanoseconds / 1000000
@@ -75,6 +76,8 @@ const FriendRequestBanner: React.FC<FriendRequestBannerProps> = ({
     }
   };
 
+  const time = getTimeDifference();
+
   return (
     <View style={styles.container}>
       {user.profilePhoto ? (
@@ -91,7 +94,7 @@ const FriendRequestBanner: React.FC<FriendRequestBannerProps> = ({
           <Text>wants to be friends!</Text>{" "}
           <Text style={{ color: "gray" }}>
             {"\u2022"}
-            {getTimeDifference()}
+            {time}
           </Text>
         </Text>
       </View>
