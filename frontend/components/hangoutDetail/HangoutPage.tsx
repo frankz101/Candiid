@@ -120,7 +120,9 @@ const HangoutPage: React.FC<HangoutPageProps> = ({ hangoutId }) => {
                   hangoutId,
                 }
               );
-              queryClient.invalidateQueries({ queryKey: ["upcomingHangouts"] });
+              queryClient.invalidateQueries({
+                queryKey: ["upcomingHangouts", user?.id],
+              });
               console.log(res.data);
             }
           },
@@ -178,10 +180,31 @@ const HangoutPage: React.FC<HangoutPageProps> = ({ hangoutId }) => {
                 hangoutId,
               }
             );
-            queryClient.invalidateQueries({
-              queryKey: ["hangout"],
-            });
-            console.log(res.data);
+            //check if we need both are they the same
+            queryClient.setQueryData(
+              ["hangoutParticipants", hangoutId],
+              (oldData: any) => {
+                if (!Array.isArray(oldData)) return [];
+
+                const updatedParticipants = oldData.filter(
+                  (participant) => participant.id !== userId
+                );
+
+                return updatedParticipants;
+              }
+            );
+            queryClient.setQueryData(
+              ["participants", hangoutId],
+              (oldData: any) => {
+                if (!Array.isArray(oldData)) return [];
+
+                const updatedParticipants = oldData.filter(
+                  (participant) => participant.id !== userId
+                );
+
+                return updatedParticipants;
+              }
+            );
           },
         },
       ],
@@ -210,7 +233,15 @@ const HangoutPage: React.FC<HangoutPageProps> = ({ hangoutId }) => {
         newUserId,
       }
     );
-    console.log(res.data);
+    queryClient.setQueryData(["upcomingHangouts", user?.id], (oldData: any) => {
+      if (!Array.isArray(oldData)) return [];
+
+      const updatedHangouts = oldData.filter(
+        (hangout) => hangout.id !== hangoutId
+      );
+
+      return updatedHangouts;
+    });
   };
 
   return (
@@ -380,7 +411,7 @@ const HangoutPage: React.FC<HangoutPageProps> = ({ hangoutId }) => {
                   }
                   return null;
                 }}
-                keyExtractor={(item) => item}
+                keyExtractor={(item) => item.id}
               />
             </View>
           </Pressable>
