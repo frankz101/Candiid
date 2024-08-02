@@ -46,7 +46,6 @@ import {
   GiphyMedia,
   GiphyMediaType,
   GiphyMediaView,
-  GiphySDK,
 } from "@giphy/react-native-sdk";
 import MediaComponent from "@/components/photo/MediaComponent";
 import { StickerDetails } from "@/store/createStickerSlice";
@@ -80,8 +79,6 @@ const imageWidth = (screenWidth - padding * 6) / 3;
 const imageHeight = (screenWidth - padding * 6) / 3 + hp(6);
 
 const mediaWidth = wp(20);
-
-GiphySDK.configure({ apiKey: "QDW5PFQZJ8MYnbeJ6mjQhPrRC5v9UI1b" });
 
 export type ViewStyleKey = "square" | "rectangle" | "polaroid";
 

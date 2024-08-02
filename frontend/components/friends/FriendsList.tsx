@@ -91,7 +91,7 @@ const FriendsList = () => {
   };
 
   return (
-    <View>
+    <View style={{ flex: 1 }}>
       <FlatList
         data={friendsData}
         renderItem={renderItem}

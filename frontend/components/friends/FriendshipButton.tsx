@@ -1,5 +1,6 @@
 import { useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
+import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useRouter } from "expo-router";
 import { useEffect, useState, useRef, useCallback } from "react";
@@ -26,14 +27,17 @@ interface FriendshipButtonProps {
   userId: string;
   status: string;
   onHandleRequest?: (userId: string) => void;
+  // searchPhrase: string;
 }
 
 const FriendshipButton: React.FC<FriendshipButtonProps> = ({
   userId,
   status,
   onHandleRequest,
+  // searchPhrase,
 }) => {
   const { user: currentUser } = useUser();
+  const queryClient = useQueryClient();
   const [pendingUpdates, setPendingUpdates] = useState<FriendUpdateAction[]>(
     []
   );
@@ -66,6 +70,14 @@ const FriendshipButton: React.FC<FriendshipButtonProps> = ({
     await Promise.all(
       Object.values(finalUpdates).map(async (update: any) => {
         if (update.action === "add") {
+          queryClient.setQueryData(["profile", userId], (oldData) =>
+            oldData
+              ? {
+                  ...oldData,
+                  friendStatus: "Friend Requested",
+                }
+              : oldData
+          );
           const response = await axios.post(
             `${process.env.EXPO_PUBLIC_API_URL}/friendRequest`,
             {
@@ -78,6 +90,14 @@ const FriendshipButton: React.FC<FriendshipButtonProps> = ({
           }
         } else if (update.action === "removeFriend") {
           console.log("Remove Friend");
+          queryClient.setQueryData(["profile", userId], (oldData) =>
+            oldData
+              ? {
+                  ...oldData,
+                  friendStatus: "Not Friends",
+                }
+              : oldData
+          );
           await axios.put(
             `${process.env.EXPO_PUBLIC_API_URL}/friends/remove/users/${currentUser?.id}`,
             {
@@ -85,6 +105,39 @@ const FriendshipButton: React.FC<FriendshipButtonProps> = ({
             }
           );
         } else if (update.action === "removeRequest") {
+          console.log("Remove Request");
+
+          // console.log("Search Phrase: " + searchPhrase);
+
+          // queryClient.setQueryData(
+          //   ["searchResults", searchPhrase],
+          //   (oldData: any) => {
+          //     return oldData
+          //       ? oldData.map((user: User) =>
+          //           user.userId === userId
+          //             ? { ...user, friendStatus: "Not Friends" }
+          //             : user
+          //         )
+          //       : oldData;
+          //   }
+          // );
+
+          // queryClient.setQueryData(
+          //   ["searchResults", searchPhrase],
+          //   (oldData: any) => {
+          //     if (!oldData) return oldData;
+
+          //     // Map through the array to create a new reference
+          //     const updatedData = oldData.map((user: User) =>
+          //       user.userId === userId
+          //         ? { ...user, friendStatus: "Not Friends" }
+          //         : user
+          //     );
+
+          //     return updatedData;
+          //   }
+          // );
+
           await axios.post(
             `${process.env.EXPO_PUBLIC_API_URL}/friendRequest/handle`,
             {

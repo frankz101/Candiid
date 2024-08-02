@@ -16,6 +16,7 @@ import toastConfig from "@/toastConfig";
 import axios from "axios";
 import Contacts, { Contact } from "react-native-contacts";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { GiphySDK } from "@giphy/react-native-sdk";
 import * as Linking from "expo-linking";
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
@@ -45,6 +46,7 @@ const InitialLayout = () => {
   const pathname = usePathname();
 
   SplashScreen.preventAutoHideAsync();
+  GiphySDK.configure({ apiKey: "QDW5PFQZJ8MYnbeJ6mjQhPrRC5v9UI1b" });
   setTimeout(SplashScreen.hideAsync, 1000);
 
   const handleDeepLink = async (event: { url: string }) => {
