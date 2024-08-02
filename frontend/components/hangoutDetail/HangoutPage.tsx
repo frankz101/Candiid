@@ -205,6 +205,9 @@ const HangoutPage: React.FC<HangoutPageProps> = ({ hangoutId }) => {
                 return updatedParticipants;
               }
             );
+            queryClient.invalidateQueries({
+              queryKey: ["upcomingHangouts", user?.id],
+            });
           },
         },
       ],
