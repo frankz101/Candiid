@@ -165,7 +165,6 @@ const Profile = () => {
               hangouts={memoriesData}
               stickers={stickersData}
               color={userProfile.backgroundDetails?.backgroundColor}
-              userId={user?.id as string}
             />
           </Pressable>
         </Animated.View>

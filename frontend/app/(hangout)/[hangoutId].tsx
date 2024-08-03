@@ -19,7 +19,7 @@ interface User {
 }
 
 const Hangout = () => {
-  const { userId, hangoutId, memoryId } = useLocalSearchParams();
+  const { hangoutId, memoryId } = useLocalSearchParams();
   const { user } = useUser();
   const queryClient = useQueryClient();
   const userData = queryClient.getQueryData<User>(["profile", user?.id]);
@@ -34,7 +34,6 @@ const Hangout = () => {
           <PostPage
             hangoutId={hangoutId as string}
             memoryId={memoryId as string}
-            userId={userId as string}
           />
         )
       )}
