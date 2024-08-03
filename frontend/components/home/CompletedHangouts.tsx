@@ -40,8 +40,6 @@ const CompletedHangouts: React.FC<CompletedHangoutsProps> = ({
       <FlatList
         data={posts}
         keyExtractor={(item) => item.id}
-        ListHeaderComponent={<CreateHangoutButton />}
-        ListHeaderComponentStyle={styles.main}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
