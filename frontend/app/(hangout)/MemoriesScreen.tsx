@@ -713,7 +713,6 @@ const MemoriesScreen = () => {
                   frame={hangout.frame}
                   color={hangout.color}
                   displayModeRef={displayModeRef}
-                  userId={user?.id as string}
                 />
               ))
             ) : (
