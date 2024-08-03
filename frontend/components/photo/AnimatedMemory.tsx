@@ -46,6 +46,7 @@ interface AnimatedMemoryProps {
   frame?: ViewStyleKey;
   displayModeRef?: MutableRefObject<boolean>;
   isDisplay?: boolean;
+  userId: string;
 }
 
 const AnimatedMemory = ({
@@ -58,6 +59,7 @@ const AnimatedMemory = ({
   color = "#FFF",
   displayModeRef = useRef(true),
   isDisplay,
+  userId,
 }: AnimatedMemoryProps) => {
   const [isEnlarged, setIsEnlarged] = useState(false);
   const [tempMemoryId, setTempMemoryId] = useState<string>(); // change the name
@@ -262,6 +264,7 @@ const AnimatedMemory = ({
       pathname: `/(hangout)/${hangoutId}`,
       params: {
         memoryId: memoryId,
+        userId: userId,
       },
     });
   };

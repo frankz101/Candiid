@@ -87,7 +87,7 @@ const ProfileScreen = () => {
         staleTime: 1000 * 60 * 5,
       },
       {
-        queryKey: ["stickers", user?.id],
+        queryKey: ["stickers", userId],
         queryFn: fetchStickers,
         staleTime: 1000 * 60 * 5,
       },
@@ -273,6 +273,7 @@ const ProfileScreen = () => {
         {/* <Text style={styles.headerText}>Memoryboard</Text> */}
         <Animated.View style={styles.animatedView}>
           <MemoriesView
+            userId={userId as string}
             hangouts={memoriesData}
             stickers={stickersData}
             color={profileDetails.backgroundDetails?.backgroundColor}

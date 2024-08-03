@@ -42,12 +42,14 @@ interface Sticker {
 interface MemoriesViewProps {
   hangouts?: Hangout[];
   stickers?: Sticker[];
+  userId: string;
   color?: string;
 }
 
 const MemoriesView: React.FC<MemoriesViewProps> = ({
   hangouts,
   stickers,
+  userId,
   color = "#FFF",
 }) => {
   const stickerStore = useStore((state) => state.stickers);
@@ -107,6 +109,7 @@ const MemoriesView: React.FC<MemoriesViewProps> = ({
               positionY={hangout.postY}
               frame={hangout.frame}
               color={hangout.color}
+              userId={userId}
             />
           ))}
 

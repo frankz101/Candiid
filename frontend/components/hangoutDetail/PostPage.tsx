@@ -28,6 +28,7 @@ import { useRouter } from "expo-router";
 interface PostProps {
   hangoutId: string;
   memoryId: string;
+  userId: string;
 }
 
 interface Hangout {
@@ -56,12 +57,11 @@ interface Post {
 }
 
 const { width: screenWidth } = Dimensions.get("window");
-const PostPage: React.FC<PostProps> = ({ hangoutId, memoryId }) => {
+const PostPage: React.FC<PostProps> = ({ hangoutId, memoryId, userId }) => {
   const [post, setPost] = useState<Post>();
   const [hangout, setHangout] = useState<Hangout>();
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const { user } = useUser();
   const router = useRouter();
 
   const fetchParticipants = async () => {
@@ -84,7 +84,7 @@ const PostPage: React.FC<PostProps> = ({ hangoutId, memoryId }) => {
   const getPost = async () => {
     try {
       const res = await axios.get(
-        `${process.env.EXPO_PUBLIC_API_URL}/posts/${user?.id}/${hangoutId}`
+        `${process.env.EXPO_PUBLIC_API_URL}/posts/${userId}/${hangoutId}`
       );
       if (res.status === 201) {
         setPost(res.data);
