@@ -80,6 +80,7 @@ const PhotoSquare: React.FC<PhotoSquareProps> = ({
               style: "destructive",
               onPress: async () => {
                 try {
+                  setLongPressModalVisible(false);
                   await axios.put(
                     `${
                       process.env.EXPO_PUBLIC_API_URL
@@ -88,6 +89,7 @@ const PhotoSquare: React.FC<PhotoSquareProps> = ({
                       hangoutId,
                     }
                   );
+
                   queryClient.invalidateQueries({
                     queryKey: ["hangoutPhotos", hangoutId],
                   });

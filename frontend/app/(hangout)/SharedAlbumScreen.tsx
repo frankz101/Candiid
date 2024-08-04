@@ -63,7 +63,7 @@ const SharedAlbumScreen = () => {
 
   useEffect(() => {
     if (hangoutData) {
-      const imageUris = hangoutData.sharedAlbum.map(
+      const imageUris = hangoutData.sharedAlbum?.map(
         (photo: Photo) => photo.fileUrl
       );
       setImages(imageUris);
@@ -219,7 +219,7 @@ const SharedAlbumScreen = () => {
         <Ionicons name="camera" size={64} color="#FFF" />
       </Pressable>
       <ImageViewing
-        images={images.map((uri) => ({ uri }))}
+        images={images?.map((uri) => ({ uri }))}
         imageIndex={currentIndex}
         visible={isViewerVisible}
         onRequestClose={() => setIsViewerVisible(false)}
