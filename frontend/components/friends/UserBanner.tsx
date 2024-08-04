@@ -13,7 +13,6 @@ import {
 } from "react-native-responsive-screen";
 import ProfileView from "../profile/ProfileView";
 import { useFriendFunctions } from "../../hooks/useFriendFunctions";
-import { useQueryClient } from "@tanstack/react-query";
 
 interface User {
   name: string;

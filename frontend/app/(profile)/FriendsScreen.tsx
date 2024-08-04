@@ -82,7 +82,12 @@ const FriendsScreen = () => {
 
   return (
     <BaseScreen>
-      <BackButton />
+      <View style={styles.header}>
+        <BackButton />
+        <Text style={styles.headerText}>Friends</Text>
+        <View style={{ width: 32 }} />
+      </View>
+
       <View style={styles.container}>
         {/* {isSearch ? <SearchFriends /> : <FriendsList />} */}
         <TabView
@@ -93,37 +98,24 @@ const FriendsScreen = () => {
           lazy={true}
           renderTabBar={(props) => <FriendsTabBar {...props} />}
         />
-        {/* <View style={styles.toggleContainer}>
-          <Animated.View
-            style={[styles.bubble, { transform: [{ translateX }] }]}
-          />
-          <TouchableOpacity
-            style={styles.toggleButton}
-            onPress={() => toggle(true)}
-          >
-            <Text
-              style={[styles.toggleButtonText, isSearch && styles.activeText]}
-            >
-              Search
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.toggleButton}
-            onPress={() => toggle(false)}
-          >
-            <Text
-              style={[styles.toggleButtonText, !isSearch && styles.activeText]}
-            >
-              Friends
-            </Text>
-          </TouchableOpacity>
-        </View> */}
       </View>
     </BaseScreen>
   );
 };
 
 const styles = StyleSheet.create({
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: hp(1),
+  },
+  headerText: {
+    fontSize: 20,
+    fontFamily: "inter",
+    fontWeight: "700",
+    color: "#FFF",
+  },
   container: {
     flex: 1,
     justifyContent: "space-between",

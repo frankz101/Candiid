@@ -1,9 +1,8 @@
 import { useUser } from "@clerk/clerk-expo";
-import { FlatList, Text, View } from "react-native";
+import { ActivityIndicator, FlatList, Text, View } from "react-native";
 import UserBanner from "@/components/friends/UserBanner";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
 
 interface User {
   userId: string;
@@ -17,7 +16,6 @@ interface User {
 
 const FriendsList = () => {
   const { user } = useUser();
-  const [friendsData, setFriendsData] = useState<User[]>([]);
 
   const fetchFriends = async (): Promise<User[]> => {
     const response = await axios.get(
@@ -27,31 +25,23 @@ const FriendsList = () => {
   };
 
   const {
-    data,
-    isLoading,
+    data: friendsData,
+    isPending,
     isError,
-    isSuccess,
-    error: queryError,
-  } = useQuery<User[], Error>({
+  } = useQuery({
     queryKey: ["friends", user?.id],
     queryFn: fetchFriends,
   });
 
-  useEffect(() => {
-    if (data) {
-      setFriendsData(data);
-    }
-  }, [data]);
-
-  if (isLoading) {
-    return <Text>Loading...</Text>;
+  if (isPending) {
+    return <ActivityIndicator size="large" color="#FFF" />;
   }
 
   if (isError) {
     return <Text>{"Error loading friends."}</Text>;
   }
 
-  if (friendsData.length === 0) {
+  if (!friendsData || friendsData.length === 0) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <Text style={{ color: "white", alignSelf: "center" }}>

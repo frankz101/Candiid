@@ -11,8 +11,6 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import ShareButton from "./ShareButton";
-import { useQuery } from "@tanstack/react-query";
-import { useDebounce } from "@uidotdev/usehooks";
 
 interface User {
   id: number;
@@ -28,29 +26,29 @@ interface User {
 const SearchFriends = () => {
   const [clicked, setClicked] = useState(false);
   const [searchPhrase, setSearchPhrase] = useState("");
-  const debouncedSearchPhrase = useDebounce(searchPhrase, 500);
+  const [debouncedSearchPhrase, setDebouncedSearchPhrase] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const { user } = useUser();
 
-  // const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  // useEffect(() => {
-  //   if (debounceTimeout.current) {
-  //     clearTimeout(debounceTimeout.current);
-  //   }
-  //   debounceTimeout.current = setTimeout(() => {
-  //     setDebouncedSearchPhrase(searchPhrase.trim());
-  //   }, 500);
+  useEffect(() => {
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+    debounceTimeout.current = setTimeout(() => {
+      setDebouncedSearchPhrase(searchPhrase.trim());
+    }, 500);
 
-  //   return () => {
-  //     if (debounceTimeout.current) {
-  //       clearTimeout(debounceTimeout.current);
-  //     }
-  //   };
-  // }, [searchPhrase]);
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
+      }
+    };
+  }, [searchPhrase]);
 
   const fetchSearchResults = async () => {
-    console.log("Fetching search results");
+    console.log("fetching");
     if (user && debouncedSearchPhrase) {
       try {
         const res = await axios.get(
@@ -59,43 +57,31 @@ const SearchFriends = () => {
           }/user/search/${debouncedSearchPhrase.trim()}/users/${user.id}`
         );
         if (res.status === 201 && res.data) {
-          return res.data.filter((result: User) => result.userId !== user.id);
+          setSearchResults(
+            res.data.filter((result: User) => result.userId !== user.id)
+          );
         } else {
-          return [];
+          setSearchResults([]);
         }
       } catch (err) {
         if (axios.isAxiosError(err) && err.response?.status === 404) {
+          setSearchResults([]);
           console.warn("No results found for the search query.");
-          return [];
         } else {
           console.error("Error fetching search results:", err);
         }
       }
     }
-    return [];
   };
 
-  const {
-    data: searchResultsQuery,
-    isPending,
-    refetch,
-  } = useQuery({
-    queryKey: ["searchResults", debouncedSearchPhrase],
-    queryFn: fetchSearchResults,
-  });
-
   useEffect(() => {
-    console.log("Key: " + debouncedSearchPhrase);
-    refetch();
+    fetchSearchResults();
   }, [debouncedSearchPhrase]);
 
   const renderItem: ListRenderItem<User> = ({ item }) => (
     <UserBanner key={item.id} user={item} type="searchResults" />
   );
 
-  if (!isPending) {
-    console.log("Search: " + JSON.stringify(searchResultsQuery));
-  }
   return (
     <BaseScreen>
       <View>

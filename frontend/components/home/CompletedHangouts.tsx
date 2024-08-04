@@ -1,4 +1,11 @@
-import { FlatList, RefreshControl, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import React from "react";
 import CreateHangoutButton from "./CreateHangoutButton";
 import FeedPost from "./FeedPost";
@@ -36,6 +43,10 @@ const CompletedHangouts: React.FC<CompletedHangoutsProps> = ({
     staleTime: 1000 * 60 * 5,
   });
 
+  if (isPending) {
+    return <ActivityIndicator size="large" color="#FFF" />;
+  }
+
   return (
     <View>
       {posts?.length > 0 ? (
@@ -62,6 +73,7 @@ const CompletedHangouts: React.FC<CompletedHangoutsProps> = ({
                 profilePhoto={profilePhoto?.fileUrl}
                 caption={item.caption}
                 photoUrls={photoUrls}
+                createdAt={item.createdAt}
               />
             );
           }}

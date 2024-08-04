@@ -78,7 +78,6 @@ const ProfileScreen = () => {
       },
       {
         queryKey: ["stickers", userId],
-        queryKey: ["stickers", userId],
         queryFn: fetchStickers,
         staleTime: 1000 * 60 * 5,
       },
@@ -118,35 +117,6 @@ const ProfileScreen = () => {
   const deleteFriend = async (friendId: string) => {
     router.back();
     await removeFriend(friendId);
-  };
-
-  const removeFriend = async () => {
-    Alert.alert(
-      "Remove Friend",
-      "Are you sure you want to remove this friend?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "OK",
-          style: "destructive",
-          onPress: async () => {
-            setModalVisible(false);
-            const res = await axios.put(
-              `${process.env.EXPO_PUBLIC_API_URL}/friends/remove/users/${currentUser?.id}`,
-              {
-                receiverId: userId,
-              }
-            );
-
-            console.log("Friendship removed: " + res.data);
-          },
-        },
-      ],
-      { cancelable: true }
-    );
   };
 
   return (
@@ -207,7 +177,7 @@ const ProfileScreen = () => {
                       (status) => router.back(),
                       () =>
                         queryClient.invalidateQueries({
-                          queryKey: ["postsData", user?.id],
+                          queryKey: ["postsData", currentUser?.id],
                         })
                     );
                   }}
@@ -396,7 +366,7 @@ const styles = StyleSheet.create({
   navOptions: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingRight: wp(2),
+    paddingHorizontal: wp(2),
     paddingBottom: hp(1),
   },
   userDetails: {

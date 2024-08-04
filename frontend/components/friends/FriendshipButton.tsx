@@ -2,7 +2,10 @@ import { useUser } from "@clerk/clerk-expo";
 import axios from "axios";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { widthPercentageToDP as wp } from "react-native-responsive-screen";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 import { useFriendFunctions } from "../../hooks/useFriendFunctions";
 
 interface User {
@@ -71,64 +74,62 @@ const FriendshipButton: React.FC<FriendshipButtonProps> = ({
           <Pressable
             style={({ pressed }) => [
               {
-                backgroundColor: pressed ? "#ddd" : "#ccc",
-                padding: 10,
-                borderRadius: 5,
-                width: wp("95%"),
-                aspectRatio: 8,
+                backgroundColor: pressed ? "#ddd" : "#FFF",
               },
               styles.centerRow,
+              styles.largeButtonStyle,
             ]}
             onPress={() => removeRequest(userId)}
           >
-            <Text style={{ color: "#000" }}>Remove Request</Text>
+            <Text style={styles.buttonText}>Remove Request</Text>
           </Pressable>
         ) : friendStatus === "Incoming Request" ? (
           <View style={{ flexDirection: "row" }}>
             <Pressable
               style={({ pressed }) => [
                 {
-                  backgroundColor: pressed ? "#ddd" : "#ccc",
+                  backgroundColor: pressed ? "#ddd" : "#FFF",
                   borderRadius: 5,
-                  width: wp("40%"),
-                  aspectRatio: 8,
+                  marginHorizontal: wp(1),
+                  width: wp("46%"),
+                  marginBottom: wp(2),
+                  height: hp(5),
                 },
                 styles.centerRow,
               ]}
               onPress={() => handleRequest("reject")}
             >
-              <Text style={{ color: "#000" }}>Reject</Text>
+              <Text style={styles.buttonText}>Reject</Text>
             </Pressable>
             <Pressable
               style={({ pressed }) => [
                 {
-                  backgroundColor: pressed ? "#ddd" : "#ccc",
+                  backgroundColor: pressed ? "#ddd" : "#FFF",
                   borderRadius: 5,
-                  width: wp("40%"),
-                  aspectRatio: 8,
+                  marginHorizontal: wp(1),
+                  marginBottom: wp(2),
+                  width: wp("46%"),
+                  height: hp(5),
                 },
                 styles.centerRow,
               ]}
               onPress={() => handleRequest("accept")}
             >
-              <Text style={{ color: "#000" }}>Accept</Text>
+              <Text style={styles.buttonText}>Accept</Text>
             </Pressable>
           </View>
         ) : (
           <Pressable
             style={({ pressed }) => [
               {
-                backgroundColor: pressed ? "#ddd" : "#ccc",
-                padding: 10,
-                borderRadius: 5,
-                width: wp("95%"),
-                aspectRatio: 8,
+                backgroundColor: pressed ? "#ddd" : "#FFF",
               },
               styles.centerRow,
+              styles.largeButtonStyle,
             ]}
             onPress={() => addFriend(userId)}
           >
-            <Text style={{ color: "#000" }}>Add Friend</Text>
+            <Text style={styles.buttonText}>Add Friend</Text>
           </Pressable>
         )}
       </View>
@@ -148,5 +149,17 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
+  },
+  largeButtonStyle: {
+    padding: wp(2),
+    marginBottom: hp(1),
+    borderRadius: 5,
+    width: wp("95%"),
+    height: hp(6),
+  },
+  buttonText: {
+    color: "#000",
+    fontFamily: "Inter",
+    fontWeight: "600",
   },
 });

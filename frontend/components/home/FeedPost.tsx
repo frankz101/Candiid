@@ -45,18 +45,30 @@ const FeedPost: React.FC<FeedPostProps> = ({
     const differenceInMonths = differenceInDays / 30.44;
     const differenceInYears = differenceInDays / 365.25;
 
-    if (differenceInYears >= 1) {
+    if (Math.floor(differenceInYears) > 1) {
       return `${Math.floor(differenceInYears)} years ago`;
-    } else if (differenceInMonths >= 1) {
+    } else if (Math.floor(differenceInYears) === 1) {
+      return "1 year ago";
+    } else if (Math.floor(differenceInMonths) > 1) {
       return `${Math.floor(differenceInMonths)} months ago`;
-    } else if (differenceInWeeks >= 1) {
+    } else if (Math.floor(differenceInMonths) === 1) {
+      return "1 month ago";
+    } else if (Math.floor(differenceInWeeks) > 1) {
       return `${Math.floor(differenceInWeeks)} weeks ago`;
-    } else if (differenceInDays >= 1) {
+    } else if (Math.floor(differenceInWeeks) === 1) {
+      return "1 week ago";
+    } else if (Math.floor(differenceInDays) > 1) {
       return `${Math.floor(differenceInDays)} days ago`;
-    } else if (differenceInHours >= 1) {
+    } else if (Math.floor(differenceInDays) === 1) {
+      return "1 day ago";
+    } else if (Math.floor(differenceInHours) > 1) {
       return `${Math.floor(differenceInHours)} hours ago`;
-    } else if (differenceInMinutes >= 1) {
+    } else if (Math.floor(differenceInHours) === 1) {
+      return "1 hour ago";
+    } else if (Math.floor(differenceInMinutes) > 1) {
       return `${Math.floor(differenceInMinutes)} minutes ago`;
+    } else if (Math.floor(differenceInMinutes) === 1) {
+      return "1 minute ago";
     } else {
       return "Just now";
     }
