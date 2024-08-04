@@ -28,7 +28,7 @@ import {
 import BaseScreen from "@/components/utils/BaseScreen";
 import FriendshipButton from "@/components/friends/FriendshipButton";
 import BackButton from "@/components/utils/BackButton";
-import { useFriendFunctions } from "@/components/utils/FriendFunctions";
+import { useFriendFunctions } from "@/hooks/useFriendFunctions";
 
 const ProfileScreen = () => {
   const { user } = useUser();

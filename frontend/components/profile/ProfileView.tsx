@@ -29,7 +29,7 @@ import {
 import BaseScreen from "@/components/utils/BaseScreen";
 import FriendshipButton from "@/components/friends/FriendshipButton";
 import BackButton from "@/components/utils/BackButton";
-import { useFriendFunctions } from "../utils/FriendFunctions";
+import { useFriendFunctions } from "../../hooks/useFriendFunctions";
 
 interface ProfileViewProps {
   userId: string;

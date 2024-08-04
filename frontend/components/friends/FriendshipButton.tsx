@@ -3,7 +3,7 @@ import axios from "axios";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { widthPercentageToDP as wp } from "react-native-responsive-screen";
-import { useFriendFunctions } from "../utils/FriendFunctions";
+import { useFriendFunctions } from "../../hooks/useFriendFunctions";
 
 interface User {
   id: number;

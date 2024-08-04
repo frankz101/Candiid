@@ -11,7 +11,7 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import ProfileView from "../profile/ProfileView";
-import { useFriendFunctions } from "../utils/FriendFunctions";
+import { useFriendFunctions } from "../../hooks/useFriendFunctions";
 
 interface User {
   name: string;
