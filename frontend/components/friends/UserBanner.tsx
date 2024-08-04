@@ -13,6 +13,7 @@ import {
 } from "react-native-responsive-screen";
 import ProfileView from "../profile/ProfileView";
 import { useFriendFunctions } from "../../hooks/useFriendFunctions";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface User {
   name: string;
@@ -42,6 +43,7 @@ const UserBanner: React.FC<UserBannerProps> = ({
 
   const [friendStatus, setFriendStatus] = useState(user.friendStatus);
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const {
     sendFriendRequest,
@@ -49,6 +51,23 @@ const UserBanner: React.FC<UserBannerProps> = ({
     handleFriendRequest,
     removeFriend,
   } = useFriendFunctions();
+
+  useEffect(() => {
+    if (type === "contacts") {
+      queryClient.setQueryData(
+        ["registeredContacts", currentUser?.id],
+        (oldData: any) => {
+          if (!oldData) return [];
+          return oldData.map((contact: any) => {
+            if (contact.userId === user.userId) {
+              return { ...contact, friendStatus: friendStatus };
+            }
+            return contact;
+          });
+        }
+      );
+    }
+  }, [friendStatus]);
 
   const handleRequest = async (status: string) => {
     if (status === "reject") {
@@ -77,7 +96,7 @@ const UserBanner: React.FC<UserBannerProps> = ({
   const [modalVisible, setModalVisible] = useState(false);
 
   const pressBanner = () => {
-    if (type === "searchResults") {
+    if (type === "searchResults" || type === "contacts") {
       setModalVisible(true);
     } else {
       router.push({
@@ -141,9 +160,12 @@ const UserBanner: React.FC<UserBannerProps> = ({
             <Text style={{ fontSize: 16, color: "white" }}>{user.name}</Text>
             <Text style={{ color: "#777" }}>{"@" + user.username}</Text>
           </View>
-          {type === "searchResults" && (
+          {(type === "searchResults" || type === "contacts") && (
             <View
-              style={{ justifyContent: "space-between", alignItems: "center" }}
+              style={{
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
             >
               {friendStatus === "Already Friends" ? (
                 <Pressable

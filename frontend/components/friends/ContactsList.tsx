@@ -30,12 +30,12 @@ const ContactsList: React.FC = () => {
   ]);
 
   const renderItem = ({ item }: { item: User }) => {
-    return <UserBanner user={item} type="searchResults" />;
+    return <UserBanner user={item} type="contacts" />;
   };
 
   return (
     <View>
-      {registeredContacts && registeredContacts?.length > 0 && (
+      {registeredContacts && registeredContacts.length > 0 && (
         <View style={styles.container}>
           <Text style={styles.header}>Add Contacts</Text>
           <FlatList
