@@ -62,6 +62,7 @@ const CompletedHangouts: React.FC<CompletedHangoutsProps> = ({
               username={username}
               profilePhoto={profilePhoto.fileUrl}
               caption={item.caption}
+              createdAt={item.createdAt}
               photoUrls={photoUrls}
             />
           );

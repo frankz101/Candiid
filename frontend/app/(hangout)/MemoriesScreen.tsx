@@ -90,6 +90,12 @@ interface Sticker {
 }
 
 const MemoriesScreen = () => {
+  useEffect(() => {
+    return () => {
+      console.log("Profile component is unmounting");
+    };
+  }, []);
+
   const { user } = useUser();
   const { newPost, frameColor, hangoutId } = useLocalSearchParams();
   const isNewPost = newPost === "true";
