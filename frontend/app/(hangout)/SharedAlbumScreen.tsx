@@ -9,7 +9,7 @@ import {
   Text,
   View,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
@@ -25,12 +25,11 @@ import {
 import ImagePicker from "react-native-image-crop-picker";
 import RNFetchBlob from "rn-fetch-blob";
 import { useUser } from "@clerk/clerk-expo";
+import ImageViewing from "react-native-image-viewing";
 
 const screenHeight = Dimensions.get("window").height;
 const headerHeight = 140;
 const bottomPadding = 20;
-
-const scrollViewHeight = screenHeight - headerHeight - bottomPadding;
 
 interface Photo {
   fileUrl: string;
@@ -47,6 +46,9 @@ const SharedAlbumScreen = () => {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { user } = useUser();
+  const [isViewerVisible, setIsViewerVisible] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [images, setImages] = useState([]);
 
   const fetchHangout = async () => {
     return axios
@@ -59,28 +61,33 @@ const SharedAlbumScreen = () => {
     queryFn: fetchHangout,
   });
 
+  useEffect(() => {
+    if (hangoutData) {
+      const imageUris = hangoutData.sharedAlbum.map(
+        (photo: Photo) => photo.fileUrl
+      );
+      setImages(imageUris);
+    }
+  }, [hangoutData]);
+
+  const openImageViewer = (index: number) => {
+    setCurrentIndex(index);
+    setIsViewerVisible(true);
+  };
+
   if (isPending) {
     return <Text>LOADING...</Text>;
   }
 
-  const handleImageSelect = async (index: number) => {
-    setSelectedPhotos((currentSelected: any) => {
-      if (currentSelected.includes(index)) {
-        return currentSelected.filter((num: number) => num !== index);
-      } else if (currentSelected.length < 10) {
-        return [...currentSelected, index];
-      }
-      return currentSelected;
-    });
-  };
-
   const renderPhoto = ({ item, index }: { item: Photo; index: number }) => (
-    <PhotoSquare
-      imageUrl={item.fileUrl}
-      takenBy={item.takenBy}
-      index={index}
-      hangoutId={hangoutId as string}
-    />
+    <Pressable onPress={() => openImageViewer(index)}>
+      <PhotoSquare
+        imageUrl={item.fileUrl}
+        takenBy={item.takenBy}
+        index={index}
+        hangoutId={hangoutId as string}
+      />
+    </Pressable>
   );
 
   const onRefresh = async () => {
@@ -211,6 +218,12 @@ const SharedAlbumScreen = () => {
       >
         <Ionicons name="camera" size={64} color="#FFF" />
       </Pressable>
+      <ImageViewing
+        images={images.map((uri) => ({ uri }))}
+        imageIndex={currentIndex}
+        visible={isViewerVisible}
+        onRequestClose={() => setIsViewerVisible(false)}
+      />
     </BaseScreen>
   );
 };

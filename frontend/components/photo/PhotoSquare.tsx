@@ -46,7 +46,6 @@ const PhotoSquare: React.FC<PhotoSquareProps> = ({
   const { user } = useUser();
   const queryClient = useQueryClient();
   const [longPressModalVisible, setLongPressModalVisible] = useState(false);
-  const [shortPressModalVisible, setShortPressModalVisible] = useState(false);
   const scaleValue = useRef(new Animated.Value(1)).current;
 
   const savePhoto = async () => {
@@ -106,21 +105,13 @@ const PhotoSquare: React.FC<PhotoSquareProps> = ({
     }
   };
 
-  const openModal = (isLongPress: boolean) => {
-    isLongPress && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    if (isLongPress) {
-      setLongPressModalVisible(true);
-    } else {
-      setShortPressModalVisible(true);
-    }
+  const openModal = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setLongPressModalVisible(true);
   };
 
   const closeModal = () => {
-    if (longPressModalVisible) {
-      setLongPressModalVisible(false);
-    } else if (shortPressModalVisible) {
-      setShortPressModalVisible(false);
-    }
+    setLongPressModalVisible(false);
   };
 
   const handleLongPress = ({ nativeEvent }: any) => {
@@ -131,10 +122,11 @@ const PhotoSquare: React.FC<PhotoSquareProps> = ({
         useNativeDriver: true,
       }).start();
     } else if (nativeEvent.state === State.ACTIVE) {
-      openModal(true);
+      openModal();
     } else if (
       nativeEvent.state === State.END ||
-      nativeEvent.state === State.CANCELLED
+      nativeEvent.state === State.CANCELLED ||
+      nativeEvent.state === State.FAILED
     ) {
       Animated.spring(scaleValue, {
         toValue: 1,
@@ -144,115 +136,81 @@ const PhotoSquare: React.FC<PhotoSquareProps> = ({
     }
   };
 
-  const handleTap = ({ nativeEvent }: any) => {
-    Animated.spring(scaleValue, {
-      toValue: 1,
-      friction: 3,
-      useNativeDriver: true,
-    }).start();
-    if (nativeEvent.state === State.END) {
-      openModal(false);
-    }
-  };
-
   return (
     <View style={styles.imageContainer}>
       <LongPressGestureHandler
         onHandlerStateChange={handleLongPress}
         minDurationMs={200}
       >
-        <TapGestureHandler onHandlerStateChange={handleTap}>
-          <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
-            <Image
-              source={{
-                uri: imageUrl,
-              }}
-              style={styles.image}
-            />
+        <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+          <Image
+            source={{
+              uri: imageUrl,
+            }}
+            style={styles.image}
+          />
 
-            {longPressModalVisible && (
-              <Modal
-                animationType="fade"
-                transparent={true}
-                visible={longPressModalVisible}
-              >
-                <Pressable style={styles.overlay} onPress={closeModal}>
-                  <BlurView style={styles.modalContainer} intensity={20}>
-                    <Image
-                      source={{ uri: imageUrl }}
-                      style={{
-                        width: wp(80),
-                        aspectRatio: 1,
-                        borderRadius: 20,
-                      }}
-                    />
-                    <View style={styles.buttonContainer}>
-                      <Pressable
+          {longPressModalVisible && (
+            <Modal
+              animationType="fade"
+              transparent={true}
+              visible={longPressModalVisible}
+            >
+              <Pressable style={styles.overlay} onPress={closeModal}>
+                <BlurView style={styles.modalContainer} intensity={20}>
+                  <Image
+                    source={{ uri: imageUrl }}
+                    style={{
+                      width: wp(80),
+                      aspectRatio: 1,
+                      borderRadius: 20,
+                    }}
+                  />
+                  <View style={styles.buttonContainer}>
+                    <Pressable
+                      style={[
+                        styles.button,
+                        takenBy === user?.id && {
+                          borderBottomWidth: 1,
+                          borderBottomColor: "#3a3a3d",
+                        },
+                      ]}
+                      onPress={savePhoto}
+                    >
+                      <Text
                         style={[
-                          styles.button,
-                          takenBy === user?.id && {
-                            borderBottomWidth: 1,
-                            borderBottomColor: "#3a3a3d",
+                          styles.buttonText,
+                          {
+                            color: "white",
                           },
                         ]}
-                        onPress={savePhoto}
                       >
-                        <Text
-                          style={[
-                            styles.buttonText,
-                            {
-                              color: "white",
-                            },
-                          ]}
-                        >
-                          Save
+                        Save
+                      </Text>
+                      <Ionicons
+                        name="download-outline"
+                        size={24}
+                        color={"white"}
+                      />
+                    </Pressable>
+                    {takenBy === user?.id && (
+                      <Pressable style={styles.button} onPress={deletePhoto}>
+                        <Text style={[styles.buttonText, { color: "red" }]}>
+                          Delete
                         </Text>
                         <Ionicons
-                          name="download-outline"
+                          name="trash-outline"
                           size={24}
-                          color={"white"}
+                          color={"red"}
                         />
                       </Pressable>
-                      {takenBy === user?.id && (
-                        <Pressable style={styles.button} onPress={deletePhoto}>
-                          <Text style={[styles.buttonText, { color: "red" }]}>
-                            Delete
-                          </Text>
-                          <Ionicons
-                            name="trash-outline"
-                            size={24}
-                            color={"red"}
-                          />
-                        </Pressable>
-                      )}
-                    </View>
-                  </BlurView>
-                </Pressable>
-              </Modal>
-            )}
-
-            {shortPressModalVisible && (
-              <Modal
-                animationType="fade"
-                transparent={true}
-                visible={shortPressModalVisible}
-              >
-                <Pressable
-                  style={[styles.overlay, { backgroundColor: "black" }]}
-                  onPress={closeModal}
-                >
-                  <Image
-                    source={{
-                      uri: imageUrl,
-                    }}
-                    style={styles.fullScreenContainer}
-                    contentFit="contain"
-                  />
-                </Pressable>
-              </Modal>
-            )}
-          </Animated.View>
-        </TapGestureHandler>
+                    )}
+                  </View>
+                </BlurView>
+              </Pressable>
+            </Modal>
+          )}
+        </Animated.View>
       </LongPressGestureHandler>
     </View>
   );
