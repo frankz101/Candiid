@@ -93,6 +93,7 @@ const FriendsList = () => {
   return (
     <View>
       <FlatList
+        style={{ height: "100%" }}
         data={friendsData}
         renderItem={renderItem}
         keyExtractor={(item) => item.userId}

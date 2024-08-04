@@ -41,6 +41,7 @@ const CompletedHangouts: React.FC<CompletedHangoutsProps> = ({
         <FlatList
           data={posts}
           keyExtractor={(item) => item.id}
+          style={{ height: "100%" }}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}

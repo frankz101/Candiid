@@ -13,6 +13,7 @@ import {
   useCameraDevice,
   Camera,
   useCameraFormat,
+  CameraPosition,
 } from "react-native-vision-camera";
 import { useIsFocused } from "@react-navigation/native";
 import { useAppState } from "@react-native-community/hooks";
@@ -41,7 +42,7 @@ interface CameraComponentProps {
 
 const CameraComponent: React.FC<CameraComponentProps> = ({ hangoutId }) => {
   const { hasPermission, requestPermission } = useCameraPermission();
-  const [cameraType, setCameraType] = useState("front");
+  const [cameraType, setCameraType] = useState<CameraPosition>("front");
   const [recentPhoto, setRecentPhoto] = useState(null);
 
   const { isLoaded, user } = useUser();

@@ -100,6 +100,7 @@ const SearchFriends = () => {
         />
         <ShareButton type="user" id={user?.id as string} />
         <FlatList
+          style={{ height: "100%" }}
           data={searchResults}
           renderItem={renderItem}
           keyExtractor={(item) => item.userId}
