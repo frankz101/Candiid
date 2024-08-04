@@ -34,7 +34,7 @@ const FriendsList = () => {
     isSuccess,
     error: queryError,
   } = useQuery<User[], Error>({
-    queryKey: ["friendsData", user?.id],
+    queryKey: ["friends", user?.id],
     queryFn: fetchFriends,
   });
 

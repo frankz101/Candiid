@@ -55,11 +55,6 @@ const CreateHangout = () => {
       .then((res) => res.data);
   };
 
-  const { data: friendsData, isPending } = useQuery({
-    queryKey: ["friendsData", user?.id],
-    queryFn: fetchFriends,
-  });
-
   const handleHangoutSubmit = async () => {
     const hangoutData = {
       userId: user?.id,

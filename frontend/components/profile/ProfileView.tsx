@@ -170,6 +170,9 @@ const ProfileView: React.FC<ProfileViewProps> = ({
           style: "destructive",
           onPress: async () => {
             console.log("Remove Friend");
+            queryClient.setQueryData(["friends", user?.id], (oldData: any) => {
+              return oldData.filter((friend: any) => friend.userId !== userId);
+            });
             await axios.put(
               `${process.env.EXPO_PUBLIC_API_URL}/friends/remove/users/${user?.id}`,
               {

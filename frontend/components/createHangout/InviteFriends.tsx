@@ -30,7 +30,7 @@ const InviteFriends = () => {
   };
 
   const { data: friendsData, isPending } = useQuery({
-    queryKey: ["friendsData", user?.id],
+    queryKey: ["friends", user?.id],
     queryFn: fetchFriends,
   });
 

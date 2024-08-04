@@ -162,6 +162,37 @@ const ProfileScreen = () => {
     }
   };
 
+  const removeFriend = (friendId: string) => {
+    Alert.alert(
+      "Remove Friend",
+      "Are you sure you want to remove this friend?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "OK",
+          style: "destructive",
+          onPress: async () => {
+            console.log("Remove Friend");
+            router.back();
+            queryClient.setQueryData(["friends", user?.id], (oldData: any) => {
+              return oldData.filter((friend: any) => friend.userId !== userId);
+            });
+            await axios.put(
+              `${process.env.EXPO_PUBLIC_API_URL}/friends/remove/users/${user?.id}`,
+              {
+                receiverId: friendId,
+              }
+            );
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
   return (
     <BaseScreen style={styles.container}>
       <View style={styles.navOptions}>
@@ -229,6 +260,7 @@ const ProfileScreen = () => {
                         ? { backgroundColor: "#3a3a3d" }
                         : { backgroundColor: "#2a2a2d" },
                     ]}
+                    onPress={() => removeFriend(userId as string)}
                   >
                     <Text style={styles.modalButtonText}>
                       Remove friendship
