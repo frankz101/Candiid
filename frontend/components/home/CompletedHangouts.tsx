@@ -37,32 +37,44 @@ const CompletedHangouts: React.FC<CompletedHangoutsProps> = ({
 
   return (
     <View>
-      <FlatList
-        data={posts}
-        keyExtractor={(item) => item.id}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={"#FFF"}
-          />
-        }
-        renderItem={({ item }) => {
-          const { username, profilePhoto } = item.userInfo;
-          const photoUrls = item.photoUrls.map((photo: Photo) => ({
-            fileUrl: photo.fileUrl,
-          }));
-          return (
-            <FeedPost
-              userId={item.userId}
-              username={username}
-              profilePhoto={profilePhoto.fileUrl}
-              caption={item.caption}
-              photoUrls={photoUrls}
+      {posts?.length > 0 ? (
+        <FlatList
+          data={posts}
+          keyExtractor={(item) => item.id}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={"#FFF"}
             />
-          );
-        }}
-      />
+          }
+          renderItem={({ item }) => {
+            const { username, profilePhoto } = item.userInfo;
+            const photoUrls = item.photoUrls.map((photo: Photo) => ({
+              fileUrl: photo.fileUrl,
+            }));
+            return (
+              <FeedPost
+                userId={item.userId}
+                username={username}
+                profilePhoto={profilePhoto.fileUrl}
+                caption={item.caption}
+                photoUrls={photoUrls}
+              />
+            );
+          }}
+        />
+      ) : (
+        <View
+          style={{
+            height: "90%",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Text style={{ color: "white", fontSize: 15 }}>No posts yet!</Text>
+        </View>
+      )}
     </View>
   );
 };
