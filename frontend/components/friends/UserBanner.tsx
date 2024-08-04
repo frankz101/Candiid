@@ -11,6 +11,7 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import ProfileView from "../profile/ProfileView";
+import { useFriendFunctions } from "../utils/FriendFunctions";
 
 interface User {
   name: string;
@@ -25,108 +26,28 @@ interface User {
   };
 }
 
-type FriendUpdateAction = {
-  action: string;
-  friendId: string;
-};
-
 interface UserBannerProps {
   user: User;
   type: string;
   disabled?: boolean;
-  onHandleRequest?: (userId: string) => void;
 }
 
 const UserBanner: React.FC<UserBannerProps> = ({
   user,
   type,
   disabled = false,
-  onHandleRequest,
 }) => {
   const { user: currentUser } = useUser();
-  const [pendingUpdates, setPendingUpdates] = useState<FriendUpdateAction[]>(
-    []
-  );
+
   const [friendStatus, setFriendStatus] = useState(user.friendStatus);
   const router = useRouter();
-  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  const applyUpdates = useCallback(async () => {
-    if (pendingUpdates.length === 0) return;
-
-    const finalUpdates = pendingUpdates.reduce((acc: any, update: any) => {
-      if (acc[update.friendId]) {
-        if (
-          acc[update.friendId].action === "add" &&
-          update.action === "removeRequest"
-        ) {
-          delete acc[update.friendId];
-        } else if (
-          acc[update.friendId].action === "removeRequest" &&
-          update.action === "add"
-        ) {
-          delete acc[update.friendId];
-        }
-      } else {
-        acc[update.friendId] = update;
-      }
-      return acc;
-    }, {});
-
-    await Promise.all(
-      Object.values(finalUpdates).map(async (update: any) => {
-        if (update.action === "add") {
-          const response = await axios.post(
-            `${process.env.EXPO_PUBLIC_API_URL}/friendRequest`,
-            {
-              senderId: currentUser?.id,
-              receiverId: update.friendId,
-            }
-          );
-          if (response.status === 201) {
-            console.log("Added");
-          }
-        } else if (update.action === "removeFriend") {
-          console.log("Remove Friend");
-          await axios.put(
-            `${process.env.EXPO_PUBLIC_API_URL}/friends/remove/users/${currentUser?.id}`,
-            {
-              receiverId: update.friendId,
-            }
-          );
-        } else if (update.action === "removeRequest") {
-          await axios.post(
-            `${process.env.EXPO_PUBLIC_API_URL}/friendRequest/handle`,
-            {
-              senderId: currentUser?.id,
-              receiverId: user.userId,
-              status: "reject",
-            }
-          );
-        }
-      })
-    );
-
-    setPendingUpdates([]); // Clear pending updates after applying them
-  }, [pendingUpdates, currentUser?.id, user.userId]);
-
-  useEffect(() => {
-    if (pendingUpdates.length > 0) {
-      if (debounceTimeout.current) {
-        clearTimeout(debounceTimeout.current);
-      }
-      debounceTimeout.current = setTimeout(() => {
-        applyUpdates();
-      }, 5000);
-    }
-
-    return () => {
-      if (debounceTimeout.current) {
-        clearTimeout(debounceTimeout.current);
-      }
-      applyUpdates();
-    };
-  }, [pendingUpdates, applyUpdates]);
+  const {
+    sendFriendRequest,
+    removeFriendRequest,
+    handleFriendRequest,
+    removeFriend,
+  } = useFriendFunctions();
 
   const handleRequest = async (status: string) => {
     if (status === "reject") {
@@ -134,81 +55,24 @@ const UserBanner: React.FC<UserBannerProps> = ({
     } else {
       setFriendStatus("Already Friends");
     }
-    const res = await axios.post(
-      `${process.env.EXPO_PUBLIC_API_URL}/friendRequest/handle`,
-      {
-        senderId: user.userId,
-        receiverId: currentUser?.id,
-        status,
-      }
-    );
-
-    if (res.status === 201 && onHandleRequest) {
-      onHandleRequest(user.userId);
-    }
+    await handleFriendRequest(user.userId, status);
   };
 
   const addFriend = (friendId: string) => {
-    setPendingUpdates((currentUpdates) => [
-      ...currentUpdates,
-      { action: "add", friendId },
-    ]);
     setFriendStatus("Friend Requested");
+    sendFriendRequest(friendId);
   };
 
-  const removeFriend = (friendId: string) => {
-    Alert.alert(
-      "Remove Friend",
-      "Are you sure you want to remove this friend?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "OK",
-          style: "destructive",
-          onPress: () => {
-            setPendingUpdates((currentUpdates) => [
-              ...currentUpdates,
-              { action: "removeFriend", friendId },
-            ]);
-            setFriendStatus("Not Friends");
-          },
-        },
-      ],
-      { cancelable: true }
-    );
+  const deleteFriend = async (friendId: string) => {
+    setFriendStatus("Not Friends");
+    await removeFriend(friendId);
   };
 
   const removeRequest = (friendId: string) => {
-    setPendingUpdates((currentUpdates) => [
-      ...currentUpdates,
-      { action: "removeRequest", friendId },
-    ]);
     setFriendStatus("Not Friends");
+    removeFriendRequest(friendId);
   };
 
-  const removeFriendList = (friendId: string) => {
-    if (onHandleRequest) {
-      Alert.alert(
-        "Remove Friend",
-        "Are you sure you want to remove this friend?",
-        [
-          {
-            text: "Cancel",
-            style: "cancel",
-          },
-          {
-            text: "OK",
-            style: "destructive",
-            onPress: () => onHandleRequest(friendId),
-          },
-        ],
-        { cancelable: true }
-      );
-    }
-  };
   const [modalVisible, setModalVisible] = useState(false);
 
   const pressBanner = () => {
@@ -227,6 +91,10 @@ const UserBanner: React.FC<UserBannerProps> = ({
       });
     }
   };
+
+  if (friendStatus === "Blocked") {
+    return <View></View>;
+  }
 
   return (
     <View>
@@ -279,7 +147,7 @@ const UserBanner: React.FC<UserBannerProps> = ({
               {friendStatus === "Already Friends" ? (
                 <Pressable
                   style={styles.centerRow}
-                  onPress={() => removeFriend(user.userId)}
+                  onPress={() => deleteFriend(user.userId)}
                 >
                   <Ionicons name="close-outline" color="gray" size={20} />
                 </Pressable>
@@ -363,7 +231,7 @@ const UserBanner: React.FC<UserBannerProps> = ({
           {type === "friends" && (
             <Pressable
               style={styles.centerRow}
-              onPress={() => removeFriendList(user.userId)}
+              onPress={async () => await removeFriend(user.userId)}
             >
               <Ionicons name="close-outline" color="gray" size={20} />
             </Pressable>

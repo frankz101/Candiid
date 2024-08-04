@@ -21,7 +21,6 @@ import { useUser } from "@clerk/clerk-expo";
 import { Image } from "expo-image";
 import MemoriesView from "@/components/profile/MemoriesView";
 import Animated from "react-native-reanimated";
-import { BlurView } from "expo-blur";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -29,19 +28,8 @@ import {
 import BaseScreen from "@/components/utils/BaseScreen";
 import FriendshipButton from "@/components/friends/FriendshipButton";
 import BackButton from "@/components/utils/BackButton";
+import { useFriendFunctions } from "@/components/utils/FriendFunctions";
 
-const screenHeight = Dimensions.get("window").height;
-const headerHeight = 120;
-const bottomPadding = 20;
-
-const scrollViewHeight = screenHeight - headerHeight - bottomPadding;
-
-// userId={user.userId}
-//           name={user.name}
-//           profilePhoto={encodeURIComponent(user.profilePhoto?.fileUrl)}
-//           friendStatus={friendStatus}
-//           setFriendStatus={setFriendStatus}
-//STATE DOES NOT UPDATE WHEN PRESSING BACK BUTTON ONTO SEARCH SCREEN
 const ProfileScreen = () => {
   const { user } = useUser();
   const router = useRouter();
@@ -50,6 +38,8 @@ const ProfileScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const queryClient = useQueryClient();
+
+  const { removeFriend, blockUser } = useFriendFunctions();
 
   const fetchUser = async () => {
     console.log("Fetching User Information in profile screen");
@@ -122,75 +112,9 @@ const ProfileScreen = () => {
     );
   }
 
-  const blockUser = async () => {
-    try {
-      if (user) {
-        Alert.alert(
-          "Are you sure you want to block this user?",
-          "You will no longer be able to view their profile",
-          [
-            {
-              text: "No",
-              style: "cancel",
-            },
-            {
-              text: "Yes",
-              style: "destructive",
-              onPress: async () => {
-                router.back();
-                setModalVisible(false);
-                const details = {
-                  userId: user.id,
-                  blockedUserId: userId,
-                };
-                const res = await axios.post(
-                  `${process.env.EXPO_PUBLIC_API_URL}/user/block`,
-                  {
-                    details,
-                  }
-                );
-                queryClient.invalidateQueries({ queryKey: ["searchResults"] });
-                console.log(res.data);
-              },
-            },
-          ],
-          { cancelable: true }
-        );
-      }
-    } catch (err) {
-      console.error("Error blocking user: ", err);
-    }
-  };
-
-  const removeFriend = (friendId: string) => {
-    Alert.alert(
-      "Remove Friend",
-      "Are you sure you want to remove this friend?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "OK",
-          style: "destructive",
-          onPress: async () => {
-            console.log("Remove Friend");
-            router.back();
-            queryClient.setQueryData(["friends", user?.id], (oldData: any) => {
-              return oldData.filter((friend: any) => friend.userId !== userId);
-            });
-            await axios.put(
-              `${process.env.EXPO_PUBLIC_API_URL}/friends/remove/users/${user?.id}`,
-              {
-                receiverId: friendId,
-              }
-            );
-          },
-        },
-      ],
-      { cancelable: true }
-    );
+  const deleteFriend = async (friendId: string) => {
+    router.back();
+    await removeFriend(friendId);
   };
 
   return (
@@ -244,7 +168,17 @@ const ProfileScreen = () => {
                       ? { backgroundColor: "#3a3a3d" }
                       : { backgroundColor: "#2a2a2d" },
                   ]}
-                  onPress={blockUser}
+                  onPress={() => {
+                    setModalVisible(false);
+                    blockUser(
+                      userId as string,
+                      (status) => router.back(),
+                      () =>
+                        queryClient.invalidateQueries({
+                          queryKey: ["postsData", user?.id],
+                        })
+                    );
+                  }}
                 >
                   <Text style={styles.modalButtonText}>
                     Block {profileDetails.username}
@@ -260,7 +194,7 @@ const ProfileScreen = () => {
                         ? { backgroundColor: "#3a3a3d" }
                         : { backgroundColor: "#2a2a2d" },
                     ]}
-                    onPress={() => removeFriend(userId as string)}
+                    onPress={() => deleteFriend(userId as string)}
                   >
                     <Text style={styles.modalButtonText}>
                       Remove friendship

@@ -29,6 +29,7 @@ import {
 import BaseScreen from "@/components/utils/BaseScreen";
 import FriendshipButton from "@/components/friends/FriendshipButton";
 import BackButton from "@/components/utils/BackButton";
+import { useFriendFunctions } from "../utils/FriendFunctions";
 
 interface ProfileViewProps {
   userId: string;
@@ -51,12 +52,13 @@ const ProfileView: React.FC<ProfileViewProps> = ({
   setParentModalVisible,
   setFriendStatus,
 }) => {
-  const { user } = useUser();
   const router = useRouter();
 
   const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const queryClient = useQueryClient();
+
+  const { removeFriend, blockUser } = useFriendFunctions();
 
   const fetchMemories = async () => {
     console.log("Fetching Memories in profile screen");
@@ -116,76 +118,10 @@ const ProfileView: React.FC<ProfileViewProps> = ({
     );
   }
 
-  const blockUser = async () => {
-    try {
-      if (user) {
-        Alert.alert(
-          "Are you sure you want to block this user?",
-          "You will no longer be able to view their profile",
-          [
-            {
-              text: "No",
-              style: "cancel",
-            },
-            {
-              text: "Yes",
-              style: "destructive",
-              onPress: async () => {
-                router.back();
-                setModalVisible(false);
-                const details = {
-                  userId: user.id,
-                  blockedUserId: userId,
-                };
-                const res = await axios.post(
-                  `${process.env.EXPO_PUBLIC_API_URL}/user/block`,
-                  {
-                    details,
-                  }
-                );
-                queryClient.invalidateQueries({ queryKey: ["searchResults"] });
-                console.log(res.data);
-              },
-            },
-          ],
-          { cancelable: true }
-        );
-      }
-    } catch (err) {
-      console.error("Error blocking user: ", err);
-    }
-  };
-
-  const removeFriend = (friendId: string) => {
-    Alert.alert(
-      "Remove Friend",
-      "Are you sure you want to remove this friend?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "OK",
-          style: "destructive",
-          onPress: async () => {
-            console.log("Remove Friend");
-            queryClient.setQueryData(["friends", user?.id], (oldData: any) => {
-              return oldData.filter((friend: any) => friend.userId !== userId);
-            });
-            await axios.put(
-              `${process.env.EXPO_PUBLIC_API_URL}/friends/remove/users/${user?.id}`,
-              {
-                receiverId: friendId,
-              }
-            );
-            setParentModalVisible(false);
-            setFriendStatus("Not Friends");
-          },
-        },
-      ],
-      { cancelable: true }
-    );
+  const deleteFriend = async (friendId: string) => {
+    setParentModalVisible(false);
+    setFriendStatus("Not Friends");
+    await removeFriend(friendId);
   };
 
   return (
@@ -237,7 +173,13 @@ const ProfileView: React.FC<ProfileViewProps> = ({
                       ? { backgroundColor: "#3a3a3d" }
                       : { backgroundColor: "#2a2a2d" },
                   ]}
-                  onPress={blockUser}
+                  onPress={async () => {
+                    setModalVisible(false);
+
+                    blockUser(userId, setParentModalVisible, () =>
+                      setFriendStatus("Blocked")
+                    );
+                  }}
                 >
                   <Text style={styles.modalButtonText}>Block {username}</Text>
                   <Ionicons name="ban-outline" color="red" size={24} />
@@ -251,7 +193,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
                         ? { backgroundColor: "#3a3a3d" }
                         : { backgroundColor: "#2a2a2d" },
                     ]}
-                    onPress={() => removeFriend(userId)}
+                    onPress={() => deleteFriend(userId)}
                   >
                     <Text style={styles.modalButtonText}>
                       Remove friendship
