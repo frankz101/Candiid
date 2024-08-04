@@ -29,7 +29,7 @@ const SearchFriends = () => {
   const [clicked, setClicked] = useState(false);
   const [searchPhrase, setSearchPhrase] = useState("");
   const debouncedSearchPhrase = useDebounce(searchPhrase, 500);
-  // const [searchResults, setSearchResults] = useState([]);
+  const [searchResults, setSearchResults] = useState([]);
   const { user } = useUser();
 
   // const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -90,12 +90,7 @@ const SearchFriends = () => {
   }, [debouncedSearchPhrase]);
 
   const renderItem: ListRenderItem<User> = ({ item }) => (
-    <UserBanner
-      key={item.id}
-      user={item}
-      type="searchResults"
-      searchPhrase={debouncedSearchPhrase}
-    />
+    <UserBanner key={item.id} user={item} type="searchResults" />
   );
 
   if (!isPending) {
@@ -114,7 +109,8 @@ const SearchFriends = () => {
         />
         <ShareButton type="user" id={user?.id as string} />
         <FlatList
-          data={searchResultsQuery}
+          style={{ height: "100%" }}
+          data={searchResults}
           renderItem={renderItem}
           keyExtractor={(item) => item.userId}
         />

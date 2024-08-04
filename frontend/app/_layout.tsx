@@ -66,13 +66,6 @@ const InitialLayout = () => {
         });
       } else if (hostname === "hangout" && path) {
         try {
-          await axios.put(
-            `${process.env.EXPO_PUBLIC_API_URL}/hangout/add-user`,
-            {
-              hangoutId: path,
-              userId: user.id,
-            }
-          );
           queryClient.setQueryData(["profile", user?.id], (oldData: any) =>
             oldData
               ? {
@@ -83,6 +76,13 @@ const InitialLayout = () => {
           );
 
           router.replace(`/(hangout)/${path}`);
+          await axios.put(
+            `${process.env.EXPO_PUBLIC_API_URL}/hangout/add-user`,
+            {
+              hangoutId: path,
+              userId: user.id,
+            }
+          );
         } catch (error) {
           console.error("Error fetching hangout data:", error);
         }
@@ -205,7 +205,7 @@ const InitialLayout = () => {
             queryClient.prefetchQuery({
               queryKey: ["registeredContacts", user.id],
               queryFn: fetchRegisteredContacts,
-              staleTime: 1000 * 60 * 5,
+              staleTime: Infinity,
             }),
           ]);
 
@@ -227,13 +227,6 @@ const InitialLayout = () => {
                 params: { id: deepLinkData.id as string },
               });
             } else if (deepLinkData.hostname === "hangout") {
-              await axios.put(
-                `${process.env.EXPO_PUBLIC_API_URL}/hangout/add-user`,
-                {
-                  hangoutId: deepLinkData.id,
-                  userId: user.id,
-                }
-              );
               queryClient.setQueryData(["profile", user?.id], (oldData: any) =>
                 oldData
                   ? {
@@ -247,6 +240,13 @@ const InitialLayout = () => {
               );
               router.replace("/(tabs)/");
               router.push(`/(hangout)/${deepLinkData.id}`);
+              await axios.put(
+                `${process.env.EXPO_PUBLIC_API_URL}/hangout/add-user`,
+                {
+                  hangoutId: deepLinkData.id,
+                  userId: user.id,
+                }
+              );
             }
             setDeepLinkData(null); // Clear deep link data after handling
           } else if (segments[0] !== "(tabs)") {

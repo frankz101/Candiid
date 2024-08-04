@@ -16,6 +16,7 @@ import {
   useCameraPermission,
   useCameraDevice,
   Camera,
+  CameraPosition,
 } from "react-native-vision-camera";
 import {
   useSharedValue,
@@ -35,7 +36,7 @@ const ChangePhotoSheet = () => {
   const { user } = useUser();
   const queryClient = useQueryClient();
   const { hasPermission, requestPermission } = useCameraPermission();
-  const [cameraType, setCameraType] = useState("front");
+  const [cameraType, setCameraType] = useState<CameraPosition>("front");
   const [showCamera, setShowCamera] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<PhotoPreview | null>(null);
   const isFocused = useIsFocused();
@@ -101,9 +102,8 @@ const ChangePhotoSheet = () => {
           },
         ]
       )
-        .then((response) => response.json())
-        .then((data) => {
-          console.log("Profile photo change success:", data);
+        .then(() => {
+          console.log("Profile photo change success");
           queryClient.invalidateQueries({
             queryKey: ["profile", user?.id],
           });

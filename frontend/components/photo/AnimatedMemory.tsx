@@ -25,6 +25,7 @@ import {
 } from "react-native-responsive-screen";
 import useStore from "@/store/useStore";
 import uuid from "react-native-uuid";
+import * as Haptics from "expo-haptics";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
@@ -46,6 +47,7 @@ interface AnimatedMemoryProps {
   frame?: ViewStyleKey;
   displayModeRef?: MutableRefObject<boolean>;
   isDisplay?: boolean;
+  userId: string;
 }
 
 const AnimatedMemory = ({
@@ -58,6 +60,7 @@ const AnimatedMemory = ({
   color = "#FFF",
   displayModeRef = useRef(true),
   isDisplay,
+  userId,
 }: AnimatedMemoryProps) => {
   const [isEnlarged, setIsEnlarged] = useState(false);
   const [tempMemoryId, setTempMemoryId] = useState<string>(); // change the name
@@ -144,6 +147,7 @@ const AnimatedMemory = ({
 
   const handleLongPress = () => {
     if (!displayModeRef.current) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       Alert.alert(
         "Confirm Delete",
         "Are you sure you want to delete this photo?",
@@ -262,6 +266,7 @@ const AnimatedMemory = ({
       pathname: `/(hangout)/${hangoutId}`,
       params: {
         memoryId: memoryId,
+        userId: userId,
       },
     });
   };

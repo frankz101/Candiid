@@ -1,9 +1,8 @@
 import { useUser } from "@clerk/clerk-expo";
-import { FlatList, ListRenderItem, Text, View } from "react-native";
+import { FlatList, Text, View } from "react-native";
 import UserBanner from "@/components/friends/UserBanner";
 import axios from "axios";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import BaseScreen from "../utils/BaseScreen";
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
 interface User {
@@ -34,26 +33,9 @@ const FriendsList = () => {
     isSuccess,
     error: queryError,
   } = useQuery<User[], Error>({
-    queryKey: ["friendsData", user?.id],
+    queryKey: ["friends", user?.id],
     queryFn: fetchFriends,
   });
-
-  const removeFriend = async (friendId: string) => {
-    try {
-      await axios.put(
-        `${process.env.EXPO_PUBLIC_API_URL}/friends/remove/users/${user?.id}`,
-        {
-          receiverId: friendId,
-        }
-      );
-      console.log("Removing friend");
-      setFriendsData((prevFriends) =>
-        prevFriends.filter((friend) => friend.userId !== friendId)
-      );
-    } catch (error) {
-      console.error("Error removing friend:", error);
-    }
-  };
 
   useEffect(() => {
     if (data) {
@@ -80,19 +62,13 @@ const FriendsList = () => {
   }
 
   const renderItem = ({ item }: { item: User }) => {
-    return (
-      <UserBanner
-        key={item.userId}
-        user={item}
-        type="friends"
-        onHandleRequest={removeFriend}
-      />
-    );
+    return <UserBanner key={item.userId} user={item} type="friends" />;
   };
 
   return (
     <View style={{ flex: 1 }}>
       <FlatList
+        style={{ height: "100%" }}
         data={friendsData}
         renderItem={renderItem}
         keyExtractor={(item) => item.userId}

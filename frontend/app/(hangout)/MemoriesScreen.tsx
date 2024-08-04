@@ -15,6 +15,7 @@ import React, {
 } from "react";
 import {
   Dimensions,
+  Keyboard,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -369,6 +370,7 @@ const MemoriesScreen = () => {
   const handleEditMode = useCallback((mode: string) => {
     setIsEditMode(true);
     setEditMode(mode);
+
     if (mode === "colorPicker") {
       setModalContent("colorPicker");
     } else if (mode === "stickers") {
@@ -548,7 +550,19 @@ const MemoriesScreen = () => {
   };
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
-  const snapPoints = useMemo(() => ["50%", "90%"], []);
+  const snapPoints = useMemo(() => {
+    if (modalContent === "stickers") {
+      return ["90%", "50%"];
+    } else if (modalContent === "colorPicker") {
+      return ["50%"];
+    }
+    return ["50%"];
+  }, [modalContent]);
+
+  const modalIndex = useMemo(
+    () => (snapPoints.length > 1 ? 0 : 0),
+    [snapPoints]
+  );
 
   const handleSheetChanges = useCallback((index: number) => {
     console.log("handleSheetChanges", index);
@@ -716,6 +730,7 @@ const MemoriesScreen = () => {
                   frame={hangout.frame}
                   color={hangout.color}
                   displayModeRef={displayModeRef}
+                  userId={user?.id as string}
                 />
               ))
             ) : (
@@ -794,7 +809,7 @@ const MemoriesScreen = () => {
       </Animated.View>
       <BottomSheetModal
         ref={bottomSheetModalRef}
-        index={1}
+        index={modalIndex}
         snapPoints={snapPoints}
         onChange={handleSheetChanges}
         enablePanDownToClose={true}
