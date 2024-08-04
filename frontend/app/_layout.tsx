@@ -179,7 +179,7 @@ const InitialLayout = () => {
             queryClient.prefetchQuery({
               queryKey: ["registeredContacts", user.id],
               queryFn: fetchRegisteredContacts,
-              staleTime: 1000 * 60 * 5,
+              staleTime: Infinity,
             }),
           ]);
 

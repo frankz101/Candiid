@@ -1,14 +1,16 @@
+import ProfileScreen from "@/app/(profile)/ProfileScreen";
 import { useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useEffect, useState, useRef, useCallback } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import ProfileView from "../profile/ProfileView";
 
 interface User {
   name: string;
@@ -18,6 +20,9 @@ interface User {
   };
   userId: string;
   friendStatus?: string;
+  backgroundDetails?: {
+    backgroundColor: string;
+  };
 }
 
 type FriendUpdateAction = {
@@ -29,7 +34,6 @@ interface UserBannerProps {
   user: User;
   type: string;
   disabled?: boolean;
-  searchPhrase?: string;
   onHandleRequest?: (userId: string) => void;
 }
 
@@ -37,7 +41,6 @@ const UserBanner: React.FC<UserBannerProps> = ({
   user,
   type,
   disabled = false,
-  searchPhrase = "",
   onHandleRequest,
 }) => {
   const { user: currentUser } = useUser();
@@ -206,76 +209,81 @@ const UserBanner: React.FC<UserBannerProps> = ({
       );
     }
   };
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const pressBanner = () => {
+    if (type === "searchResults") {
+      setModalVisible(true);
+    } else {
+      router.push({
+        pathname: "/(profile)/ProfileScreen",
+        params: {
+          userId: user.userId,
+          name: user.name,
+          username: user.username,
+          profilePhoto: encodeURIComponent(user.profilePhoto?.fileUrl),
+          friendStatus: friendStatus ? friendStatus : "",
+        },
+      });
+    }
+  };
 
   return (
-    <Pressable
-      onPress={() => {
-        router.push({
-          pathname: "/(profile)/ProfileScreen",
-          params: {
-            userId: user.userId,
-            name: user.name,
-            username: user.username,
-            profilePhoto: encodeURIComponent(user.profilePhoto?.fileUrl),
-            friendStatus: friendStatus ? friendStatus : "",
-          },
-        });
-      }}
-      disabled={user.userId === currentUser?.id || disabled}
-    >
-      <View
-        style={[
-          {
-            padding: wp(3),
-            flexDirection: "row",
-            alignItems: "flex-start",
-          },
-        ]}
+    <View>
+      <Modal animationType="slide" visible={modalVisible} transparent={true}>
+        <ProfileView
+          userId={user.userId}
+          name={user.name}
+          username={user.username}
+          profilePhoto={user.profilePhoto?.fileUrl}
+          friendStatus={friendStatus as string}
+          backgroundColor={user.backgroundDetails?.backgroundColor as string}
+          setParentModalVisible={(status) => setModalVisible(status)}
+          setFriendStatus={(status) => setFriendStatus(status)}
+        />
+      </Modal>
+      <Pressable
+        onPress={pressBanner}
+        disabled={user.userId === currentUser?.id || disabled}
       >
-        {user.profilePhoto && user.profilePhoto.fileUrl ? (
-          <Image
-            source={{ uri: user.profilePhoto.fileUrl }}
-            style={styles.profilePhoto}
-          />
-        ) : (
-          <Ionicons name="person-circle" color="white" size={40} />
-        )}
         <View
-          style={{
-            marginLeft: wp(3),
-            flex: 1,
-          }}
+          style={[
+            {
+              padding: wp(3),
+              flexDirection: "row",
+              alignItems: "flex-start",
+            },
+          ]}
         >
-          <Text style={{ fontSize: 16, color: "white" }}>{user.name}</Text>
-          <Text style={{ color: "#777" }}>{"@" + user.username}</Text>
-        </View>
-        {type === "searchResults" && (
+          {user.profilePhoto && user.profilePhoto.fileUrl ? (
+            <Image
+              source={{ uri: user.profilePhoto.fileUrl }}
+              style={styles.profilePhoto}
+            />
+          ) : (
+            <Ionicons name="person-circle" color="white" size={40} />
+          )}
           <View
-            style={{ justifyContent: "space-between", alignItems: "center" }}
+            style={{
+              marginLeft: wp(3),
+              flex: 1,
+            }}
           >
-            {friendStatus === "Already Friends" ? (
-              <Pressable
-                style={styles.centerRow}
-                onPress={() => removeFriend(user.userId)}
-              >
-                <Ionicons name="close-outline" color="gray" size={20} />
-              </Pressable>
-            ) : friendStatus === "Friend Requested" ? (
-              <Pressable
-                style={({ pressed }) => [
-                  {
-                    backgroundColor: pressed
-                      ? "rgba(85, 85, 85, 0.7)"
-                      : "rgba(85, 85, 85, 0.5)",
-                  },
-                  styles.centerRow,
-                ]}
-                onPress={() => removeRequest(user.userId)}
-              >
-                <Text style={{ color: "lightgray" }}>Added</Text>
-              </Pressable>
-            ) : friendStatus === "Incoming Request" ? (
-              <View style={{ flexDirection: "row" }}>
+            <Text style={{ fontSize: 16, color: "white" }}>{user.name}</Text>
+            <Text style={{ color: "#777" }}>{"@" + user.username}</Text>
+          </View>
+          {type === "searchResults" && (
+            <View
+              style={{ justifyContent: "space-between", alignItems: "center" }}
+            >
+              {friendStatus === "Already Friends" ? (
+                <Pressable
+                  style={styles.centerRow}
+                  onPress={() => removeFriend(user.userId)}
+                >
+                  <Ionicons name="close-outline" color="gray" size={20} />
+                </Pressable>
+              ) : friendStatus === "Friend Requested" ? (
                 <Pressable
                   style={({ pressed }) => [
                     {
@@ -285,18 +293,52 @@ const UserBanner: React.FC<UserBannerProps> = ({
                     },
                     styles.centerRow,
                   ]}
-                  onPress={() => handleRequest("accept")}
+                  onPress={() => removeRequest(user.userId)}
                 >
-                  <Text style={{ color: "lightgray" }}>Accept</Text>
+                  <Text style={{ color: "lightgray" }}>Added</Text>
                 </Pressable>
+              ) : friendStatus === "Incoming Request" ? (
+                <View style={{ flexDirection: "row" }}>
+                  <Pressable
+                    style={({ pressed }) => [
+                      {
+                        backgroundColor: pressed
+                          ? "rgba(85, 85, 85, 0.7)"
+                          : "rgba(85, 85, 85, 0.5)",
+                      },
+                      styles.centerRow,
+                    ]}
+                    onPress={() => handleRequest("accept")}
+                  >
+                    <Text style={{ color: "lightgray" }}>Accept</Text>
+                  </Pressable>
+                  <Pressable
+                    style={styles.centerRow}
+                    onPress={() => handleRequest("reject")}
+                  >
+                    <Ionicons name="close-outline" color="gray" size={20} />
+                  </Pressable>
+                </View>
+              ) : (
                 <Pressable
-                  style={styles.centerRow}
-                  onPress={() => handleRequest("reject")}
+                  style={({ pressed }) => [
+                    {
+                      backgroundColor: pressed
+                        ? "rgba(85, 85, 85, 0.7)"
+                        : "rgba(85, 85, 85, 0.5)",
+                    },
+                    styles.centerRow,
+                  ]}
+                  onPress={() => addFriend(user.userId)}
                 >
-                  <Ionicons name="close-outline" color="gray" size={20} />
+                  <Text style={{ color: "lightgray" }}>Add</Text>
                 </Pressable>
-              </View>
-            ) : (
+              )}
+            </View>
+          )}
+
+          {type === "friendRequests" && (
+            <View style={{ flexDirection: "row" }}>
               <Pressable
                 style={({ pressed }) => [
                   {
@@ -306,47 +348,29 @@ const UserBanner: React.FC<UserBannerProps> = ({
                   },
                   styles.centerRow,
                 ]}
-                onPress={() => addFriend(user.userId)}
+                onPress={() => handleRequest("accept")}
               >
-                <Text style={{ color: "lightgray" }}>Add</Text>
+                <Text style={{ color: "lightgray" }}>Accept</Text>
               </Pressable>
-            )}
-          </View>
-        )}
-
-        {type === "friendRequests" && (
-          <View style={{ flexDirection: "row" }}>
-            <Pressable
-              style={({ pressed }) => [
-                {
-                  backgroundColor: pressed
-                    ? "rgba(85, 85, 85, 0.7)"
-                    : "rgba(85, 85, 85, 0.5)",
-                },
-                styles.centerRow,
-              ]}
-              onPress={() => handleRequest("accept")}
-            >
-              <Text style={{ color: "lightgray" }}>Accept</Text>
-            </Pressable>
+              <Pressable
+                style={styles.centerRow}
+                onPress={() => handleRequest("reject")}
+              >
+                <Ionicons name="close-outline" color="gray" size={20} />
+              </Pressable>
+            </View>
+          )}
+          {type === "friends" && (
             <Pressable
               style={styles.centerRow}
-              onPress={() => handleRequest("reject")}
+              onPress={() => removeFriendList(user.userId)}
             >
               <Ionicons name="close-outline" color="gray" size={20} />
             </Pressable>
-          </View>
-        )}
-        {type === "friends" && (
-          <Pressable
-            style={styles.centerRow}
-            onPress={() => removeFriendList(user.userId)}
-          >
-            <Ionicons name="close-outline" color="gray" size={20} />
-          </Pressable>
-        )}
-      </View>
-    </Pressable>
+          )}
+        </View>
+      </Pressable>
+    </View>
   );
 };
 

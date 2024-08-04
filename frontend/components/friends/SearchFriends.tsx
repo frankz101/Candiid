@@ -79,12 +79,7 @@ const SearchFriends = () => {
   }, [debouncedSearchPhrase]);
 
   const renderItem: ListRenderItem<User> = ({ item }) => (
-    <UserBanner
-      key={item.id}
-      user={item}
-      type="searchResults"
-      searchPhrase={debouncedSearchPhrase}
-    />
+    <UserBanner key={item.id} user={item} type="searchResults" />
   );
 
   return (

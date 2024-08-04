@@ -25,13 +25,13 @@ type FriendUpdateAction = {
 interface FriendshipButtonProps {
   userId: string;
   status: string;
-  onHandleRequest?: (userId: string) => void;
+  setParentFriendStatus?: (status: string) => void;
 }
 
 const FriendshipButton: React.FC<FriendshipButtonProps> = ({
   userId,
   status,
-  onHandleRequest,
+  setParentFriendStatus,
 }) => {
   const { user: currentUser } = useUser();
   const [pendingUpdates, setPendingUpdates] = useState<FriendUpdateAction[]>(
@@ -124,6 +124,7 @@ const FriendshipButton: React.FC<FriendshipButtonProps> = ({
       { action: "add", friendId },
     ]);
     setFriendStatus("Friend Requested");
+    setParentFriendStatus && setParentFriendStatus("Friend Requested");
   };
 
   const removeFriend = (friendId: string) => {
@@ -144,6 +145,7 @@ const FriendshipButton: React.FC<FriendshipButtonProps> = ({
               { action: "removeFriend", friendId },
             ]);
             setFriendStatus("Not Friends");
+            setParentFriendStatus && setParentFriendStatus("Not Friends");
           },
         },
       ],
@@ -157,14 +159,17 @@ const FriendshipButton: React.FC<FriendshipButtonProps> = ({
       { action: "removeRequest", friendId },
     ]);
     setFriendStatus("Not Friends");
+    setParentFriendStatus && setParentFriendStatus("Not Friends");
   };
 
   const handleRequest = async (status: string) => {
     try {
       if (status === "reject") {
         setFriendStatus("Not Friends");
+        setParentFriendStatus && setParentFriendStatus("Not Friends");
       } else {
         setFriendStatus("Already Friends");
+        setParentFriendStatus && setParentFriendStatus("Already Friends");
       }
       const res = await axios.post(
         `${process.env.EXPO_PUBLIC_API_URL}/friendRequest/handle`,

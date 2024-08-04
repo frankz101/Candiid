@@ -30,33 +30,33 @@ import BaseScreen from "@/components/utils/BaseScreen";
 import FriendshipButton from "@/components/friends/FriendshipButton";
 import BackButton from "@/components/utils/BackButton";
 
-const screenHeight = Dimensions.get("window").height;
-const headerHeight = 120;
-const bottomPadding = 20;
+interface ProfileViewProps {
+  userId: string;
+  username: string;
+  name: string;
+  profilePhoto: string;
+  friendStatus: string;
+  backgroundColor: string;
+  setParentModalVisible: (status: boolean) => void;
+  setFriendStatus: (status: string) => void;
+}
 
-const scrollViewHeight = screenHeight - headerHeight - bottomPadding;
-
-// userId={user.userId}
-//           name={user.name}
-//           profilePhoto={encodeURIComponent(user.profilePhoto?.fileUrl)}
-//           friendStatus={friendStatus}
-//           setFriendStatus={setFriendStatus}
-//STATE DOES NOT UPDATE WHEN PRESSING BACK BUTTON ONTO SEARCH SCREEN
-const ProfileScreen = () => {
+const ProfileView: React.FC<ProfileViewProps> = ({
+  userId,
+  username,
+  name,
+  profilePhoto,
+  friendStatus,
+  backgroundColor,
+  setParentModalVisible,
+  setFriendStatus,
+}) => {
   const { user } = useUser();
   const router = useRouter();
-  const { userId } = useLocalSearchParams();
 
   const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const queryClient = useQueryClient();
-
-  const fetchUser = async () => {
-    console.log("Fetching User Information in profile screen");
-    return axios
-      .get(`${process.env.EXPO_PUBLIC_API_URL}/users/${userId}/${user?.id}`)
-      .then((res) => res.data);
-  };
 
   const fetchMemories = async () => {
     console.log("Fetching Memories in profile screen");
@@ -72,16 +72,11 @@ const ProfileScreen = () => {
       .then((res) => res.data);
   };
 
-  const [memories, profile, fetchedStickers] = useQueries({
+  const [memories, fetchedStickers] = useQueries({
     queries: [
       {
         queryKey: ["memories", userId],
         queryFn: fetchMemories,
-        staleTime: 1000 * 60 * 5,
-      },
-      {
-        queryKey: ["profile", userId],
-        queryFn: fetchUser,
         staleTime: 1000 * 60 * 5,
       },
       {
@@ -93,7 +88,6 @@ const ProfileScreen = () => {
   });
 
   const { data: memoriesData, isPending: isPendingMemories } = memories;
-  const { data: profileDetails, isPending: isPendingProfile } = profile;
   const { data: stickersData, isPending: isPendingStickers } = fetchedStickers;
 
   const onRefresh = async () => {
@@ -102,7 +96,7 @@ const ProfileScreen = () => {
     setRefreshing(false);
   };
 
-  if (isPendingMemories || isPendingProfile || isPendingStickers) {
+  if (isPendingMemories || isPendingStickers) {
     return (
       <BaseScreen>
         <View
@@ -162,13 +156,42 @@ const ProfileScreen = () => {
     }
   };
 
+  const removeFriend = (friendId: string) => {
+    Alert.alert(
+      "Remove Friend",
+      "Are you sure you want to remove this friend?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "OK",
+          style: "destructive",
+          onPress: async () => {
+            console.log("Remove Friend");
+            await axios.put(
+              `${process.env.EXPO_PUBLIC_API_URL}/friends/remove/users/${user?.id}`,
+              {
+                receiverId: friendId,
+              }
+            );
+            setParentModalVisible(false);
+            setFriendStatus("Not Friends");
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
   return (
     <BaseScreen style={styles.container}>
       <View style={styles.navOptions}>
-        <BackButton />
-        <Text
-          style={styles.userDetailText}
-        >{`@${profileDetails.username}`}</Text>
+        <Pressable onPress={() => setParentModalVisible(false)}>
+          <Ionicons name="chevron-down" size={32} color="white" />
+        </Pressable>
+        <Text style={styles.userDetailText}>{`@${username}`}</Text>
         <View>
           <Pressable onPress={() => setModalVisible(true)}>
             <Ionicons
@@ -196,14 +219,12 @@ const ProfileScreen = () => {
                       pathname: "/ReportScreen",
                       params: {
                         userId,
-                        username: profileDetails.username,
+                        username: username,
                       },
                     });
                   }}
                 >
-                  <Text style={styles.modalButtonText}>
-                    Report {profileDetails.username}
-                  </Text>
+                  <Text style={styles.modalButtonText}>Report {username}</Text>
                   <Ionicons name="alert-circle-outline" color="red" size={24} />
                 </Pressable>
                 <Pressable
@@ -215,13 +236,11 @@ const ProfileScreen = () => {
                   ]}
                   onPress={blockUser}
                 >
-                  <Text style={styles.modalButtonText}>
-                    Block {profileDetails.username}
-                  </Text>
+                  <Text style={styles.modalButtonText}>Block {username}</Text>
                   <Ionicons name="ban-outline" color="red" size={24} />
                 </Pressable>
 
-                {profileDetails.friendStatus === "Already Friends" && (
+                {friendStatus === "Already Friends" && (
                   <Pressable
                     style={({ pressed }) => [
                       styles.modalButton,
@@ -229,6 +248,7 @@ const ProfileScreen = () => {
                         ? { backgroundColor: "#3a3a3d" }
                         : { backgroundColor: "#2a2a2d" },
                     ]}
+                    onPress={() => removeFriend(userId)}
                   >
                     <Text style={styles.modalButtonText}>
                       Remove friendship
@@ -252,143 +272,36 @@ const ProfileScreen = () => {
         }
       >
         <View style={styles.userDetails}>
-          {profileDetails && profileDetails.profilePhoto ? (
-            <Image
-              source={{ uri: profileDetails.profilePhoto.fileUrl }}
-              style={styles.profilePhoto}
-            />
+          {profilePhoto ? (
+            <Image source={{ uri: profilePhoto }} style={styles.profilePhoto} />
           ) : (
             <View style={[styles.profilePhoto, { backgroundColor: "grey" }]} />
           )}
-          <Text style={styles.userText}>{profileDetails.name}</Text>
-          {profileDetails.friendStatus !== "Already Friends" && (
+          <Text style={styles.userText}>{name}</Text>
+          {friendStatus !== "Already Friends" && (
             <FriendshipButton
               userId={userId as string}
-              status={profileDetails.friendStatus}
+              status={friendStatus}
+              setParentFriendStatus={(status: string) =>
+                setFriendStatus(status)
+              }
             />
           )}
         </View>
-        {/* <Text style={styles.headerText}>Memoryboard</Text> */}
         <Animated.View style={styles.animatedView}>
           <MemoriesView
             userId={userId as string}
             hangouts={memoriesData}
             stickers={stickersData}
-            color={profileDetails.backgroundDetails?.backgroundColor}
+            color={backgroundColor}
           />
         </Animated.View>
-        {/* DEFAULT PROFILE PIC NOT CENTERED AND SIZE IS WRONG */}
-        {/* <View style={styles.upcomingHangouts}>
-          <Text style={styles.headerText}>Upcoming Hangouts</Text>
-          {upcomingHangouts?.map((hangout: Hangout) => {
-            return (
-              <Pressable
-                key={hangout.id}
-                onPress={() => router.push(`/(hangout)/${hangout.id}`)}
-              >
-                <View style={styles.hangoutBanner}>
-                  <Text style={styles.hangoutText}>{hangout.hangoutName}</Text>
-                  <View style={styles.participants}>
-                    {hangout.participants.map((participant: Participant) =>
-                      participant.profilePhoto ? (
-                        <Image
-                          key={participant.userId}
-                          source={{ uri: participant.profilePhoto.fileUrl }}
-                          style={styles.participantPhoto}
-                        />
-                      ) : (
-                        <View
-                          key={participant.userId}
-                          style={styles.participantPhoto}
-                        >
-                          <Ionicons
-                            name="person-circle"
-                            size={40}
-                            color="white"
-                          />
-                        </View>
-                      )
-                    )}
-                    {hangout.participantIds.length > 2 && (
-                      <View style={styles.additionalParticipants}>
-                        <Text>+{hangout.participantIds.length - 2}</Text>
-                      </View>
-                    )}
-                  </View>
-                </View>
-              </Pressable>
-            );
-          })}
-        </View> */}
       </ScrollView>
     </BaseScreen>
-    // <SafeAreaView>
-    //   <View
-    //     style={{
-    //       flexDirection: "row",
-    //       justifyContent: "space-between",
-    //       alignItems: "center",
-    //       paddingHorizontal: 18,
-    //       paddingVertical: 10,
-    //     }}
-    //   >
-    //     <View style={{ flexDirection: "row", alignItems: "center" }}>
-    //       {profileDetails &&
-    //       profileDetails.result &&
-    //       profileDetails.result.profilePhoto ? (
-    //         <Image
-    //           source={{ uri: profileDetails.result.profilePhoto.fileUrl }}
-    //           style={styles.profilePhoto}
-    //         />
-    //       ) : (
-    //         <Ionicons name="person-circle" size={64} />
-    //       )}
-
-    //       <View>
-    //         <Text style={styles.name}>{profileDetails.result.name}</Text>
-    //         <Text
-    //           style={styles.username}
-    //         >{`@${profileDetails.result.username}`}</Text>
-    //       </View>
-    //     </View>
-    //     <View style={{ flexDirection: "row", alignItems: "center" }}>
-    //       <Pressable onPress={() => router.push("/(profile)/SettingsScreen")}>
-    //         <Ionicons name="menu" size={32} />
-    //       </Pressable>
-    //     </View>
-    //   </View>
-    //   <ScrollView
-    //     contentContainerStyle={styles.scrollViewContainer}
-    //     refreshControl={
-    //       <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-    //     }
-    //   >
-    //     <Animated.View
-    //       style={styles.animatedView}
-    //       // sharedTransitionTag="MemoriesScreen"
-    //     >
-    //       <Pressable onPress={() => router.push("/(hangout)/MemoriesScreen")}>
-    //         <MemoriesView hangouts={memoriesData} />
-    //       </Pressable>
-    //       {profileDetails.result.friendStatus === "Not Friends" && (
-    //         <BlurView
-    //           style={{
-    //             position: "absolute",
-    //             top: 0,
-    //             left: 0,
-    //             right: 0,
-    //             bottom: 0,
-    //           }}
-    //           intensity={50}
-    //         />
-    //       )}
-    //     </Animated.View>
-    //   </ScrollView>
-    // </SafeAreaView>
   );
 };
 
-export default ProfileScreen;
+export default ProfileView;
 
 const styles = StyleSheet.create({
   container: {
