@@ -5,6 +5,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import DebouncedPressable from "../utils/DebouncedPressable";
 
 type IoniconNames = keyof typeof Ionicons.glyphMap;
 
@@ -20,22 +21,22 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
   onTabPress,
 }) => {
   return (
-    <Pressable onPress={onTabPress}>
+    <DebouncedPressable onPress={onTabPress}>
       <View style={styles.container}>
         <View style={styles.leftContainer}>
           <Ionicons
             name={`${icon}`}
-            size={32}
+            size={30}
             color="#FFF"
-            style={{ width: wp(10) }}
+            style={{ marginRight: wp(3) }}
           />
           <Text style={styles.tabText}>{title}</Text>
         </View>
         <View>
-          <Ionicons name={"chevron-forward"} size={32} color="#FFF" />
+          <Ionicons name={"chevron-forward"} size={24} color="gray" />
         </View>
       </View>
-    </Pressable>
+    </DebouncedPressable>
   );
 };
 
@@ -58,6 +59,6 @@ const styles = StyleSheet.create({
   tabText: {
     color: "white",
     fontFamily: "Inter",
-    fontSize: 22,
+    fontSize: 18,
   },
 });
