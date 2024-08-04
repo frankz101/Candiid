@@ -25,6 +25,7 @@ import {
 } from "react-native-responsive-screen";
 import useStore from "@/store/useStore";
 import uuid from "react-native-uuid";
+import * as Haptics from "expo-haptics";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
@@ -146,6 +147,7 @@ const AnimatedMemory = ({
 
   const handleLongPress = () => {
     if (!displayModeRef.current) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       Alert.alert(
         "Confirm Delete",
         "Are you sure you want to delete this photo?",

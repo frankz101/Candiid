@@ -101,9 +101,8 @@ const ChangePhotoSheet = () => {
           },
         ]
       )
-        .then((response) => response.json())
-        .then((data) => {
-          console.log("Profile photo change success:", data);
+        .then(() => {
+          console.log("Profile photo change success");
           queryClient.invalidateQueries({
             queryKey: ["profile", user?.id],
           });
