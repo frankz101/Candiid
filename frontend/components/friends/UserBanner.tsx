@@ -83,8 +83,8 @@ const UserBanner: React.FC<UserBannerProps> = ({
   };
 
   const deleteFriend = async (friendId: string) => {
-    setFriendStatus("Not Friends");
     await removeFriend(friendId);
+    setFriendStatus("Not Friends");
   };
 
   const removeRequest = (friendId: string) => {

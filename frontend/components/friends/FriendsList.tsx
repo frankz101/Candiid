@@ -23,7 +23,10 @@ const FriendsList = () => {
     const response = await axios.get(
       `${process.env.EXPO_PUBLIC_API_URL}/user/${user?.id}/friends`
     );
-    return response.data;
+    return response.data.map((user: User) => ({
+      ...user,
+      friendStatus: "Already Friends",
+    }));
   };
 
   const {
@@ -62,7 +65,7 @@ const FriendsList = () => {
   }
 
   const renderItem = ({ item }: { item: User }) => {
-    return <UserBanner key={item.userId} user={item} type="friends" />;
+    return <UserBanner key={item.userId} user={item} type="searchResults" />;
   };
 
   return (

@@ -108,8 +108,8 @@ export const useFriendFunctions = () => {
     );
   };
 
-  const removeFriend = async (friendId: string) => {
-    try {
+  const removeFriend = (friendId: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
       Alert.alert(
         "Remove Friend",
         "Are you sure you want to remove this friend?",
@@ -117,76 +117,81 @@ export const useFriendFunctions = () => {
           {
             text: "Cancel",
             style: "cancel",
+            onPress: () => reject(new Error("Cancelled")),
           },
           {
             text: "OK",
             style: "destructive",
             onPress: async () => {
-              queryClient.setQueryData(
-                ["friends", user?.id],
-                (oldData: any) => {
-                  return oldData.filter(
-                    (friend: any) => friend.userId !== friendId
-                  );
-                }
-              );
-              await axios.put(
-                `${process.env.EXPO_PUBLIC_API_URL}/friends/remove/users/${user?.id}`,
-                {
-                  receiverId: friendId,
-                }
-              );
-              console.log("removed");
+              try {
+                queryClient.setQueryData(
+                  ["friends", user?.id],
+                  (oldData: any) =>
+                    oldData.filter((friend: any) => friend.userId !== friendId)
+                );
+                await axios.put(
+                  `${process.env.EXPO_PUBLIC_API_URL}/friends/remove/users/${user?.id}`,
+                  {
+                    receiverId: friendId,
+                  }
+                );
+                resolve();
+              } catch (err) {
+                console.error("Error removing friend: ", err);
+                reject(err);
+              }
             },
           },
         ],
         { cancelable: true }
       );
-    } catch (err) {
-      console.error("Error removing friend: ", err);
-    }
+    });
   };
 
-  const blockUser = async (
-    userId: string,
-    setModalVisible: (status: boolean) => void,
-    setFriendStatus?: () => void
-  ) => {
-    try {
-      if (user) {
-        Alert.alert(
-          "Are you sure you want to block this user?",
-          "You will no longer be able to view their profile",
-          [
-            {
-              text: "No",
-              style: "cancel",
-            },
-            {
-              text: "Yes",
-              style: "destructive",
-              onPress: async () => {
-                setModalVisible(false);
-                const details = {
-                  userId: user.id,
-                  blockedUserId: userId,
-                };
-                await axios.post(
-                  `${process.env.EXPO_PUBLIC_API_URL}/user/block`,
-                  {
-                    details,
-                  }
-                );
-                setFriendStatus && setFriendStatus();
+  const blockUser = (userId: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      try {
+        if (user) {
+          Alert.alert(
+            "Are you sure you want to block this user?",
+            "You will no longer be able to view their profile",
+            [
+              {
+                text: "No",
+                style: "cancel",
+                onPress: () => reject(new Error("Cancelled")),
               },
-            },
-          ],
-          { cancelable: true }
-        );
+              {
+                text: "Yes",
+                style: "destructive",
+                onPress: async () => {
+                  try {
+                    const details = {
+                      userId: user.id,
+                      blockedUserId: userId,
+                    };
+                    await axios.post(
+                      `${process.env.EXPO_PUBLIC_API_URL}/user/block`,
+                      { details }
+                    );
+                    resolve();
+                  } catch (err) {
+                    console.error("Error blocking user: ", err);
+                    reject(err);
+                  }
+                },
+              },
+            ],
+            { cancelable: true }
+          );
+        } else {
+          reject(new Error("User not authenticated"));
+        }
+      } catch (err) {
+        console.error("Error blocking user: ", err);
+        reject(err);
       }
-    } catch (err) {
-      console.error("Error blocking user: ", err);
-    }
+    });
   };
 
   return {

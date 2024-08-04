@@ -168,16 +168,13 @@ const ProfileScreen = () => {
                       ? { backgroundColor: "#3a3a3d" }
                       : { backgroundColor: "#2a2a2d" },
                   ]}
-                  onPress={() => {
+                  onPress={async () => {
                     setModalVisible(false);
-                    blockUser(
-                      userId as string,
-                      (status) => router.back(),
-                      () =>
-                        queryClient.invalidateQueries({
-                          queryKey: ["postsData", user?.id],
-                        })
-                    );
+                    await blockUser(userId as string);
+                    router.back();
+                    queryClient.invalidateQueries({
+                      queryKey: ["postsData", user?.id],
+                    });
                   }}
                 >
                   <Text style={styles.modalButtonText}>

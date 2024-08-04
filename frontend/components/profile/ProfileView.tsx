@@ -119,9 +119,9 @@ const ProfileView: React.FC<ProfileViewProps> = ({
   }
 
   const deleteFriend = async (friendId: string) => {
-    setParentModalVisible(false);
-    setFriendStatus("Not Friends");
     await removeFriend(friendId);
+    setFriendStatus("Not Friends");
+    setParentModalVisible(false);
   };
 
   return (
@@ -175,10 +175,9 @@ const ProfileView: React.FC<ProfileViewProps> = ({
                   ]}
                   onPress={async () => {
                     setModalVisible(false);
-
-                    blockUser(userId, setParentModalVisible, () =>
-                      setFriendStatus("Blocked")
-                    );
+                    await blockUser(userId);
+                    setParentModalVisible(false);
+                    setFriendStatus("Blocked");
                   }}
                 >
                   <Text style={styles.modalButtonText}>Block {username}</Text>
