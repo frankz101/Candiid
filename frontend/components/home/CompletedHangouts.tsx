@@ -1,15 +1,10 @@
 import { FlatList, RefreshControl, StyleSheet, Text, View } from "react-native";
-import React from "react";
+import React, { useState } from "react";
 import CreateHangoutButton from "./CreateHangoutButton";
 import FeedPost from "./FeedPost";
 import axios from "axios";
 import { useUser } from "@clerk/clerk-expo";
-import { useQuery } from "@tanstack/react-query";
-
-interface CompletedHangoutsProps {
-  refreshing: boolean;
-  onRefresh: () => void;
-}
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface Photo {
   fileUrl: string;
@@ -17,11 +12,10 @@ interface Photo {
   takenBy: string;
 }
 
-const CompletedHangouts: React.FC<CompletedHangoutsProps> = ({
-  refreshing,
-  onRefresh,
-}) => {
+const CompletedHangouts = () => {
   const { user } = useUser();
+  const [refreshing, setRefreshing] = useState(false);
+  const queryClient = useQueryClient();
 
   const fetchFriendsPosts = async () => {
     return axios
@@ -34,6 +28,14 @@ const CompletedHangouts: React.FC<CompletedHangoutsProps> = ({
     queryFn: fetchFriendsPosts,
     staleTime: 1000 * 60 * 5,
   });
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await queryClient.invalidateQueries({
+      queryKey: ["postsData", user?.id],
+    });
+    setRefreshing(false);
+  };
 
   return (
     <View>
