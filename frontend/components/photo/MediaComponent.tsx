@@ -1,4 +1,3 @@
-import { Image } from "expo-image";
 import Animated, {
   SharedValue,
   runOnJS,
@@ -6,7 +5,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
-import { Alert, Pressable, StyleSheet, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View, Image } from "react-native";
 import { GiphyMedia, GiphyMediaView } from "@giphy/react-native-sdk";
 import {
   widthPercentageToDP as wp,
@@ -49,9 +48,7 @@ const MediaComponent: React.FC<MediaComponentProps> = ({
   const posX = useSharedValue<number>(positionX);
   const posY = useSharedValue<number>(positionY);
 
-  console.log(
-    "ID: " + id + " Position X: " + positionX + " isDisplay: " + isDisplay
-  );
+  console.log(media.data.images.original.url);
 
   const isMediaActive = useSharedValue<boolean>(false);
   const [isStickerVisible, setIsStickerVisible] = useState<boolean>(true);
@@ -99,14 +96,28 @@ const MediaComponent: React.FC<MediaComponentProps> = ({
             onLongPress={handleLongPress}
             style={{ position: "absolute", width: "100%", height: "100%" }}
           >
-            <GiphyMediaView
+            {/* <GiphyMediaView
               media={media}
               style={{
                 width: "100%",
                 height: "100%",
                 aspectRatio: media.aspectRatio,
               }}
+            /> */}
+            <Image
+              style={{
+                width: "100%",
+                height: "100%",
+                aspectRatio: media.aspectRatio,
+              }}
+              source={{ uri: media.data.images.original.url }}
+              testID={`gph-dynamic-text-view-${media.id}`}
             />
+            {/* <GiphyMediaView
+              media={media}
+              style={{ aspectRatio: media.aspectRatio }}
+              testID={`gph-media-view-${media.id}`}
+            /> */}
           </Pressable>
         );
       default:

@@ -19,11 +19,32 @@ import {
 import { useLocalSearchParams } from "expo-router";
 import axios from "axios";
 import { useUser } from "@clerk/clerk-expo";
+import { TabView } from "react-native-tab-view";
+import FriendsTabBar from "@/components/friends/FriendsTabBar";
+
+const initialLayout = { height: 0, width: Dimensions.get("window").width };
 
 const FriendsScreen = () => {
   const [isSearch, setIsSearch] = useState(true);
   const { id } = useLocalSearchParams();
   const { user } = useUser();
+
+  const [index, setIndex] = useState(0);
+  const [routes] = useState([
+    { key: "searchFriends", title: "Search" },
+    { key: "friendsList", title: "Friends" },
+  ]);
+
+  const renderScene = ({ route }: any) => {
+    switch (route.key) {
+      case "searchFriends":
+        return <SearchFriends />;
+      case "friendsList":
+        return <FriendsList />;
+      default:
+        return null;
+    }
+  };
 
   const animation = useRef(new Animated.Value(0)).current;
 
@@ -61,40 +82,40 @@ const FriendsScreen = () => {
 
   return (
     <BaseScreen>
-      <BackButton />
+      <View style={styles.header}>
+        <BackButton />
+        <Text style={styles.headerText}>Friends</Text>
+        <View style={{ width: 32 }} />
+      </View>
+
       <View style={styles.container}>
-        {isSearch ? <SearchFriends /> : <FriendsList />}
-        <View style={styles.toggleContainer}>
-          <Animated.View
-            style={[styles.bubble, { transform: [{ translateX }] }]}
-          />
-          <TouchableOpacity
-            style={styles.toggleButton}
-            onPress={() => toggle(true)}
-          >
-            <Text
-              style={[styles.toggleButtonText, isSearch && styles.activeText]}
-            >
-              Search
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.toggleButton}
-            onPress={() => toggle(false)}
-          >
-            <Text
-              style={[styles.toggleButtonText, !isSearch && styles.activeText]}
-            >
-              Friends
-            </Text>
-          </TouchableOpacity>
-        </View>
+        {/* {isSearch ? <SearchFriends /> : <FriendsList />} */}
+        <TabView
+          navigationState={{ index, routes }}
+          renderScene={renderScene}
+          onIndexChange={setIndex}
+          initialLayout={initialLayout}
+          lazy={true}
+          renderTabBar={(props) => <FriendsTabBar {...props} />}
+        />
       </View>
     </BaseScreen>
   );
 };
 
 const styles = StyleSheet.create({
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: hp(1),
+  },
+  headerText: {
+    fontSize: 20,
+    fontFamily: "inter",
+    fontWeight: "700",
+    color: "#FFF",
+  },
   container: {
     flex: 1,
     justifyContent: "space-between",

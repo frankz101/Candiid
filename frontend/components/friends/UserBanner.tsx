@@ -1,6 +1,7 @@
 import ProfileScreen from "@/app/(profile)/ProfileScreen";
 import { useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
+import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
@@ -12,7 +13,6 @@ import {
 } from "react-native-responsive-screen";
 import ProfileView from "../profile/ProfileView";
 import { useFriendFunctions } from "../../hooks/useFriendFunctions";
-import { useQueryClient } from "@tanstack/react-query";
 
 interface User {
   name: string;

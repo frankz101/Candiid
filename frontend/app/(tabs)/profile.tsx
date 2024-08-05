@@ -8,7 +8,7 @@ import {
   Modal,
 } from "react-native";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
-import React, { useState } from "react";
+import React, { useState, Suspense, lazy } from "react";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";

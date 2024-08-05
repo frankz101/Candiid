@@ -6,7 +6,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
-import { Alert, Pressable, StyleSheet, View } from "react-native";
+import { Alert, Image, Pressable, StyleSheet, View } from "react-native";
 import { GiphyMedia, GiphyMediaView } from "@giphy/react-native-sdk";
 import {
   widthPercentageToDP as wp,
@@ -85,13 +85,14 @@ const DisplayMediaComponent: React.FC<DisplayMediaComponentProps> = ({
       case "gif":
       case "sticker":
         return (
-          <GiphyMediaView
-            media={media}
+          <Image
             style={{
               width: "100%",
               height: "100%",
               aspectRatio: media.aspectRatio,
             }}
+            source={{ uri: media.data.images.original.url }}
+            testID={`gph-dynamic-text-view-${media.id}`}
           />
         );
       default:

@@ -33,7 +33,6 @@ const handleFriendRequest = async (req, res) => {
 };
 
 const removeFriend = async (req, res) => {
-  console.log("REMOVING");
   const userId = req.params.id;
   try {
     const result = await unAddFriend(userId, req.body);

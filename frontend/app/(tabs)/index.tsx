@@ -29,6 +29,7 @@ import CompletedHangouts from "@/components/home/CompletedHangouts";
 import ProfileTabBar from "@/components/home/ProfileTabBar";
 import FreshHangouts from "@/components/home/FreshHangouts";
 import Contacts, { Contact } from "react-native-contacts";
+import Groups from "@/components/groups/Groups";
 
 interface Photo {
   fileUrl: string;
@@ -77,13 +78,6 @@ const Home = () => {
           <Feather name="bell" size={32} color="#84848B" />
         </Pressable>
       </View>
-      {/* Groups */}
-      {/* <View>
-        <Text>Groups</Text>
-        <Pressable onPress={() => router.push("/(groups)/CreateGroupScreen")}>
-          <Text>Create a group</Text>
-        </Pressable>
-      </View> */}
       {/* TabBar Content */}
       {/* <TabView
         navigationState={{ index, routes }}

@@ -47,7 +47,6 @@ import {
   GiphyMedia,
   GiphyMediaType,
   GiphyMediaView,
-  GiphySDK,
 } from "@giphy/react-native-sdk";
 import MediaComponent from "@/components/photo/MediaComponent";
 import { StickerDetails } from "@/store/createStickerSlice";
@@ -82,8 +81,6 @@ const imageHeight = (screenWidth - padding * 6) / 3 + hp(6);
 
 const mediaWidth = wp(20);
 
-GiphySDK.configure({ apiKey: "QDW5PFQZJ8MYnbeJ6mjQhPrRC5v9UI1b" });
-
 export type ViewStyleKey = "square" | "rectangle" | "polaroid";
 
 interface Sticker {
@@ -94,6 +91,12 @@ interface Sticker {
 }
 
 const MemoriesScreen = () => {
+  useEffect(() => {
+    return () => {
+      console.log("Profile component is unmounting");
+    };
+  }, []);
+
   const { user } = useUser();
   const { newPost, frameColor, hangoutId } = useLocalSearchParams();
   const isNewPost = newPost === "true";

@@ -74,6 +74,19 @@ const searchUsersInDatabase = async (username) => {
     }));
 
     return users;
+
+    // const users = querySnapshot.docs.reduce((acc, doc) => {
+    //   acc[doc.id] = doc.data();
+    //   return acc;
+    // }, {});
+
+    // const users = querySnapshot.docs.reduce((acc, doc) => {
+    //   const data = doc.data();
+    //   acc[data.userId] = { id: doc.id, ...data };
+    //   return acc;
+    // }, {});
+
+    // return users;
   } catch (error) {
     console.error("Error searching users by username prefix:", error);
     throw error;

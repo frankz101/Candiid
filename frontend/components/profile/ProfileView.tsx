@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
   navOptions: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingRight: wp(2),
+    paddingHorizontal: wp(2),
     paddingBottom: hp(1),
   },
   userDetails: {

@@ -16,7 +16,9 @@ import toastConfig from "@/toastConfig";
 import axios from "axios";
 import Contacts, { Contact } from "react-native-contacts";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { GiphySDK } from "@giphy/react-native-sdk";
 import * as Linking from "expo-linking";
+import useStore from "@/store/useStore";
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -37,6 +39,9 @@ const InitialLayout = () => {
   const segments = useSegments();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { setStickers } = useStore((state) => ({
+    setStickers: state.setStickers,
+  }));
   const { expoPushToken } = usePushNotifications();
   const [deepLinkData, setDeepLinkData] = useState<{
     id?: string;
@@ -45,6 +50,7 @@ const InitialLayout = () => {
   const pathname = usePathname();
 
   SplashScreen.preventAutoHideAsync();
+  GiphySDK.configure({ apiKey: "QDW5PFQZJ8MYnbeJ6mjQhPrRC5v9UI1b" });
   setTimeout(SplashScreen.hideAsync, 1000);
 
   const handleDeepLink = async (event: { url: string }) => {
@@ -116,6 +122,13 @@ const InitialLayout = () => {
     }
   };
 
+  const fetchStickers = async (userId: string) => {
+    console.log("Fetching Stickers in Profile Tab");
+    return axios
+      .get(`${process.env.EXPO_PUBLIC_API_URL}/stickers/${userId}`)
+      .then((res) => res.data);
+  };
+
   const getContacts = async (): Promise<Contact[]> => {
     try {
       const contacts = await Contacts.getAll();
@@ -170,6 +183,19 @@ const InitialLayout = () => {
     const fetchDataAndNavigate = async () => {
       try {
         if (isSignedIn && user) {
+          // const stickersData = await queryClient.fetchQuery({
+          //   queryKey: ["stickers", user.id],
+          //   queryFn: () => fetchStickers(user.id),
+          //   staleTime: 1000 * 60 * 5,
+          // });
+
+          // // Set stickers in global store
+          // const stickersObj = stickersData.reduce((acc: any, sticker: any) => {
+          //   acc[sticker.id] = sticker;
+          //   return acc;
+          // }, {});
+          // setStickers(stickersObj);
+
           await Promise.all([
             queryClient.prefetchQuery({
               queryKey: ["profile", user.id],

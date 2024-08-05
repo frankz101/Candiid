@@ -1,10 +1,18 @@
-import { FlatList, RefreshControl, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import React, { useState } from "react";
 import CreateHangoutButton from "./CreateHangoutButton";
 import FeedPost from "./FeedPost";
 import axios from "axios";
 import { useUser } from "@clerk/clerk-expo";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import Groups from "../groups/Groups";
 
 interface Photo {
   fileUrl: string;
@@ -37,6 +45,10 @@ const CompletedHangouts = () => {
     setRefreshing(false);
   };
 
+  if (isPending) {
+    return <ActivityIndicator size="large" color="#FFF" />;
+  }
+
   return (
     <View>
       {posts?.length > 0 ? (
@@ -63,6 +75,7 @@ const CompletedHangouts = () => {
                 profilePhoto={profilePhoto?.fileUrl}
                 caption={item.caption}
                 photoUrls={photoUrls}
+                createdAt={item.createdAt}
               />
             );
           }}
