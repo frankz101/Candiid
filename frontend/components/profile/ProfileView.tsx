@@ -232,16 +232,26 @@ const ProfileView: React.FC<ProfileViewProps> = ({
             />
           )}
         </View>
-        {friendStatus === "Already Friends" && (
-          <Animated.View style={styles.animatedView}>
-            <MemoriesView
-              userId={userId as string}
-              hangouts={memoriesData}
-              stickers={stickersData}
-              color={backgroundColor}
+        <Animated.View style={styles.animatedView}>
+          <MemoriesView
+            userId={userId as string}
+            hangouts={memoriesData}
+            stickers={stickersData}
+            color={backgroundColor}
+          />
+          {friendStatus !== "Already Friends" && (
+            <BlurView
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+              }}
+              intensity={30}
             />
-          </Animated.View>
-        )}
+          )}
+        </Animated.View>
       </ScrollView>
     </BaseScreen>
   );

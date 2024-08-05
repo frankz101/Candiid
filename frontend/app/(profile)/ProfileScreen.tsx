@@ -29,11 +29,12 @@ import BaseScreen from "@/components/utils/BaseScreen";
 import FriendshipButton from "@/components/friends/FriendshipButton";
 import BackButton from "@/components/utils/BackButton";
 import { useFriendFunctions } from "@/hooks/useFriendFunctions";
+import { BlurView } from "expo-blur";
 
 const ProfileScreen = () => {
   const { user } = useUser();
   const router = useRouter();
-  const { userId } = useLocalSearchParams();
+  const { userId, incomingFriendStatus } = useLocalSearchParams();
 
   const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -86,6 +87,10 @@ const ProfileScreen = () => {
   const { data: profileDetails, isPending: isPendingProfile } = profile;
   const { data: stickersData, isPending: isPendingStickers } = fetchedStickers;
 
+  const [friendStatus, setFriendStatus] = useState(
+    incomingFriendStatus || profileDetails.friendStatus
+  );
+
   const onRefresh = async () => {
     setRefreshing(true);
     await queryClient.invalidateQueries({ queryKey: ["memories", userId] });
@@ -113,8 +118,11 @@ const ProfileScreen = () => {
   }
 
   const deleteFriend = async (friendId: string) => {
-    router.back();
     await removeFriend(friendId);
+    router.back();
+    queryClient.invalidateQueries({
+      queryKey: ["postsData", user?.id],
+    });
   };
 
   return (
@@ -183,7 +191,7 @@ const ProfileScreen = () => {
                   <Ionicons name="ban-outline" color="red" size={24} />
                 </Pressable>
 
-                {profileDetails.friendStatus === "Already Friends" && (
+                {friendStatus === "Already Friends" && (
                   <Pressable
                     style={({ pressed }) => [
                       styles.modalButton,
@@ -224,10 +232,13 @@ const ProfileScreen = () => {
             <View style={[styles.profilePhoto, { backgroundColor: "grey" }]} />
           )}
           <Text style={styles.userText}>{profileDetails.name}</Text>
-          {profileDetails.friendStatus !== "Already Friends" && (
+          {friendStatus !== "Already Friends" && (
             <FriendshipButton
               userId={userId as string}
-              status={profileDetails.friendStatus}
+              status={friendStatus}
+              setParentFriendStatus={(status: string) =>
+                setFriendStatus(status)
+              }
             />
           )}
         </View>
@@ -239,6 +250,18 @@ const ProfileScreen = () => {
             stickers={stickersData}
             color={profileDetails.backgroundDetails?.backgroundColor}
           />
+          {friendStatus !== "Already Friends" && (
+            <BlurView
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+              }}
+              intensity={30}
+            />
+          )}
         </Animated.View>
         {/* DEFAULT PROFILE PIC NOT CENTERED AND SIZE IS WRONG */}
         {/* <View style={styles.upcomingHangouts}>

@@ -1,7 +1,9 @@
+import { useFriendFunctions } from "@/hooks/useFriendFunctions";
 import { useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
 import { Image } from "expo-image";
+import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import {
   widthPercentageToDP as wp,
@@ -28,18 +30,12 @@ const FriendRequestBanner: React.FC<FriendRequestBannerProps> = ({
   user,
   onHandleRequest,
 }) => {
-  const { user: currentUser } = useUser();
+  const router = useRouter();
+  const { handleFriendRequest } = useFriendFunctions();
   const handleRequest = async (status: string) => {
-    const res = await axios.post(
-      `${process.env.EXPO_PUBLIC_API_URL}/friendRequest/handle`,
-      {
-        senderId: user.userId,
-        receiverId: currentUser?.id,
-        status,
-      }
-    );
+    await handleFriendRequest(user.userId, status);
 
-    if (res.status === 201 && onHandleRequest) {
+    if (onHandleRequest) {
       onHandleRequest(user.userId);
     }
   };
@@ -79,49 +75,61 @@ const FriendRequestBanner: React.FC<FriendRequestBannerProps> = ({
   const time = getTimeDifference();
 
   return (
-    <View style={styles.container}>
-      {user.profilePhoto ? (
-        <Image
-          source={{ uri: user.profilePhoto.fileUrl }}
-          style={styles.profilePhoto}
-        />
-      ) : (
-        <Ionicons name="person-circle-outline" size={48} color="white" />
-      )}
-      <View style={styles.textContainer}>
-        <Text style={styles.inviteText}>
-          <Text style={styles.boldText}>{user.username}</Text>{" "}
-          <Text>wants to be friends!</Text>{" "}
-          <Text style={{ color: "gray" }}>
-            {"\u2022"}
-            {time}
+    <Pressable
+      onPress={() =>
+        router.push({
+          pathname: "/(profile)/ProfileScreen",
+          params: {
+            userId: user.userId,
+            incomingFriendStatus: "Incoming Request",
+          },
+        })
+      }
+    >
+      <View style={styles.container}>
+        {user.profilePhoto ? (
+          <Image
+            source={{ uri: user.profilePhoto.fileUrl }}
+            style={styles.profilePhoto}
+          />
+        ) : (
+          <Ionicons name="person-circle-outline" size={48} color="white" />
+        )}
+        <View style={styles.textContainer}>
+          <Text style={styles.inviteText}>
+            <Text style={styles.boldText}>{user.username}</Text>{" "}
+            <Text>wants to be friends!</Text>{" "}
+            <Text style={{ color: "gray" }}>
+              {"\u2022"}
+              {time}
+            </Text>
           </Text>
-        </Text>
-      </View>
-      <View style={{ flexDirection: "row" }}>
+        </View>
         <View style={{ flexDirection: "row" }}>
-          <Pressable
-            style={({ pressed }) => [
-              {
-                backgroundColor: pressed
-                  ? "rgba(85, 85, 85, 0.7)"
-                  : "rgba(85, 85, 85, 0.5)",
-              },
-              styles.centerRow,
-            ]}
-            onPress={() => handleRequest("accept")}
-          >
-            <Text style={{ color: "lightgray" }}>Accept</Text>
-          </Pressable>
-          <Pressable
-            style={styles.centerRow}
-            onPress={() => handleRequest("reject")}
-          >
-            <Ionicons name="close-outline" color="gray" size={20} />
-          </Pressable>
+          <View style={{ flexDirection: "row" }}>
+            <Pressable
+              style={({ pressed }) => [
+                {
+                  backgroundColor: pressed
+                    ? "rgba(85, 85, 85, 0.7)"
+                    : "rgba(85, 85, 85, 0.5)",
+                },
+                styles.centerRow,
+              ]}
+              onPress={() => handleRequest("accept")}
+            >
+              <Text style={{ color: "lightgray" }}>Accept</Text>
+            </Pressable>
+            <Pressable
+              style={styles.centerRow}
+              onPress={() => handleRequest("reject")}
+            >
+              <Ionicons name="close-outline" color="gray" size={20} />
+            </Pressable>
+          </View>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 };
 

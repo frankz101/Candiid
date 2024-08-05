@@ -126,8 +126,14 @@ export const useFriendFunctions = () => {
               try {
                 queryClient.setQueryData(
                   ["friends", user?.id],
-                  (oldData: any) =>
-                    oldData.filter((friend: any) => friend.userId !== friendId)
+                  (oldData: any) => {
+                    if (!oldData) {
+                      return [];
+                    }
+                    return oldData.filter(
+                      (friend: any) => friend.userId !== friendId
+                    );
+                  }
                 );
                 await axios.put(
                   `${process.env.EXPO_PUBLIC_API_URL}/friends/remove/users/${user?.id}`,
