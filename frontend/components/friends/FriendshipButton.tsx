@@ -36,6 +36,9 @@ const FriendshipButton: React.FC<FriendshipButtonProps> = ({
   setParentFriendStatus,
 }) => {
   const [friendStatus, setFriendStatus] = useState(status);
+  useEffect(() => {
+    setFriendStatus(status);
+  }, [status]);
 
   const { sendFriendRequest, handleFriendRequest, removeFriendRequest } =
     useFriendFunctions();

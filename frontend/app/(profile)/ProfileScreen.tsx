@@ -12,7 +12,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import axios from "axios";
@@ -38,6 +38,7 @@ const ProfileScreen = () => {
 
   const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [friendStatus, setFriendStatus] = useState("");
   const queryClient = useQueryClient();
 
   const { removeFriend, blockUser } = useFriendFunctions();
@@ -87,9 +88,13 @@ const ProfileScreen = () => {
   const { data: profileDetails, isPending: isPendingProfile } = profile;
   const { data: stickersData, isPending: isPendingStickers } = fetchedStickers;
 
-  const [friendStatus, setFriendStatus] = useState(
-    incomingFriendStatus || profileDetails.friendStatus
-  );
+  useEffect(() => {
+    if (!isPendingProfile) {
+      setFriendStatus(
+        incomingFriendStatus || profileDetails?.friendStatus || "Not Friends"
+      );
+    }
+  }, [isPendingProfile, profileDetails]);
 
   const onRefresh = async () => {
     setRefreshing(true);
