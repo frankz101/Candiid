@@ -210,9 +210,12 @@ const ChatScreen = () => {
                       />
                     ))}
                   <View>
-                    {showName && !ownMessage && (
-                      <Text style={styles.sender}>{item.senderName}</Text>
-                    )}
+                    {showName &&
+                      (ownMessage ? (
+                        <View style={{ marginTop: hp(0.5) }}></View>
+                      ) : (
+                        <Text style={styles.sender}>{item.senderName}</Text>
+                      ))}
                     <View
                       style={[
                         styles.message,
@@ -220,9 +223,10 @@ const ChatScreen = () => {
                       ]}
                     >
                       <Text
-                        style={
-                          ownMessage ? { color: "white" } : { color: "black" }
-                        }
+                        style={[
+                          { fontSize: 16 },
+                          ownMessage ? { color: "white" } : { color: "black" },
+                        ]}
                       >
                         {item.text}
                       </Text>
@@ -244,6 +248,8 @@ const ChatScreen = () => {
               placeholder="Type a message"
               blurOnSubmit={false}
               onSubmitEditing={handleSendMessage}
+              multiline
+              numberOfLines={4}
             />
             {newMessage && (
               <Pressable onPress={handleSendMessage} style={styles.sendButton}>
@@ -297,8 +303,8 @@ const styles = StyleSheet.create({
   },
   sender: {
     marginLeft: wp(1),
-    fontSize: 12,
     marginBottom: hp(0.25),
+    fontSize: 14,
     color: "lightgray",
   },
   profilePhoto: {
@@ -311,19 +317,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: wp(2),
-    marginHorizontal: wp(2),
   },
   input: {
     flex: 1,
     borderWidth: 1,
     borderColor: "#424242",
-    padding: wp(2.5),
     borderRadius: 20,
+    paddingHorizontal: wp(3.5),
+    paddingVertical: hp(0.7),
+    textAlignVertical: "top",
     color: "white",
   },
   sendButton: {
-    position: "absolute",
-    right: wp(4),
-    top: hp(1.4),
+    marginLeft: 10,
   },
 });

@@ -170,7 +170,7 @@ const ProfileScreen = () => {
                       ? { backgroundColor: "#3a3a3d" }
                       : { backgroundColor: "#2a2a2d" },
                   ]}
-                  onPress={() => {
+                  onPress={async () => {
                     setModalVisible(false);
                     blockUser(
                       userId as string,

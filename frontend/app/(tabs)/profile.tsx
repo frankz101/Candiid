@@ -23,6 +23,7 @@ import {
 import BaseScreen from "@/components/utils/BaseScreen";
 import ChangePhotoSheet from "@/components/profile/ChangePhotoSheet";
 import UpcomingHangouts from "@/components/profile/UpcomingHangouts";
+import DebouncedPressable from "@/components/utils/DebouncedPressable";
 
 const Profile = () => {
   const router = useRouter();
@@ -105,18 +106,16 @@ const Profile = () => {
       <View style={styles.navOptions}>
         <Text style={styles.userDetailText}>{`@${userProfile.username}`}</Text>
         <View style={styles.navIcons}>
-          <Ionicons
+          <DebouncedPressable
             onPress={() => router.push("/(profile)/FriendsScreen")}
-            name="people-outline"
-            size={32}
-            color={"white"}
-          />
-          <Ionicons
+          >
+            <Ionicons name="people-outline" size={32} color={"white"} />
+          </DebouncedPressable>
+          <DebouncedPressable
             onPress={() => router.push("/(settings)/SettingsScreen")}
-            name="reorder-three-outline"
-            size={32}
-            color={"white"}
-          />
+          >
+            <Ionicons name="reorder-three-outline" size={32} color={"white"} />
+          </DebouncedPressable>
         </View>
       </View>
       <ScrollView

@@ -121,6 +121,7 @@ const styles = StyleSheet.create({
   headerText: {
     color: "white",
     fontFamily: "Inter",
-    fontSize: 26,
+    fontWeight: "bold",
+    fontSize: 20,
   },
 });

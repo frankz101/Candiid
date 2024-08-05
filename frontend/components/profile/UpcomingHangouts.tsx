@@ -21,8 +21,8 @@ import {
 } from "react-native-gesture-handler";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { useRouter } from "expo-router";
-import { useRef, useState, useEffect } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import React, { useRef, useState, useEffect } from "react";
 import * as Haptics from "expo-haptics";
 
 interface Hangout {
@@ -154,6 +154,14 @@ const UpcomingHangouts = () => {
       }
     }
   };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      return () => {
+        setEditMode(false);
+      };
+    }, [])
+  );
 
   const leaveHangout = (hangout: Hangout) => {
     Alert.alert(
