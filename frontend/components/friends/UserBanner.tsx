@@ -1,4 +1,3 @@
-import ProfileScreen from "@/app/(profile)/ProfileScreen";
 import { useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
@@ -224,30 +223,6 @@ const UserBanner: React.FC<UserBannerProps> = ({
                   <Text style={{ color: "lightgray" }}>Add</Text>
                 </Pressable>
               )}
-            </View>
-          )}
-
-          {type === "friendRequests" && (
-            <View style={{ flexDirection: "row" }}>
-              <Pressable
-                style={({ pressed }) => [
-                  {
-                    backgroundColor: pressed
-                      ? "rgba(85, 85, 85, 0.7)"
-                      : "rgba(85, 85, 85, 0.5)",
-                  },
-                  styles.centerRow,
-                ]}
-                onPress={() => handleRequest("accept")}
-              >
-                <Text style={{ color: "lightgray" }}>Accept</Text>
-              </Pressable>
-              <Pressable
-                style={styles.centerRow}
-                onPress={() => handleRequest("reject")}
-              >
-                <Ionicons name="close-outline" color="gray" size={20} />
-              </Pressable>
             </View>
           )}
           {type === "friends" && (

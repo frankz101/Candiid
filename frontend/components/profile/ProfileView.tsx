@@ -239,6 +239,18 @@ const ProfileView: React.FC<ProfileViewProps> = ({
             stickers={stickersData}
             color={backgroundColor}
           />
+          {friendStatus !== "Already Friends" && (
+            <BlurView
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+              }}
+              intensity={30}
+            />
+          )}
         </Animated.View>
       </ScrollView>
     </BaseScreen>

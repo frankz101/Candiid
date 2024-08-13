@@ -6,18 +6,13 @@ import {
   Text,
   View,
 } from "react-native";
-import React from "react";
+import React, { useState } from "react";
 import CreateHangoutButton from "./CreateHangoutButton";
 import FeedPost from "./FeedPost";
 import axios from "axios";
 import { useUser } from "@clerk/clerk-expo";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Groups from "../groups/Groups";
-
-interface CompletedHangoutsProps {
-  refreshing: boolean;
-  onRefresh: () => void;
-}
 
 interface Photo {
   fileUrl: string;
@@ -25,11 +20,10 @@ interface Photo {
   takenBy: string;
 }
 
-const CompletedHangouts: React.FC<CompletedHangoutsProps> = ({
-  refreshing,
-  onRefresh,
-}) => {
+const CompletedHangouts = () => {
   const { user } = useUser();
+  const [refreshing, setRefreshing] = useState(false);
+  const queryClient = useQueryClient();
 
   const fetchFriendsPosts = async () => {
     return axios
@@ -43,17 +37,25 @@ const CompletedHangouts: React.FC<CompletedHangoutsProps> = ({
     staleTime: 1000 * 60 * 5,
   });
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await queryClient.invalidateQueries({
+      queryKey: ["postsData", user?.id],
+    });
+    setRefreshing(false);
+  };
+
   if (isPending) {
     return <ActivityIndicator size="large" color="#FFF" />;
   }
 
   return (
-    <View>
+    <View style={{ flex: 1 }}>
       {posts?.length > 0 ? (
         <FlatList
           data={posts}
           keyExtractor={(item) => item.id}
-          style={{ flex: 1 }}
+          style={{ height: "100%" }}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}

@@ -8,7 +8,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import PostCarousel from "../photo/PostCarousel";
 import { ImageData } from "../photo/PostCarousel";
-import { useRouter } from "expo-router";
+import { Link, useRouter } from "expo-router";
 const { width: screenWidth } = Dimensions.get("window");
 
 interface FeedPostProps {
@@ -82,19 +82,29 @@ const FeedPost: React.FC<FeedPostProps> = ({
       <View style={styles.postHeader}>
         <Image source={{ uri: profilePhoto }} style={styles.icon} />
         <View style={styles.headerContent}>
-          <Pressable
-            onPress={() =>
-              router.push({
-                pathname: "/(profile)/ProfileScreen",
-                params: {
-                  userId: userId,
-                },
-              })
-            }
+          <Link
+            href={{
+              pathname: "/(profile)/ProfileScreen",
+              params: {
+                userId: userId,
+              },
+            }}
+            asChild
           >
-            <Text style={styles.username}>{username}</Text>
-            <Text style={styles.caption}>{`${caption} • ${time}`}</Text>
-          </Pressable>
+            <Pressable
+            // onPress={() =>
+            //   router.push({
+            //     pathname: "/(profile)/ProfileScreen",
+            //     params: {
+            //       userId: userId,
+            //     },
+            //   })
+            // }
+            >
+              <Text style={styles.username}>{username}</Text>
+              <Text style={styles.caption}>{`${caption} • ${time}`}</Text>
+            </Pressable>
+          </Link>
 
           <PostCarousel
             images={photoUrls}

@@ -324,11 +324,11 @@ const styles = StyleSheet.create({
     borderColor: "#424242",
     borderRadius: 20,
     paddingHorizontal: wp(3.5),
-    paddingVertical: hp(0.7),
-    textAlignVertical: "top",
+    paddingTop: hp(1),
+    paddingBottom: hp(1),
     color: "white",
   },
   sendButton: {
-    marginLeft: 10,
+    marginLeft: wp(3),
   },
 });

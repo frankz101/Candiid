@@ -1,6 +1,8 @@
 import {
   Dimensions,
   FlatList,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -118,42 +120,46 @@ const PreviewPost = () => {
   const polaroidWidth = screenWidth - wp(8); // Adjust this based on your padding
 
   return (
-    <BaseScreen>
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          paddingBottom: 28,
-        }}
-      >
-        <View style={{ width: 64 }}>
-          <BackButton />
-        </View>
-
-        <Text style={styles.headerText}>Preview Post</Text>
-        <Pressable onPress={handleNextPress}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <BaseScreen>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingBottom: 28,
+          }}
+        >
           <View style={{ width: 64 }}>
-            <Text style={styles.nextButton}>Next</Text>
+            <BackButton />
           </View>
-        </Pressable>
-      </View>
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        {/* <View style={[styles.polaroidFrame, { backgroundColor: frameColor }]}> */}
-        <PostCarousel
-          images={selectedPhotos}
-          width={postWidth}
-          height={postWidth}
-        />
-        {/* </View> */}
-      </View>
-      {/* <View
+
+          <Text style={styles.headerText}>Preview Post</Text>
+          <Pressable onPress={handleNextPress}>
+            <View style={{ width: 64 }}>
+              <Text style={styles.nextButton}>Next</Text>
+            </View>
+          </Pressable>
+        </View>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          {/* <View style={[styles.polaroidFrame, { backgroundColor: frameColor }]}> */}
+          <PostCarousel
+            images={selectedPhotos}
+            width={postWidth}
+            height={postWidth}
+          />
+          {/* </View> */}
+        </View>
+        {/* <View
         style={{
           height: wp(12),
           marginTop: hp(2),
@@ -169,18 +175,19 @@ const PreviewPost = () => {
           scrollEnabled={false}
         />
       </View> */}
-      <View style={styles.captionContainer}>
-        <TextInput
-          placeholder="caption"
-          placeholderTextColor="#3F3F3F"
-          cursorColor="white"
-          onChangeText={(input) => setCaption(input)}
-          maxLength={90}
-          value={caption}
-          style={styles.captionInput}
-        />
-      </View>
-    </BaseScreen>
+        <View style={styles.captionContainer}>
+          <TextInput
+            placeholder="caption"
+            placeholderTextColor="#3F3F3F"
+            cursorColor="white"
+            onChangeText={(input) => setCaption(input)}
+            maxLength={90}
+            value={caption}
+            style={styles.captionInput}
+          />
+        </View>
+      </BaseScreen>
+    </KeyboardAvoidingView>
   );
 };
 

@@ -12,7 +12,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import axios from "axios";
@@ -29,14 +29,16 @@ import BaseScreen from "@/components/utils/BaseScreen";
 import FriendshipButton from "@/components/friends/FriendshipButton";
 import BackButton from "@/components/utils/BackButton";
 import { useFriendFunctions } from "@/hooks/useFriendFunctions";
+import { BlurView } from "expo-blur";
 
 const ProfileScreen = () => {
-  const { user: currentUser } = useUser();
+  const { user } = useUser();
   const router = useRouter();
-  const { userId, debouncedSearchPhrase } = useLocalSearchParams();
+  const { userId, incomingFriendStatus } = useLocalSearchParams();
 
   const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [friendStatus, setFriendStatus] = useState("");
   const queryClient = useQueryClient();
 
   const { removeFriend, blockUser } = useFriendFunctions();
@@ -44,9 +46,7 @@ const ProfileScreen = () => {
   const fetchUser = async () => {
     console.log("Fetching User Information in profile screen");
     return axios
-      .get(
-        `${process.env.EXPO_PUBLIC_API_URL}/users/${userId}/${currentUser?.id}`
-      )
+      .get(`${process.env.EXPO_PUBLIC_API_URL}/users/${userId}/${user?.id}`)
       .then((res) => res.data);
   };
 
@@ -88,6 +88,14 @@ const ProfileScreen = () => {
   const { data: profileDetails, isPending: isPendingProfile } = profile;
   const { data: stickersData, isPending: isPendingStickers } = fetchedStickers;
 
+  useEffect(() => {
+    if (!isPendingProfile) {
+      setFriendStatus(
+        incomingFriendStatus || profileDetails?.friendStatus || "Not Friends"
+      );
+    }
+  }, [isPendingProfile, profileDetails]);
+
   const onRefresh = async () => {
     setRefreshing(true);
     await queryClient.invalidateQueries({ queryKey: ["memories", userId] });
@@ -115,8 +123,11 @@ const ProfileScreen = () => {
   }
 
   const deleteFriend = async (friendId: string) => {
-    router.back();
     await removeFriend(friendId);
+    router.back();
+    queryClient.invalidateQueries({
+      queryKey: ["postsData", user?.id],
+    });
   };
 
   return (
@@ -172,14 +183,11 @@ const ProfileScreen = () => {
                   ]}
                   onPress={async () => {
                     setModalVisible(false);
-                    blockUser(
-                      userId as string,
-                      (status) => router.back(),
-                      () =>
-                        queryClient.invalidateQueries({
-                          queryKey: ["postsData", currentUser?.id],
-                        })
-                    );
+                    await blockUser(userId as string);
+                    router.back();
+                    queryClient.invalidateQueries({
+                      queryKey: ["postsData", user?.id],
+                    });
                   }}
                 >
                   <Text style={styles.modalButtonText}>
@@ -188,7 +196,7 @@ const ProfileScreen = () => {
                   <Ionicons name="ban-outline" color="red" size={24} />
                 </Pressable>
 
-                {profileDetails.friendStatus === "Already Friends" && (
+                {friendStatus === "Already Friends" && (
                   <Pressable
                     style={({ pressed }) => [
                       styles.modalButton,
@@ -229,10 +237,13 @@ const ProfileScreen = () => {
             <View style={[styles.profilePhoto, { backgroundColor: "grey" }]} />
           )}
           <Text style={styles.userText}>{profileDetails.name}</Text>
-          {profileDetails.friendStatus !== "Already Friends" && (
+          {friendStatus !== "Already Friends" && (
             <FriendshipButton
               userId={userId as string}
-              status={profileDetails.friendStatus}
+              status={friendStatus}
+              setParentFriendStatus={(status: string) =>
+                setFriendStatus(status)
+              }
             />
           )}
         </View>
@@ -244,6 +255,18 @@ const ProfileScreen = () => {
             stickers={stickersData}
             color={profileDetails.backgroundDetails?.backgroundColor}
           />
+          {friendStatus !== "Already Friends" && (
+            <BlurView
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+              }}
+              intensity={30}
+            />
+          )}
         </Animated.View>
         {/* DEFAULT PROFILE PIC NOT CENTERED AND SIZE IS WRONG */}
         {/* <View style={styles.upcomingHangouts}>

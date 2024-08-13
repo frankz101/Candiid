@@ -302,6 +302,12 @@ const fetchFriendsPostsFromDatabase = async (userId) => {
       const allFriendsPosts = await Promise.all(postsPromises);
       allFriendsPosts.forEach((posts) => friendsPosts.push(...posts));
 
+      friendsPosts.sort((a, b) => {
+        const dateA = a.createdAt.toDate();
+        const dateB = b.createdAt.toDate();
+        return dateB.getTime() - dateA.getTime();
+      });
+
       return friendsPosts;
     } else {
       console.log("No such user found!");

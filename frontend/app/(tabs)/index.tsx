@@ -40,7 +40,6 @@ const initialLayout = { height: 0, width: Dimensions.get("window").width };
 const screenWidth = Dimensions.get("screen").width;
 
 const Home = () => {
-  const [refreshing, setRefreshing] = useState(false);
   // const [index, setIndex] = useState(0);
   // const [routes] = useState([
   //   { key: "completedHangouts", title: "Completed Hangouts" },
@@ -61,14 +60,6 @@ const Home = () => {
   // };
 
   const router = useRouter();
-  const { user } = useUser();
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 2000);
-  };
 
   return (
     <BaseScreen>
@@ -96,7 +87,7 @@ const Home = () => {
         lazy={true}
         renderTabBar={(props) => <ProfileTabBar {...props} />}
       /> */}
-      <CompletedHangouts refreshing={refreshing} onRefresh={onRefresh} />
+      <CompletedHangouts />
     </BaseScreen>
   );
 };
