@@ -55,6 +55,7 @@ import type { returnedResults } from "reanimated-color-picker";
 import NewMediaComponent from "@/components/photo/NewMediaComponent";
 import { Image } from "expo-image";
 import DebouncedPressable from "@/components/utils/DebouncedPressable";
+import { BlurView } from "expo-blur";
 
 interface User {
   userId: string;
@@ -194,7 +195,7 @@ const MemoriesScreen = () => {
         let newX = (e.translationX + screenContext.value.x) / scale.value;
         let newY = (e.translationY + screenContext.value.y) / scale.value;
 
-        const extraSpace = 50;
+        const extraSpace = 200;
         const maxX = Math.max(
           0,
           ((screenWidth * scale.value - screenWidth) / 2 + extraSpace) /
@@ -208,9 +209,9 @@ const MemoriesScreen = () => {
         const minX = -maxX;
         const minY = -maxY;
 
-        if (newX >= maxX || newY >= maxY || newX <= minX || newY <= minY) {
-          runOnJS(springBorder)();
-        }
+        // if (newX >= maxX || newY >= maxY || newX <= minX || newY <= minY) {
+        //   runOnJS(springBorder)();
+        // }
 
         screenX.value = Math.min(Math.max(newX, minX), maxX);
         screenY.value = Math.min(Math.max(newY, minY), maxY);
@@ -291,6 +292,7 @@ const MemoriesScreen = () => {
 
   const containerStyle = useAnimatedStyle(() => {
     return {
+      backgroundColor: selectedColor.value,
       transform: [
         { scale: scale.value },
         { translateX: screenX.value },
@@ -677,9 +679,17 @@ const MemoriesScreen = () => {
   ) : (
     <BottomSheetModalProvider>
       <Animated.View
-        style={[styles.background, backgroundColorStyle]}
+        style={styles.background}
         // sharedTransitionTag="MemoriesScreen"
       >
+        <BlurView style={StyleSheet.absoluteFill} tint="light" intensity={80} />
+        <Animated.View
+          style={[
+            StyleSheet.absoluteFill,
+            backgroundColorStyle,
+            { opacity: 0.4 }, // Adjust the opacity for the overlay
+          ]}
+        />
         {!isEditMode && (
           <Pressable style={styles.backButton} onPress={() => router.back()}>
             <Ionicons name="chevron-back" size={32} color="#FFF" />
@@ -717,7 +727,7 @@ const MemoriesScreen = () => {
         )}
         <GestureDetector gesture={combinedGesture}>
           <Animated.View style={[styles.container, containerStyle]}>
-            <DotGrid width={screenWidth} height={screenHeight} />
+            {/* <DotGrid width={screenWidth} height={screenHeight} /> */}
             {memoriesData && memoriesData.length > 0 ? (
               memoriesData.map((hangout: any, index: number) => (
                 <AnimatedMemory
@@ -875,13 +885,18 @@ export default MemoriesScreen;
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    // backgroundColor: "#141417",
+    backgroundColor: "#E0E0E0",
   },
   container: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(44, 44, 48, 0.50)",
+    borderRadius: 4,
+
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
   },
   backButton: {
     position: "absolute",

@@ -14,18 +14,29 @@ const DotGrid: React.FC<DotGridProps> = () => {
   const dotSize = 4; // Size of each dot
   const spacing = 25; // Spacing between dots
 
-  for (let x = 0; x < screenWidth; x += spacing) {
-    for (let y = 0; y < screenHeight; y += spacing) {
+  // Calculate the number of dots that can fit horizontally and vertically
+  const numberOfDotsX = Math.floor(screenWidth / spacing);
+  const numberOfDotsY = Math.floor(screenHeight / spacing);
+
+  // Calculate the offset needed to center the grid
+  const offsetX = (screenWidth - (numberOfDotsX - 1) * spacing) / 2;
+  const offsetY = (screenHeight - (numberOfDotsY - 1) * spacing) / 2;
+
+  for (let i = 0; i < numberOfDotsX; i++) {
+    for (let j = 0; j < numberOfDotsY; j++) {
+      const x = offsetX + i * spacing;
+      const y = offsetY + j * spacing;
+
       dots.push(
         <View
           key={`${x}-${y}`}
           style={{
             position: "absolute",
-            left: x,
-            top: y,
+            left: x - dotSize / 2,
+            top: y - dotSize / 2,
             width: dotSize,
             height: dotSize,
-            borderRadius: dotSize / 4,
+            borderRadius: dotSize / 2,
             backgroundColor: "rgba(255, 255, 255, 0.5)", // Semi-transparent white
           }}
         />
