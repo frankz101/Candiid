@@ -9,8 +9,8 @@ const createStickers = async (stickerData) => {
   return stickerIds;
 };
 
-const fetchStickers = async (userId) => {
-  const result = await fetchStickersFromDatabase(userId);
+const fetchStickers = async (boardId) => {
+  const result = await fetchStickersFromDatabase(boardId);
   return result;
 };
 

@@ -15,6 +15,7 @@ import React, {
 } from "react";
 import {
   Dimensions,
+  FlatList,
   Keyboard,
   Pressable,
   ScrollView,
@@ -56,9 +57,12 @@ import NewMediaComponent from "@/components/photo/NewMediaComponent";
 import { Image } from "expo-image";
 import DebouncedPressable from "@/components/utils/DebouncedPressable";
 import { BlurView } from "expo-blur";
+import uuid from "react-native-uuid";
+import MemoriesView from "@/components/profile/MemoriesView";
 
 interface User {
   userId: string;
+  boardId: string;
   name: string;
   username: string;
   profilePhoto?: {
@@ -68,6 +72,19 @@ interface User {
   phoneNumber: string;
   createdHangouts?: string[];
   upcomingHangouts?: string[];
+}
+
+interface MemoryDetails {
+  id: string;
+  boardId: string;
+  userId: string;
+  hangoutId: string;
+  postId: string; // Array of URLs for photos
+  postX: number; // Position X on the screen
+  postY: number; // Position Y on the screen
+  frame: ViewStyleKey; // Frame style (e.g., "square", "rectangle", "polaroid")
+  color: string; // Background color
+  modified?: boolean; // Optional flag to track if the memory has been modified
 }
 
 const screenWidth = Dimensions.get("window").width;
@@ -84,54 +101,26 @@ const mediaWidth = wp(20);
 
 export type ViewStyleKey = "square" | "rectangle" | "polaroid";
 
-interface Sticker {
-  media: GiphyMedia;
-  x: number;
-  y: number;
-  mediaType: string;
-}
-
 const MemoriesScreen = () => {
-  useEffect(() => {
-    return () => {
-      console.log("Profile component is unmounting");
-    };
-  }, []);
-
   const { user } = useUser();
-  const { newPost, frameColor, hangoutId } = useLocalSearchParams();
+  const { newPost, newBoard, frameColor, hangoutId, boardIdParam } =
+    useLocalSearchParams();
+  const [boardId, setBoardId] = useState("");
+  const [isNewBoard, setIsNewBoard] = useState(newBoard === "true");
   const isNewPost = newPost === "true";
   const [isPostPlacementMode, setIsPostPlacementMode] = useState(false);
-  // const [isMediaPlacementMode, setIsMediaPlacementMode] = useState(false);
   const setHangoutDetails = useStore((state) => state.setHangoutDetails);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [media, setMedia] = useState<GiphyMedia | null>(null);
-
-  // const [addedStickers, setAddedStickers] = useState<Sticker[]>([]);
   const memoryArray = useStore((state) => state.memories);
 
-  // const { updateAllStickers, updateStickerId } = useStore((state) => ({
-  //   updateAllStickers: state.updateAllStickers,
-  //   updateStickerId: state.updateStickerId,
-  // }));
+  const [stickersTest, setStickersTest] = useState<
+    Record<string, StickerDetails>
+  >({});
 
-  const {
-    setStickers,
-    addSticker,
-    addTempSticker,
-    updateTempSticker,
-    resetStickers,
-    resetTempStickers,
-  } = useStore((state) => ({
-    setStickers: state.setStickers,
-    addSticker: state.addSticker,
-    addTempSticker: state.addTempSticker,
-    updateTempSticker: state.updateTempSticker,
-    resetStickers: state.resetStickers,
-    resetTempStickers: state.resetTempStickers,
-  }));
-  const stickerStore = useStore((state) => state.stickers);
-  const tempStickerStore = useStore((state) => state.tempStickers);
+  const [memoriesTest, setMemoriesTest] = useState<
+    Record<string, MemoryDetails>
+  >({});
 
   const queryClient = useQueryClient();
 
@@ -146,13 +135,55 @@ const MemoriesScreen = () => {
   const postDetails = useStore((state) => state.postDetails);
 
   const [color, setColor] = useState("#FFF");
+  const [boardName, setBoardName] = useState();
   const selectedColor = useSharedValue(color);
 
+  /* Modal */
+  const boardBottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const handlePresentBoardModalPress = useCallback(() => {
+    boardBottomSheetModalRef.current?.present();
+  }, []);
+  const handleBoardSheetChanges = useCallback((index: number) => {
+    console.log("handleBoardSheetChanges", index);
+  }, []);
+
+  const renderBoardItem = ({ item }: any) => {
+    return (
+      <Pressable onPress={() => setBoardId(item.id)}>
+        <View style={styles.boardItem}>
+          <Animated.View style={styles.boardPreview}>
+            <MemoriesView
+              boardId={item.id}
+              color={item.backgroundColor}
+              userId={item.userId}
+            />
+          </Animated.View>
+          <Text style={styles.boardText}>{item.id}</Text>
+        </View>
+      </Pressable>
+    );
+  };
+
   useEffect(() => {
+    if (isNewBoard) {
+      setIsEditMode(true);
+    }
     if (isNewPost) {
       setIsPostPlacementMode(true);
     }
-  }, [isNewPost]);
+  }, [newBoard, isNewPost]);
+
+  useEffect(() => {
+    if (boardIdParam) {
+      setBoardId(boardIdParam as string);
+    }
+  }, [boardIdParam]);
+
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ["board", boardId] });
+    queryClient.invalidateQueries({ queryKey: ["memories", "board", boardId] });
+    queryClient.invalidateQueries({ queryKey: ["stickers", "board", boardId] });
+  }, [boardId]);
 
   /* Board Animation */
   const screenX = useSharedValue<number>(0);
@@ -173,6 +204,26 @@ const MemoriesScreen = () => {
 
   const isPostActive = useSharedValue<boolean>(false);
   const isMediaActive = useSharedValue<boolean>(false);
+
+  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+
+  const snapPoints = useMemo(() => {
+    if (modalContent === "stickers") {
+      return ["90%", "50%"];
+    } else if (modalContent === "colorPicker") {
+      return ["50%"];
+    }
+    return ["50%"];
+  }, [modalContent]);
+
+  const modalIndex = useMemo(
+    () => (snapPoints.length > 1 ? 0 : 0),
+    [snapPoints]
+  );
+
+  const handleSheetChanges = useCallback((index: number) => {
+    console.log("handleSheetChanges", index);
+  }, []);
 
   const springBorder = () => {
     screenX.value = withSpring(0, {
@@ -308,65 +359,167 @@ const MemoriesScreen = () => {
   });
 
   /* React Query */
+  const fetchBoards = async () => {
+    console.log("Fetching Boards in Memories Screen");
+    return axios
+      .get(`${process.env.EXPO_PUBLIC_API_URL}/boards/${user?.id}`)
+      .then((res) => res.data);
+  };
+
+  const fetchBoard = async () => {
+    console.log("Fetching Board in Memories Screen");
+    return axios
+      .get(`${process.env.EXPO_PUBLIC_API_URL}/board/${boardId}`)
+      .then((res) => res.data);
+  };
 
   const fetchMemories = async () => {
-    console.log("Fetching Memories in Memories");
-    return axios
-      .get(`${process.env.EXPO_PUBLIC_API_URL}/memories/${user?.id}`)
-      .then((res) => res.data);
+    if (!boardId) {
+      return {}; // Return an empty object if there's no boardId
+    }
+
+    console.log("Fetching Memories in Memories Screen");
+
+    try {
+      const response = await axios.get(
+        `${process.env.EXPO_PUBLIC_API_URL}/memories/${boardId}`
+      );
+      const memoriesArray = response.data;
+
+      const memoriesObject = memoriesArray.reduce((acc: any, memory: any) => {
+        acc[memory.id] = memory;
+        return acc;
+      }, {});
+
+      return memoriesObject; // Return the memoriesObject
+    } catch (error) {
+      console.error("Error fetching memories:", error);
+      throw new Error("Failed to fetch memories"); // Handle errors appropriately
+    }
   };
 
   const fetchStickers = async () => {
-    console.log("Fetching Stickers in Memories");
-    return axios
-      .get(`${process.env.EXPO_PUBLIC_API_URL}/stickers/${user?.id}`)
-      .then((res) => res.data);
+    if (!boardId) {
+      return {}; // Return an empty object if there's no boardId
+    }
+
+    console.log("Fetching Stickers in Memories Screen");
+
+    try {
+      const response = await axios.get(
+        `${process.env.EXPO_PUBLIC_API_URL}/stickers/${boardId}`
+      );
+      const stickersArray = response.data;
+
+      const stickersObject = stickersArray.reduce((acc: any, sticker: any) => {
+        acc[sticker.id] = sticker;
+        return acc;
+      }, {});
+
+      return stickersObject; // Return the stickersObject
+    } catch (error) {
+      console.error("Error fetching stickers:", error);
+      throw new Error("Failed to fetch stickers"); // Handle errors appropriately
+    }
   };
 
-  const fetchUser = async () => {
-    console.log("Fetching User Information in Memories");
-    return axios
-      .get(`${process.env.EXPO_PUBLIC_API_URL}/users/${user?.id}/${user?.id}`)
-      .then((res) => res.data);
-  };
-
-  const [memories, fetchedStickers, profile] = useQueries({
+  const [memories, stickers, boards, board] = useQueries({
     queries: [
       {
-        queryKey: ["memories", user?.id],
+        queryKey: ["memories", "board", boardId],
         queryFn: fetchMemories,
         staleTime: 1000 * 60 * 5,
       },
       {
-        queryKey: ["stickers", user?.id],
+        queryKey: ["stickers", "board", boardId],
         queryFn: fetchStickers,
         staleTime: 1000 * 60 * 5,
       },
       {
-        queryKey: ["profile", user?.id],
-        queryFn: fetchUser,
+        queryKey: ["allBoards", user?.id],
+        queryFn: fetchBoards,
+        staleTime: 1000 * 60 * 5,
+      },
+      {
+        queryKey: ["board", boardId],
+        queryFn: fetchBoard,
         staleTime: 1000 * 60 * 5,
       },
     ],
   });
 
   const { data: memoriesData, isPending: isPendingMemories } = memories;
-  const { data: stickersData, isPending: isPendingStickers } = fetchedStickers;
-  const { data: profileDetails, isPending: isPendingProfile } = profile;
+  const { data: boardData, isPending: isPendingBoard } = board;
+  const { data: boardsData, isPending: isPendingBoards } = boards;
+  // const { data: profileDetails, isPending: isPendingProfile } = profile;
+  const { data: stickersData, isPending: isPendingStickers } = stickers;
 
-  {
-    /* Setting the Sticker Store*/
-  }
   useEffect(() => {
     if (!isPendingMemories) {
-      const stickersObj = stickersData.reduce((acc: any, sticker: any) => {
-        acc[sticker.id] = sticker;
-        return acc;
-      }, {});
-      setStickers(stickersObj);
+      setMemoriesTest(memoriesData);
     }
-  }, [isPendingMemories]);
-  console.log("Sticker Array IDS: " + Object.keys(stickerStore));
+  }, [memoriesData]);
+
+  useEffect(() => {
+    if (!isPendingStickers) {
+      setStickersTest(stickersData);
+    }
+  }, [stickersData]);
+
+  useEffect(() => {
+    if (boardData && !isPendingBoard && !isNewBoard) {
+      selectedColor.value = boardData.backgroundColor || "#FFFFFF";
+      setInitialBackgroundColor(boardData.backgroundColor || "#FFFFFF");
+      setBoardName(boardData.id);
+    } else if (!boardData && isNewBoard && !initialBackgroundColor) {
+      const defaultColor = selectedColor.value || "#FFFFFF";
+      selectedColor.value = defaultColor;
+      setInitialBackgroundColor(defaultColor);
+    }
+  }, [isPendingBoard, boardData, initialBackgroundColor, isNewBoard]);
+
+  const updateMemoryPosition = (id: string, postX: number, postY: number) => {
+    setMemoriesTest((prevMemories: Record<string, MemoryDetails>) => {
+      const updatedMemory = {
+        ...prevMemories[id],
+        postX,
+        postY,
+        modified: true,
+      };
+
+      const newMemories = {
+        ...prevMemories,
+        [id]: updatedMemory,
+      };
+
+      return newMemories;
+    });
+  };
+
+  const updateStickerPosition = (id: string, x: number, y: number) => {
+    setStickersTest((prevStickers: Record<string, StickerDetails>) => {
+      // Create the updated sticker
+      const updatedSticker = {
+        ...prevStickers[id],
+        x,
+        y,
+        modified: true,
+      };
+
+      // Create the new stickers object with the updated sticker
+      const newStickers = {
+        ...prevStickers,
+        [id]: updatedSticker,
+      };
+
+      // Log the updated sticker and the entire stickers object
+      // console.log(`Updated sticker:`, updatedSticker);
+      // console.log(`All stickers:`, newStickers);
+
+      return newStickers;
+    });
+  };
+
   /* Edit Mode */
 
   const handleEditMode = useCallback((mode: string) => {
@@ -381,50 +534,46 @@ const MemoriesScreen = () => {
     bottomSheetModalRef.current?.present();
   }, []);
 
-  const prepareStickersForUpdate = () => {
-    console.log("Object values: " + Object.values(stickerStore));
-    const modifiedStickers = Object.values(stickerStore).filter(
-      (sticker) => sticker.modified
-    );
-
-    console.log("Modified Stickers: ", modifiedStickers);
-
-    return { modifiedStickers };
-  };
-
-  const prepareMemoriesForUpdate = () => {
-    const modifiedMemories = memoryArray.filter((memory) => memory.modified);
-
-    console.log("Modified Memories: " + modifiedMemories);
-
-    return { modifiedMemories };
-  };
-
-  function prepareStickersForAPI(
-    stickers: Record<string, StickerDetails>
-  ): StickerDetails[] {
-    return Object.values(stickers).map((sticker) => ({
-      ...sticker,
-      id: sticker.id,
-      x: sticker.x,
-      y: sticker.y,
-    }));
-  }
-
   const handleEditSubmit = async () => {
+    let boardIdToUse = boardId;
+    try {
+      if (isNewBoard === true) {
+        const newBoardRequestBody = {
+          userId: user?.id,
+          backgroundColor: selectedColor.value,
+        };
+
+        const boardResponse = await axios.post(
+          `${process.env.EXPO_PUBLIC_API_URL}/boards`,
+          newBoardRequestBody
+        );
+
+        const newBoardId = boardResponse.data;
+        setBoardId(newBoardId); // Set the boardId state
+        boardIdToUse = newBoardId;
+
+        console.log("New Board created with ID:", newBoardId);
+        console.log(boardId);
+
+        setIsNewBoard(false);
+        setIsEditMode(false);
+      }
+    } catch (error) {
+      console.log("Error: " + error);
+    }
+
     if (
       editMode === "colorPicker" &&
       selectedColor.value !== initialBackgroundColor
     ) {
       try {
         displayModeRef.current = true;
+
         const backgroundChangeResponse = await axios.put(
-          `${process.env.EXPO_PUBLIC_API_URL}/user/${user?.id}/background`,
+          `${process.env.EXPO_PUBLIC_API_URL}/boards/${boardIdToUse}/background`,
           { backgroundColor: selectedColor.value }
         );
         console.log("Changed background color");
-
-        console.log("COLOR: " + selectedColor.value);
         queryClient.setQueryData(["profile", user?.id], (oldData) =>
           oldData
             ? {
@@ -435,114 +584,172 @@ const MemoriesScreen = () => {
               }
             : oldData
         );
-
-        const userData = queryClient.getQueryData<User>(["profile", user?.id]);
-        console.log(userData);
       } catch {
         console.log("Error changing background");
       }
     } else if (editMode === "stickers") {
       displayModeRef.current = true;
 
-      const { modifiedStickers } = prepareStickersForUpdate();
-      const { modifiedMemories } = prepareMemoriesForUpdate();
+      const modifiedStickers = Object.values(stickersTest).filter(
+        (sticker) => sticker.modified && sticker.id && !sticker.id.includes("-")
+      );
 
-      // Modify memories
-      if (modifiedMemories.length > 0) {
-        const modifiedMemoriesRequestBody = {
-          userId: user?.id,
-          modifiedMemories,
-        };
+      const newStickers = Object.values(stickersTest).filter(
+        (sticker) => sticker.id && sticker.id.includes("-")
+      );
 
+      modifiedStickers.forEach((sticker, index) => {
+        delete modifiedStickers[index].modified;
+      });
+
+      newStickers.forEach((sticker, index) => {
+        delete newStickers[index].modified;
+      });
+
+      if (modifiedStickers.length > 0) {
         try {
-          console.log("Modified memories" + modifiedMemories);
-          if (modifiedMemories.length > 0) {
-            const modifiedMemoriesResponse = await axios.put(
-              `${process.env.EXPO_PUBLIC_API_URL}/memories`,
-              modifiedMemoriesRequestBody
-            );
-            console.log(
-              "Modified memories updated:",
-              modifiedMemoriesResponse.data
-            );
-            await queryClient.invalidateQueries({
-              queryKey: ["memories", user?.id],
-            });
-          }
-        } catch (error: any) {
-          console.error(
-            "Error updating memories",
-            error.response ? error.response.data : error.message
+          const modifiedStickerRequestBody = {
+            boardId: boardIdToUse,
+            modifiedStickers,
+          };
+
+          const modifiedStickersResponse = await axios.put(
+            `${process.env.EXPO_PUBLIC_API_URL}/stickers`,
+            modifiedStickerRequestBody
           );
+
+          console.log(
+            "Modified stickers updated:",
+            modifiedStickersResponse.data
+          );
+
+          // Reset the modified flag after successful update
+          modifiedStickers.forEach((sticker) => {
+            sticker.modified = false;
+          });
+
+          setStickersTest((prevStickers) => ({
+            ...prevStickers,
+            ...modifiedStickers.reduce((acc, sticker) => {
+              if (sticker.id) {
+                acc[sticker.id] = sticker;
+              }
+              return acc;
+            }, {} as Record<string, StickerDetails>),
+          }));
+
+          console.log("Board id " + boardIdToUse);
+
+          await queryClient.invalidateQueries({
+            queryKey: ["stickers", boardIdToUse],
+          });
+          await queryClient.invalidateQueries({
+            queryKey: ["stickers", "display", boardIdToUse],
+          });
+        } catch (error) {
+          console.error("Error updating stickers:", error);
         }
       }
 
-      if (Object.keys(tempStickerStore).length > 0) {
-        const preparedStickers = prepareStickersForAPI(tempStickerStore);
-
-        const newStickerRequestBody = {
-          userId: user?.id,
-          addedStickers: preparedStickers,
-        };
-
+      if (newStickers.length > 0) {
         try {
-          const response = await axios.post(
+          const newStickerRequestBody = {
+            userId: user?.id,
+            boardId: boardIdToUse,
+            newStickers,
+          };
+
+          const newStickersResponse = await axios.post(
             `${process.env.EXPO_PUBLIC_API_URL}/stickers`,
             newStickerRequestBody
           );
-          console.log("New stickers added:", response.data);
-          const stickerIds = response.data;
 
-          if (stickerIds.length === Object.keys(tempStickerStore).length) {
-            // console.log(
-            //   "Prepared Stickers for API:",
-            //   JSON.stringify(preparedStickers, null, 2)
-            // );
-            stickerIds.forEach((id: string, index: number) => {
-              console.log(id);
-              const stickerWithId = {
-                ...preparedStickers[index],
-                id,
-              };
-              addSticker(stickerWithId);
-              resetTempStickers();
+          console.log("New stickers created:", newStickersResponse.data);
+
+          const idMapping = newStickersResponse.data;
+
+          setStickersTest((prevStickers) => {
+            const updatedStickers = { ...prevStickers };
+
+            Object.entries(idMapping).forEach(([tempId, newId]: any) => {
+              if (updatedStickers[tempId]) {
+                updatedStickers[newId] = {
+                  ...updatedStickers[tempId],
+                  id: newId,
+                  modified: false,
+                };
+
+                delete updatedStickers[tempId];
+              }
             });
-          }
+
+            return updatedStickers;
+          });
+
           await queryClient.invalidateQueries({
-            queryKey: ["stickers", user?.id],
+            queryKey: ["stickers", "display", boardIdToUse],
+          });
+          await queryClient.invalidateQueries({
+            queryKey: ["stickers", "board", boardIdToUse],
           });
         } catch (error) {
-          console.error("Failed to add stickers:", error);
+          console.error("Error updating stickers:", error);
         }
       }
+    }
 
-      // Only make requests if there are new or modified stickers
-      if (modifiedStickers.length > 0) {
-        const modifiedStickerRequestBody = {
-          userId: user?.id,
-          modifiedStickers,
-        };
+    if (editMode === "stickers") {
+      displayModeRef.current = true;
 
+      const modifiedMemories = Object.values(memoriesTest).filter(
+        (memory) => memory.modified
+      );
+
+      modifiedMemories.forEach((memory, index) => {
+        delete modifiedMemories[index].modified;
+      });
+
+      if (modifiedMemories.length > 0) {
         try {
-          if (modifiedStickers.length > 0) {
-            const modifiedStickersResponse = await axios.put(
-              `${process.env.EXPO_PUBLIC_API_URL}/stickers`,
-              modifiedStickerRequestBody
-            );
-            console.log(
-              "Modified stickers updated:",
-              modifiedStickersResponse.data
-            );
-            resetStickers(modifiedStickersResponse.data);
-            await queryClient.invalidateQueries({
-              queryKey: ["stickers", user?.id],
-            });
-          }
-        } catch (error: any) {
-          console.error(
-            "Error updating stickers",
-            error.response ? error.response.data : error.message
+          const modifiedMemoryRequestBody = {
+            boardId: boardIdToUse,
+            modifiedMemories,
+          };
+
+          const modifiedMemoriesResponse = await axios.put(
+            `${process.env.EXPO_PUBLIC_API_URL}/memories`,
+            modifiedMemoryRequestBody
           );
+
+          console.log(
+            "Modified memories updated:",
+            modifiedMemoriesResponse.data
+          );
+
+          // Reset the modified flag after successful update
+          modifiedMemories.forEach((memory) => {
+            memory.modified = false;
+          });
+
+          setMemoriesTest((prevMemories) => ({
+            ...prevMemories,
+            ...modifiedMemories.reduce((acc, memory) => {
+              if (memory.id) {
+                acc[memory.id] = memory;
+              }
+              return acc;
+            }, {} as Record<string, MemoryDetails>),
+          }));
+
+          await queryClient.invalidateQueries({
+            queryKey: ["memories", "display", boardIdToUse],
+          });
+
+          await queryClient.invalidateQueries({
+            queryKey: ["memories", "board", boardIdToUse],
+          });
+        } catch (error) {
+          console.error("Error updating memories:", error);
         }
       }
     }
@@ -550,25 +757,6 @@ const MemoriesScreen = () => {
     setIsEditMode(false);
     setEditMode("");
   };
-  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-
-  const snapPoints = useMemo(() => {
-    if (modalContent === "stickers") {
-      return ["90%", "50%"];
-    } else if (modalContent === "colorPicker") {
-      return ["50%"];
-    }
-    return ["50%"];
-  }, [modalContent]);
-
-  const modalIndex = useMemo(
-    () => (snapPoints.length > 1 ? 0 : 0),
-    [snapPoints]
-  );
-
-  const handleSheetChanges = useCallback((index: number) => {
-    console.log("handleSheetChanges", index);
-  }, []);
 
   const handleEditPress = () => {
     setIsEditMode(true);
@@ -582,22 +770,27 @@ const MemoriesScreen = () => {
 
     const newMedia = e.nativeEvent.media;
 
-    const newSticker: Sticker = {
+    // Generate a unique ID for the new sticker
+    const newStickerId = uuid.v4() as string;
+
+    const newSticker: StickerDetails = {
+      id: newStickerId,
       media: newMedia,
       x: mediaX.value,
       y: mediaY.value,
       mediaType: "sticker",
     };
 
-    console.log("New Sticker: " + newSticker);
-    addTempSticker(newSticker);
+    console.log("New Sticker: ", newSticker);
+
+    // Add the new sticker directly to the stickersTest state
+    setStickersTest((prevStickers) => ({
+      ...prevStickers,
+      [newStickerId]: newSticker,
+    }));
 
     bottomSheetModalRef.current?.close();
   };
-
-  if (!isPendingProfile) {
-    selectedColor.value = profileDetails.backgroundDetails?.backgroundColor;
-  }
 
   // if (!isPendingMemories) {
   //   console.log("Memories Data: " + memoriesData);
@@ -621,6 +814,7 @@ const MemoriesScreen = () => {
       });
       const memoriesData = {
         userId: user?.id,
+        boardId: boardId,
         hangoutId: hangoutId,
         postX: postX.value,
         postY: postY.value,
@@ -642,8 +836,6 @@ const MemoriesScreen = () => {
         photoUrls: postDetails.photos,
         caption: postDetails.caption,
       };
-
-      console.log("posting");
 
       const postResponse = await axios.post(
         `${process.env.EXPO_PUBLIC_API_URL}/posts`,
@@ -674,9 +866,7 @@ const MemoriesScreen = () => {
     }
   };
 
-  return isPendingMemories && isPendingStickers && isPendingProfile ? (
-    <Text>Loading...</Text>
-  ) : (
+  return (
     <BottomSheetModalProvider>
       <Animated.View
         style={styles.background}
@@ -692,7 +882,16 @@ const MemoriesScreen = () => {
         />
         {!isEditMode && (
           <Pressable style={styles.backButton} onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={32} color="#FFF" />
+            <Ionicons name="chevron-back" size={40} color="#FFF" />
+          </Pressable>
+        )}
+
+        {!isEditMode && (
+          <Pressable
+            style={styles.boardSelection}
+            onPress={handlePresentBoardModalPress}
+          >
+            <Text style={styles.selectionText}>{boardName}</Text>
           </Pressable>
         )}
 
@@ -700,7 +899,7 @@ const MemoriesScreen = () => {
           <Pressable onPress={handleEditPress} style={styles.editButton}>
             <MaterialCommunityIcons
               name="pencil-box-outline"
-              size={48}
+              size={40}
               color="#FFF"
             />
           </Pressable>
@@ -728,56 +927,33 @@ const MemoriesScreen = () => {
         <GestureDetector gesture={combinedGesture}>
           <Animated.View style={[styles.container, containerStyle]}>
             {/* <DotGrid width={screenWidth} height={screenHeight} /> */}
-            {memoriesData && memoriesData.length > 0 ? (
-              memoriesData.map((hangout: any, index: number) => (
-                <AnimatedMemory
-                  key={index + (hangout.postId || "")}
-                  postId={hangout.postId}
-                  hangoutId={hangout.hangoutId}
-                  memoryId={hangout.id}
-                  positionX={hangout.postX}
-                  positionY={hangout.postY}
-                  frame={hangout.frame}
-                  color={hangout.color}
-                  displayModeRef={displayModeRef}
-                  userId={user?.id as string}
-                />
-              ))
-            ) : (
-              <View />
-            )}
-
-            {stickerStore && Object.keys(stickerStore).length > 0 ? (
-              Object.values(stickerStore).map((sticker: any, index: number) => (
-                <MediaComponent
-                  key={index}
-                  id={sticker.id}
-                  media={sticker.media}
-                  positionX={sticker.x}
-                  positionY={sticker.y}
-                  mediaType={"sticker"} // change this later
-                  displayModeRef={displayModeRef}
-                />
-              ))
-            ) : (
-              <View />
-            )}
-
-            {/*TEMPORARY STICKERS */}
-            {Object.keys(tempStickerStore).length > 0 ? (
-              Object.values(tempStickerStore).map((sticker, index: number) => (
-                <NewMediaComponent
-                  key={index}
-                  id={index.toString()}
-                  media={sticker.media}
-                  mediaType={"sticker"}
-                  displayModeRef={displayModeRef}
-                  isNew={true}
-                />
-              ))
-            ) : (
-              <View />
-            )}
+            {Object.entries(memoriesTest).map(([id, hangout]) => (
+              <AnimatedMemory
+                key={id}
+                postId={hangout.postId}
+                hangoutId={hangout.hangoutId}
+                memoryId={hangout.id}
+                positionX={hangout.postX}
+                positionY={hangout.postY}
+                frame={hangout.frame}
+                color={hangout.color}
+                displayModeRef={displayModeRef}
+                userId={user?.id as string}
+                updatePosition={updateMemoryPosition}
+              />
+            ))}
+            {Object.entries(stickersTest).map(([id, sticker]) => (
+              <MediaComponent
+                key={id}
+                id={id}
+                media={sticker.media}
+                positionX={sticker.x}
+                positionY={sticker.y}
+                mediaType="sticker"
+                displayModeRef={displayModeRef}
+                updatePosition={updateStickerPosition} // Pass the function here
+              />
+            ))}
             {isPostPlacementMode && (
               <GestureDetector gesture={postPan}>
                 <Animated.View
@@ -817,6 +993,22 @@ const MemoriesScreen = () => {
           </DebouncedPressable>
         )}
       </Animated.View>
+      {/* Board Modal*/}
+      <BottomSheetModal
+        ref={boardBottomSheetModalRef}
+        index={modalIndex}
+        snapPoints={snapPoints}
+        onChange={handleBoardSheetChanges}
+        enablePanDownToClose={true}
+        enableHandlePanningGesture={true}
+      >
+        <FlatList
+          data={boardsData}
+          renderItem={renderBoardItem}
+          showsHorizontalScrollIndicator={false}
+        />
+      </BottomSheetModal>
+      {/* Sticker Modal*/}
       <BottomSheetModal
         ref={bottomSheetModalRef}
         index={modalIndex}
@@ -901,25 +1093,44 @@ const styles = StyleSheet.create({
   backButton: {
     position: "absolute",
     zIndex: 2,
-    top: hp(6),
+    top: hp(7),
     left: wp(6),
+  },
+  boardSelection: {
+    position: "absolute",
+    top: hp(7),
+    left: "50%",
+    marginLeft: -wp(25),
+    zIndex: 2,
+    width: wp(50),
+    backgroundColor: "#FFF",
+    height: hp(5),
+    borderRadius: 50,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  selectionText: {
+    color: "#000",
+    fontFamily: "Inter",
+    fontSize: 16,
+    fontWeight: "bold",
   },
   editButton: {
     position: "absolute",
     right: wp(6),
-    top: hp(6),
+    top: hp(7),
     zIndex: 2,
   },
   stickerButton: {
     position: "absolute",
     zIndex: 2,
-    top: hp(6),
+    top: hp(7),
     right: wp(6),
   },
   colorPickerButton: {
     position: "absolute",
     zIndex: 2,
-    top: hp(6),
+    top: hp(7),
     right: wp(15),
   },
   post: {
@@ -934,16 +1145,27 @@ const styles = StyleSheet.create({
     width: wp(40),
     aspectRatio: 10,
   },
-  // modalContainer: {
-  //   flex: 1,
-  //   alignItems: "center",
-  //   backgroundColor: "#202023",
-  // },
-  // handleStyle: {
-  //   borderRadius: 5,
-  //   backgroundColor: "#202023",
-  // },
-  // modalBackground: {
-  //   backgroundColor: "#202023",
-  // },
+  boardItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    // backgroundColor: "red",
+    height: hp(15),
+  },
+  boardText: {
+    color: "#000",
+    fontFamily: "Inter",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  boardPreview: {
+    justifyContent: "center",
+    alignContent: "center",
+    overflow: "hidden",
+    borderRadius: 15,
+    transform: [{ scale: 0.2 }, { translateX: wp("-180%") }],
+    height: hp("60%"), // Set the desired height after scaling
+    width: wp("100%"), // Ensure the width scales with the full screen width
+    marginRight: -wp("70%"),
+  },
 });

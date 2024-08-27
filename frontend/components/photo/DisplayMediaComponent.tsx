@@ -60,13 +60,6 @@ const DisplayMediaComponent: React.FC<DisplayMediaComponentProps> = ({
     [positionY] // Dependency on positionY to re-create the reaction if needed
   );
 
-  useEffect(() => {
-    console.log(
-      `Sticker ${id} positions updated to: x=${positionX}, y=${positionY}`
-    );
-    console.log("Pos X: " + id + " " + posX.value);
-  }, [positionX, positionY]);
-
   const animatedStyle = useAnimatedStyle(() => {
     return {
       transform: [

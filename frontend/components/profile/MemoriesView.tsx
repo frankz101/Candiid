@@ -16,6 +16,9 @@ import { ViewStyleKey } from "@/app/(hangout)/MemoriesScreen";
 import DotGrid from "../utils/DotGrid";
 import useStore from "@/store/useStore";
 import DisplayMediaComponent from "../photo/DisplayMediaComponent";
+import axios from "axios";
+import { useQueries } from "@tanstack/react-query";
+import { useUser } from "@clerk/clerk-expo";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
@@ -40,26 +43,56 @@ interface Sticker {
 }
 
 interface MemoriesViewProps {
-  hangouts?: Hangout[];
-  stickers?: Sticker[];
+  // hangouts?: Hangout[];
+  // stickers?: Sticker[];
+  boardId: string;
   userId: string;
   color?: string;
 }
 
 const MemoriesView: React.FC<MemoriesViewProps> = ({
-  hangouts,
-  stickers,
+  // hangouts,
+  // stickers,
+  boardId,
   userId,
   color = "#FFF",
 }) => {
-  const stickerStore = useStore((state) => state.stickers);
-  // console.log(JSON.stringify(stickerStore));
+  const { user } = useUser();
   const screenX = useSharedValue<number>(0);
   const screenY = useSharedValue<number>(0);
   const scale = useSharedValue<number>(1);
 
-  const selectedColor = useSharedValue(color);
-  const displayModeRef = useRef(true);
+  const fetchMemories = async () => {
+    console.log("Fetching Memories in Memories View");
+    return axios
+      .get(`${process.env.EXPO_PUBLIC_API_URL}/memories/${boardId}`)
+      .then((res) => res.data);
+  };
+
+  const fetchStickers = async () => {
+    console.log("Fetching Stickers in Memories View");
+    return axios
+      .get(`${process.env.EXPO_PUBLIC_API_URL}/stickers/${boardId}`)
+      .then((res) => res.data);
+  };
+
+  const [memories, stickers] = useQueries({
+    queries: [
+      {
+        queryKey: ["memories", "display", boardId],
+        queryFn: fetchMemories,
+        staleTime: 1000 * 60 * 5,
+      },
+      {
+        queryKey: ["stickers", "display", boardId],
+        queryFn: fetchStickers,
+        staleTime: 1000 * 60 * 5,
+      },
+    ],
+  });
+
+  const { data: memoriesData, isPending: isPendingMemories } = memories;
+  const { data: stickersData, isPending: isPendingStickers } = stickers;
 
   const containerStyle = useAnimatedStyle(() => {
     return {
@@ -72,15 +105,15 @@ const MemoriesView: React.FC<MemoriesViewProps> = ({
     };
   });
 
-  if (!hangouts) {
-    return (
-      <View>
-        <Animated.View
-          style={[styles.container, containerStyle]}
-        ></Animated.View>
-      </View>
-    );
-  }
+  // if (!hangouts) {
+  //   return (
+  //     <View>
+  //       <Animated.View
+  //         style={[styles.container, containerStyle]}
+  //       ></Animated.View>
+  //     </View>
+  //   );
+  // }
 
   return (
     <View>
@@ -98,8 +131,9 @@ const MemoriesView: React.FC<MemoriesViewProps> = ({
           }}
         /> */}
         {/* <DotGrid width={screenWidth} height={screenHeight} /> */}
-        {hangouts &&
-          hangouts.map((hangout, index) => (
+        {!isPendingMemories &&
+          memoriesData?.length > 0 &&
+          memoriesData.map((hangout: any, index: any) => (
             <AnimatedMemory
               key={index + hangout.hangoutId}
               postId={hangout.postId}
@@ -113,8 +147,9 @@ const MemoriesView: React.FC<MemoriesViewProps> = ({
             />
           ))}
 
-        {stickers && stickers.length > 0 ? (
-          stickers.map((sticker: any, index: number) => (
+        {!isPendingStickers &&
+          stickersData?.length > 0 &&
+          stickersData.map((sticker: any, index: number) => (
             <DisplayMediaComponent
               key={index}
               id={sticker.id}
@@ -123,10 +158,7 @@ const MemoriesView: React.FC<MemoriesViewProps> = ({
               positionY={sticker.y}
               mediaType={"sticker"} // change this later
             />
-          ))
-        ) : (
-          <View />
-        )}
+          ))}
       </Animated.View>
     </View>
   );

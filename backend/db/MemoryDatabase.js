@@ -35,12 +35,11 @@ const createMemoryInDatabase = async (memory) => {
   }
 };
 
-const fetchMemoriesFromDatabase = async (userId) => {
+const fetchMemoriesFromDatabase = async (boardId) => {
   const memoriesCollection = collection(db, "memories");
-
   const userMemoriesQuery = query(
     memoriesCollection,
-    where("userId", "==", userId)
+    where("boardId", "==", boardId)
   );
 
   try {

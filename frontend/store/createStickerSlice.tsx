@@ -6,6 +6,7 @@ export interface StickerDetails {
   x: number;
   y: number;
   media: GiphyMedia;
+  mediaType: string;
   scale?: number;
   rotation?: number;
   isNew?: boolean;

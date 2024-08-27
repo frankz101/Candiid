@@ -28,6 +28,7 @@ interface MediaComponentProps {
   mediaType: string;
   displayModeRef: MutableRefObject<boolean>;
   isDisplay?: boolean;
+  updatePosition: (id: string, x: number, y: number) => void;
 }
 
 const MediaComponent: React.FC<MediaComponentProps> = ({
@@ -39,6 +40,7 @@ const MediaComponent: React.FC<MediaComponentProps> = ({
   mediaType,
   displayModeRef,
   isDisplay = false,
+  updatePosition,
 }) => {
   const mediaContext = useSharedValue({ x: positionX, y: positionY });
   const [stickerId, setStickerId] = useState<string>();
@@ -47,8 +49,6 @@ const MediaComponent: React.FC<MediaComponentProps> = ({
 
   const posX = useSharedValue<number>(positionX);
   const posY = useSharedValue<number>(positionY);
-
-  console.log(media.data.images.original.url);
 
   const isMediaActive = useSharedValue<boolean>(false);
   const [isStickerVisible, setIsStickerVisible] = useState<boolean>(true);
@@ -141,7 +141,8 @@ const MediaComponent: React.FC<MediaComponentProps> = ({
     .onEnd(() => {
       isMediaActive.value = false;
       if (stickerId) {
-        runOnJS(updateSticker)(stickerId, posX.value, posY.value, true);
+        runOnJS(updatePosition)(stickerId, posX.value, posY.value);
+        // runOnJS(updateSticker)(stickerId, posX.value, posY.value, true);
       } else {
         console.log("Sticker id is undefined, cannot update.");
       }

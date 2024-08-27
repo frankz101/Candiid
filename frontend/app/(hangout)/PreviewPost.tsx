@@ -12,7 +12,7 @@ import React, { useEffect, useState } from "react";
 import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios, { AxiosResponse } from "axios";
 import { useUser } from "@clerk/clerk-expo";
 import PhotoSquare from "@/components/photo/PhotoSquareSelect";
@@ -38,6 +38,9 @@ const PreviewPost = () => {
   const setPostDetails = useStore((state) => state.setPostDetails);
   console.log("Memory Id Preview Post: " + memoryId);
   const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const boards = queryClient.getQueryData(["boards", user?.id]);
 
   const fetchHangout = async () => {
     return axios
@@ -107,12 +110,15 @@ const PreviewPost = () => {
       caption: caption,
     });
 
+    const defaultBoardId = boards[0].id;
+
     router.navigate({
       pathname: "/(hangout)/MemoriesScreen",
       params: {
         newPost: "true",
         frameColor: frameColor,
         hangoutId: hangoutId,
+        boardIdParam: defaultBoardId,
       },
     });
   };

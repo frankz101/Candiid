@@ -17,9 +17,9 @@ const postMemory = async (req, res) => {
 
 const getMemories = async (req, res) => {
   try {
-    const userId = req.params.userId;
+    const boardId = req.params.boardId;
 
-    const result = await fetchMemories(userId);
+    const result = await fetchMemories(boardId);
     res.status(200).json(result);
   } catch (err) {
     console.log(err);

@@ -7,7 +7,6 @@ import {
 
 const postStickers = async (req, res) => {
   try {
-    console.log(req.body);
     const result = await createStickers(req.body);
     res.status(201).send(result);
   } catch (err) {
@@ -17,9 +16,9 @@ const postStickers = async (req, res) => {
 
 const getStickers = async (req, res) => {
   try {
-    const userId = req.params.userId;
+    const boardId = req.params.boardId;
 
-    const result = await fetchStickers(userId);
+    const result = await fetchStickers(boardId);
     res.status(200).json(result);
   } catch (err) {
     console.log(err);

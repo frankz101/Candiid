@@ -10,7 +10,7 @@ import {
 var router = express.Router();
 
 router.post("/memories", postMemory);
-router.get("/memories/:userId", getMemories);
+router.get("/memories/:boardId", getMemories);
 router.put("/memories/:memoryId", putMemory);
 router.put("/memories", putMemories);
 router.delete("/memories/:memoryId/:postId", deleteMemory);

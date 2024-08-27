@@ -6,6 +6,7 @@ import {
   ScrollView,
   RefreshControl,
   Modal,
+  FlatList,
 } from "react-native";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import React, { useState, Suspense, lazy } from "react";
@@ -32,10 +33,17 @@ const Profile = () => {
   const queryClient = useQueryClient();
   const [photoSheetVisible, setPhotoSheetVisible] = useState(false);
 
-  const fetchMemories = async () => {
-    console.log("Fetching Memories in Profile Tab");
+  // const fetchMemories = async () => {
+  //   console.log("Fetching Memories in Profile Tab");
+  //   return axios
+  //     .get(`${process.env.EXPO_PUBLIC_API_URL}/memories/${user?.id}`)
+  //     .then((res) => res.data);
+  // };
+
+  const fetchBoards = async () => {
+    console.log("Fetching Boards in Profile Tab");
     return axios
-      .get(`${process.env.EXPO_PUBLIC_API_URL}/memories/${user?.id}`)
+      .get(`${process.env.EXPO_PUBLIC_API_URL}/boards/${user?.id}`)
       .then((res) => res.data);
   };
 
@@ -46,36 +54,32 @@ const Profile = () => {
       .then((res) => res.data);
   };
 
-  const fetchStickers = async () => {
-    console.log("Fetching Stickers in Profile Tab");
-    return axios
-      .get(`${process.env.EXPO_PUBLIC_API_URL}/stickers/${user?.id}`)
-      .then((res) => res.data);
-  };
+  // const fetchStickers = async () => {
+  //   console.log("Fetching Stickers in Profile Tab");
+  //   return axios
+  //     .get(`${process.env.EXPO_PUBLIC_API_URL}/stickers/${user?.id}`)
+  //     .then((res) => res.data);
+  // };
 
-  const [memories, profile, fetchedStickers] = useQueries({
+  const [profile, boards] = useQueries({
     queries: [
-      {
-        queryKey: ["memories", user?.id],
-        queryFn: fetchMemories,
-        staleTime: 1000 * 60 * 5,
-      },
       {
         queryKey: ["profile", user?.id],
         queryFn: fetchUser,
         staleTime: 1000 * 60 * 5,
       },
       {
-        queryKey: ["stickers", user?.id],
-        queryFn: fetchStickers,
+        queryKey: ["allBoards", user?.id],
+        queryFn: fetchBoards,
         staleTime: 1000 * 60 * 5,
       },
     ],
   });
 
-  const { data: memoriesData, isPending: isPendingMemories } = memories;
+  // const { data: memoriesData, isPending: isPendingMemories } = memories;
+  const { data: boardsData, isPending: isPendingBoards } = boards;
   const { data: profileDetails, isPending: isPendingProfile } = profile;
-  const { data: stickersData, isPending: isPendingStickers } = fetchedStickers;
+  // const { data: stickersData, isPending: isPendingStickers } = fetchedStickers;
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -85,6 +89,7 @@ const Profile = () => {
       queryKey: ["upcomingHangouts", user?.id],
     });
     await queryClient.invalidateQueries({ queryKey: ["stickers", user?.id] });
+    await queryClient.invalidateQueries({ queryKey: ["allBoards", user?.id] });
     setRefreshing(false);
   };
 
@@ -95,6 +100,47 @@ const Profile = () => {
     backgroundDetails: {
       backgroundColor: "#FFF",
     },
+  };
+
+  const modifiedBoardsData = [...(boardsData || []), { isButton: true }];
+
+  const renderMemoriesView = ({ item }: any) => {
+    if (item.isButton) {
+      return (
+        <Animated.View style={styles.animatedView}>
+          <Pressable
+            onPress={() =>
+              router.push({
+                pathname: "/(hangout)/MemoriesScreen",
+                params: { newBoard: "true" },
+              })
+            }
+            style={styles.newBoardButton}
+          >
+            <Text>+ Create New Board</Text>
+          </Pressable>
+        </Animated.View>
+      );
+    } else {
+      return (
+        <Animated.View style={styles.animatedView}>
+          <Pressable
+            onPress={() =>
+              router.push({
+                pathname: "/(hangout)/MemoriesScreen",
+                params: { boardIdParam: item.id },
+              })
+            }
+          >
+            <MemoriesView
+              boardId={item.id}
+              color={item.backgroundColor}
+              userId={item.userId}
+            />
+          </Pressable>
+        </Animated.View>
+      );
+    }
   };
 
   // if (!isPendingStickers) {
@@ -158,17 +204,21 @@ const Profile = () => {
           <Text style={styles.userText}>{userProfile.name}</Text>
         </View>
         {/* <Text style={styles.headerText}>Memoryboard</Text> */}
-        <Animated.View style={styles.animatedView}>
-          <Pressable onPress={() => router.push("/(hangout)/MemoriesScreen")}>
-            <MemoriesView
-              hangouts={memoriesData}
-              stickers={stickersData}
-              color={userProfile.backgroundDetails?.backgroundColor}
-              userId={user?.id as string}
-            />
-          </Pressable>
-        </Animated.View>
-        <UpcomingHangouts />
+        <FlatList
+          data={modifiedBoardsData}
+          horizontal={true}
+          renderItem={renderMemoriesView}
+          showsHorizontalScrollIndicator={false}
+        />
+        {/* <MemoriesView
+                hangouts={memoriesData}
+                stickers={stickersData}
+                color={userProfile.backgroundDetails?.backgroundColor}
+                userId={user?.id as string}
+              /> */}
+        <View style={{ marginTop: "-32.5%" }}>
+          <UpcomingHangouts />
+        </View>
       </ScrollView>
     </BaseScreen>
   );
@@ -226,11 +276,34 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold",
   },
+  // animatedView: {
+  //   justifyContent: "center",
+  //   alignItems: "center",
+  //   overflow: "hidden",
+  //   width: wp("90%"), // Set the desired width
+  //   height: wp("90%") * (hp("100%") / wp("100%")),
+  //   borderRadius: 15,
+  // },
   animatedView: {
     justifyContent: "center",
-    alignItems: "center",
+    alignContent: "center",
     overflow: "hidden",
-    height: hp("60%"),
+    borderRadius: 15,
+    transform: [
+      { scale: 0.7 },
+      // { translateX: wp("-10%") },
+      { translateY: hp("-10%") },
+    ],
+    height: hp("60%"), // Set the desired height after scaling
+    width: wp("100%"), // Ensure the width scales with the full screen width
+    marginHorizontal: -wp("12%"),
+  },
+  newBoardButton: {
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%", // Match the width of animatedView
+    height: "100%", // Match the height of animatedView
+    backgroundColor: "#28282B",
     borderRadius: 15,
   },
   hangoutBanner: {

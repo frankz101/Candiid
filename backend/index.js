@@ -22,6 +22,7 @@ import NotificationRoutes from "./routes/NotificationRoutes.js";
 import StickerRoutes from "./routes/StickerRoutes.js";
 import ChatRoutes from "./routes/ChatRoutes.js";
 import GroupRoutes from "./routes/GroupRoutes.js";
+import BoardRoutes from "./routes/BoardRoutes.js";
 import { initializeSocket } from "./socket.js";
 import { initializeListeners } from "./notificationListeners.js";
 
@@ -34,6 +35,7 @@ app.use("/", NotificationRoutes);
 app.use("/", StickerRoutes);
 app.use("/", ChatRoutes);
 app.use("/", GroupRoutes);
+app.use("/", BoardRoutes);
 
 const server = app.listen(PORT, "0.0.0.0", () => {
   console.log(`Listening on port ${PORT}`);

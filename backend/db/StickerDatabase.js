@@ -16,31 +16,36 @@ import { db } from "../firebase.js";
 
 const createStickersInDatabase = async (stickers) => {
   const stickerCollection = collection(db, "stickers");
-  const createdDocRefs = [];
+  const createdDocRefs = {};
 
   try {
-    for (const sticker of stickers.addedStickers) {
-      const { ...stickerData } = sticker;
+    for (const sticker of stickers.newStickers) {
+      const tempId = sticker.id; // Assuming `id` is the temporary UUID
+      const { id, ...stickerData } = sticker; // Remove the id from stickerData
+
       const docRef = await addDoc(stickerCollection, {
         userId: stickers.userId,
+        boardId: stickers.boardId,
         ...stickerData,
         createdAt: serverTimestamp(),
       });
-      createdDocRefs.push(docRef.id);
+
+      createdDocRefs[tempId] = docRef.id; // Map the tempId to the new Firestore ID
     }
-    return createdDocRefs;
+    console.log(createdDocRefs);
+    return createdDocRefs; // Return the mapping
   } catch (error) {
     console.error("Error adding stickers to database: ", error);
     throw new Error("Failed to add sticker");
   }
 };
 
-const fetchStickersFromDatabase = async (userId) => {
+const fetchStickersFromDatabase = async (boardId) => {
   const stickersCollection = collection(db, "stickers");
 
   const stickersQuery = query(
     stickersCollection,
-    where("userId", "==", userId)
+    where("boardId", "==", boardId)
   );
 
   try {

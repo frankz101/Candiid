@@ -60,37 +60,37 @@ const ProfileView: React.FC<ProfileViewProps> = ({
 
   const { removeFriend, blockUser } = useFriendFunctions();
 
-  const fetchMemories = async () => {
-    console.log("Fetching Memories in profile screen");
-    return axios
-      .get(`${process.env.EXPO_PUBLIC_API_URL}/memories/${userId}`)
-      .then((res) => res.data);
-  };
+  // const fetchMemories = async () => {
+  //   console.log("Fetching Memories in profile screen");
+  //   return axios
+  //     .get(`${process.env.EXPO_PUBLIC_API_URL}/memories/${userId}`)
+  //     .then((res) => res.data);
+  // };
 
-  const fetchStickers = async () => {
-    console.log("Fetching Stickers in Profile Tab");
-    return axios
-      .get(`${process.env.EXPO_PUBLIC_API_URL}/stickers/${userId}`)
-      .then((res) => res.data);
-  };
+  // const fetchStickers = async () => {
+  //   console.log("Fetching Stickers in Profile Tab");
+  //   return axios
+  //     .get(`${process.env.EXPO_PUBLIC_API_URL}/stickers/${userId}`)
+  //     .then((res) => res.data);
+  // };
 
-  const [memories, fetchedStickers] = useQueries({
-    queries: [
-      {
-        queryKey: ["memories", userId],
-        queryFn: fetchMemories,
-        staleTime: 1000 * 60 * 5,
-      },
-      {
-        queryKey: ["stickers", userId],
-        queryFn: fetchStickers,
-        staleTime: 1000 * 60 * 5,
-      },
-    ],
-  });
+  // const [memories, fetchedStickers] = useQueries({
+  //   queries: [
+  //     {
+  //       queryKey: ["memories", userId],
+  //       queryFn: fetchMemories,
+  //       staleTime: 1000 * 60 * 5,
+  //     },
+  //     {
+  //       queryKey: ["stickers", userId],
+  //       queryFn: fetchStickers,
+  //       staleTime: 1000 * 60 * 5,
+  //     },
+  //   ],
+  // });
 
-  const { data: memoriesData, isPending: isPendingMemories } = memories;
-  const { data: stickersData, isPending: isPendingStickers } = fetchedStickers;
+  // const { data: memoriesData, isPending: isPendingMemories } = memories;
+  // const { data: stickersData, isPending: isPendingStickers } = fetchedStickers;
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -98,25 +98,25 @@ const ProfileView: React.FC<ProfileViewProps> = ({
     setRefreshing(false);
   };
 
-  if (isPendingMemories || isPendingStickers) {
-    return (
-      <BaseScreen>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            paddingBottom: 28,
-          }}
-        >
-          <BackButton />
-          <Text style={styles.headerText}>Loading...</Text>
-          <View style={{ width: 32 }} />
-        </View>
-        <ActivityIndicator size="large" color="#FFF" />
-      </BaseScreen>
-    );
-  }
+  // if (isPendingMemories || isPendingStickers) {
+  //   return (
+  //     <BaseScreen>
+  //       <View
+  //         style={{
+  //           flexDirection: "row",
+  //           alignItems: "center",
+  //           justifyContent: "space-between",
+  //           paddingBottom: 28,
+  //         }}
+  //       >
+  //         <BackButton />
+  //         <Text style={styles.headerText}>Loading...</Text>
+  //         <View style={{ width: 32 }} />
+  //       </View>
+  //       <ActivityIndicator size="large" color="#FFF" />
+  //     </BaseScreen>
+  //   );
+  // }
 
   const deleteFriend = async (friendId: string) => {
     await removeFriend(friendId);
@@ -233,12 +233,12 @@ const ProfileView: React.FC<ProfileViewProps> = ({
           )}
         </View>
         <Animated.View style={styles.animatedView}>
-          <MemoriesView
+          {/* <MemoriesView
             userId={userId as string}
             hangouts={memoriesData}
             stickers={stickersData}
             color={backgroundColor}
-          />
+          /> */}
           {friendStatus !== "Already Friends" && (
             <BlurView
               style={{

@@ -9,7 +9,7 @@ import {
 var router = express.Router();
 
 router.post("/stickers", postStickers);
-router.get("/stickers/:userId", getStickers);
+router.get("/stickers/:boardId", getStickers);
 router.put("/stickers/", putStickers);
 router.delete("/stickers/:stickerId", deleteSticker);
 

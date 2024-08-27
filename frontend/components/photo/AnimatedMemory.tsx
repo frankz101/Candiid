@@ -46,8 +46,8 @@ interface AnimatedMemoryProps {
   color?: string;
   frame?: ViewStyleKey;
   displayModeRef?: MutableRefObject<boolean>;
-  isDisplay?: boolean;
   userId: string;
+  updatePosition?: (id: string, x: number, y: number) => void;
 }
 
 const AnimatedMemory = ({
@@ -59,11 +59,9 @@ const AnimatedMemory = ({
   frame = "polaroid",
   color = "#FFF",
   displayModeRef = useRef(true),
-  isDisplay,
   userId,
+  updatePosition,
 }: AnimatedMemoryProps) => {
-  const [isEnlarged, setIsEnlarged] = useState(false);
-  const [tempMemoryId, setTempMemoryId] = useState<string>(); // change the name
   const isMemoryActive = useSharedValue<boolean>(false);
   const [isPhotoVisible, setIsPhotoVisible] = useState<boolean>(true);
   const queryClient = useQueryClient();
@@ -72,25 +70,25 @@ const AnimatedMemory = ({
   const posX = useSharedValue<number>(positionX);
   const posY = useSharedValue<number>(positionY);
 
-  useAnimatedReaction(
-    () => positionX,
-    (currentPosX, previousPosX) => {
-      if (currentPosX !== previousPosX) {
-        posX.value = currentPosX;
-      }
-    },
-    [positionX] // Dependency on positionX to re-create the reaction if needed
-  );
+  // useAnimatedReaction(
+  //   () => positionX,
+  //   (currentPosX, previousPosX) => {
+  //     if (currentPosX !== previousPosX) {
+  //       posX.value = currentPosX;
+  //     }
+  //   },
+  //   [positionX] // Dependency on positionX to re-create the reaction if needed
+  // );
 
-  useAnimatedReaction(
-    () => positionY,
-    (currentPosY, previousPosY) => {
-      if (currentPosY !== previousPosY) {
-        posY.value = currentPosY;
-      }
-    },
-    [positionY] // Dependency on positionY to re-create the reaction if needed
-  );
+  // useAnimatedReaction(
+  //   () => positionY,
+  //   (currentPosY, previousPosY) => {
+  //     if (currentPosY !== previousPosY) {
+  //       posY.value = currentPosY;
+  //     }
+  //   },
+  //   [positionY] // Dependency on positionY to re-create the reaction if needed
+  // );
 
   const postStyle = useAnimatedStyle(() => ({
     position: "absolute",
@@ -99,27 +97,6 @@ const AnimatedMemory = ({
   }));
   const router = useRouter();
   const { user } = useUser();
-
-  const { addMemory, updateMemory } = useStore((state) => ({
-    addMemory: state.addMemory,
-    updateMemory: state.updateMemory,
-  }));
-
-  useEffect(() => {
-    const memoryTempId = memoryId || uuid.v4();
-
-    setTempMemoryId(memoryTempId as string);
-
-    if (!isDisplay) {
-      addMemory({
-        id: memoryTempId as string,
-        postX: posX.value,
-        postY: posY.value,
-        scale: 1,
-        rotation: 0,
-      });
-    }
-  }, []);
 
   const fetchHangout = async () => {
     return axios
@@ -286,13 +263,8 @@ const AnimatedMemory = ({
     })
     .onEnd(() => {
       isMemoryActive.value = false;
-      if (tempMemoryId) {
-        runOnJS(updateMemory)(tempMemoryId, {
-          postX: posX.value,
-          postY: posY.value,
-        });
-      } else {
-        console.log("Memory id is undefined, cannot update.");
+      if (updatePosition) {
+        runOnJS(updatePosition)(memoryId, posX.value, posY.value);
       }
     });
 

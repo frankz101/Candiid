@@ -122,12 +122,12 @@ const InitialLayout = () => {
     }
   };
 
-  const fetchStickers = async (userId: string) => {
-    console.log("Fetching Stickers in Profile Tab");
-    return axios
-      .get(`${process.env.EXPO_PUBLIC_API_URL}/stickers/${userId}`)
-      .then((res) => res.data);
-  };
+  // const fetchStickers = async (userId: string) => {
+  //   console.log("Fetching Stickers in Profile Tab");
+  //   return axios
+  //     .get(`${process.env.EXPO_PUBLIC_API_URL}/stickers/${userId}`)
+  //     .then((res) => res.data);
+  // };
 
   const getContacts = async (): Promise<Contact[]> => {
     try {
