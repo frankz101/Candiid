@@ -237,6 +237,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
             userId={userId as string}
             hangouts={memoriesData}
             stickers={stickersData}
+            view={"otherProfile"}
             color={backgroundColor}
           />
           {friendStatus !== "Already Friends" && (

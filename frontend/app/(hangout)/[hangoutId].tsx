@@ -35,6 +35,7 @@ const Hangout = () => {
             hangoutId={hangoutId as string}
             memoryId={memoryId as string}
             userId={userId as string}
+            type="page"
           />
         )
       )}

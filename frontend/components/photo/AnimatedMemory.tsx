@@ -11,6 +11,7 @@ import {
   View,
   StyleSheet,
   Alert,
+  Modal,
 } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
@@ -26,6 +27,8 @@ import {
 import useStore from "@/store/useStore";
 import uuid from "react-native-uuid";
 import * as Haptics from "expo-haptics";
+import { SafeAreaView } from "react-native-safe-area-context";
+import PostPage from "../hangoutDetail/PostPage";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
@@ -47,6 +50,7 @@ interface AnimatedMemoryProps {
   frame?: ViewStyleKey;
   displayModeRef?: MutableRefObject<boolean>;
   isDisplay?: boolean;
+  view: string;
   userId: string;
 }
 
@@ -60,12 +64,14 @@ const AnimatedMemory = ({
   color = "#FFF",
   displayModeRef = useRef(true),
   isDisplay,
+  view,
   userId,
 }: AnimatedMemoryProps) => {
   const [isEnlarged, setIsEnlarged] = useState(false);
   const [tempMemoryId, setTempMemoryId] = useState<string>(); // change the name
   const isMemoryActive = useSharedValue<boolean>(false);
   const [isPhotoVisible, setIsPhotoVisible] = useState<boolean>(true);
+  const [modalVisible, setModalVisible] = useState(false);
   const queryClient = useQueryClient();
 
   const memoryContext = useSharedValue({ x: positionX, y: positionY });
@@ -262,13 +268,17 @@ const AnimatedMemory = ({
   };
 
   const handlePress = () => {
-    router.push({
-      pathname: `/(hangout)/${hangoutId}`,
-      params: {
-        memoryId: memoryId,
-        userId: userId,
-      },
-    });
+    if (view === "otherProfile") {
+      setModalVisible(true);
+    } else {
+      router.push({
+        pathname: `/(hangout)/${hangoutId}`,
+        params: {
+          memoryId: memoryId,
+          userId: userId,
+        },
+      });
+    }
   };
 
   const panGesture = Gesture.Pan()
@@ -323,6 +333,15 @@ const AnimatedMemory = ({
             <View />
           </Pressable>
         </View>
+        <Modal visible={modalVisible} animationType="fade">
+          <PostPage
+            hangoutId={hangoutId}
+            memoryId={memoryId}
+            userId={userId}
+            type="modal"
+            setModal={(status: boolean) => setModalVisible(status)}
+          />
+        </Modal>
       </Animated.View>
     </GestureDetector>
   );

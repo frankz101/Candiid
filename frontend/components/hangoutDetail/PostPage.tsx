@@ -29,6 +29,8 @@ interface PostProps {
   hangoutId: string;
   memoryId: string;
   userId: string;
+  type: string;
+  setModal?: (status: boolean) => void;
 }
 
 interface Hangout {
@@ -57,7 +59,13 @@ interface Post {
 }
 
 const { width: screenWidth } = Dimensions.get("window");
-const PostPage: React.FC<PostProps> = ({ hangoutId, memoryId, userId }) => {
+const PostPage: React.FC<PostProps> = ({
+  hangoutId,
+  memoryId,
+  userId,
+  type,
+  setModal,
+}) => {
   const [post, setPost] = useState<Post>();
   const [hangout, setHangout] = useState<Hangout>();
   const [editModalVisible, setEditModalVisible] = useState(false);
@@ -148,7 +156,15 @@ const PostPage: React.FC<PostProps> = ({ hangoutId, memoryId, userId }) => {
           paddingRight: wp(2),
         }}
       >
-        <BackButton />
+        {type === "modal" ? (
+          setModal && (
+            <Pressable onPress={() => setModal(false)}>
+              <Ionicons name="close-outline" size={32} color="white"></Ionicons>
+            </Pressable>
+          )
+        ) : (
+          <BackButton />
+        )}
         <Pressable onPress={() => setShowModal(true)}>
           <Ionicons name="ellipsis-horizontal" color="white" size={32} />
         </Pressable>
