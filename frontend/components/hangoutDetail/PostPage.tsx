@@ -66,6 +66,7 @@ const PostPage: React.FC<PostProps> = ({
   type,
   setModal,
 }) => {
+  const { user } = useUser();
   const [post, setPost] = useState<Post>();
   const [hangout, setHangout] = useState<Hangout>();
   const [editModalVisible, setEditModalVisible] = useState(false);
@@ -172,21 +173,23 @@ const PostPage: React.FC<PostProps> = ({
       <Modal transparent={true} animationType="fade" visible={showModal}>
         <Pressable style={styles.overlay} onPress={() => setShowModal(false)}>
           <View style={styles.modalContainer}>
-            <Pressable
-              style={({ pressed }) => [
-                styles.modalButton,
-                pressed
-                  ? { backgroundColor: "#3a3a3d" }
-                  : { backgroundColor: "#2a2a2d" },
-              ]}
-              onPress={() => {
-                setShowModal(false);
-                deleteHangout();
-              }}
-            >
-              <Text style={styles.modalButtonText}>Delete Hangout</Text>
-              <Ionicons name="trash-outline" color="red" size={24} />
-            </Pressable>
+            {userId === user?.id && (
+              <Pressable
+                style={({ pressed }) => [
+                  styles.modalButton,
+                  pressed
+                    ? { backgroundColor: "#3a3a3d" }
+                    : { backgroundColor: "#2a2a2d" },
+                ]}
+                onPress={() => {
+                  setShowModal(false);
+                  deleteHangout();
+                }}
+              >
+                <Text style={styles.modalButtonText}>Delete Hangout</Text>
+                <Ionicons name="trash-outline" color="red" size={24} />
+              </Pressable>
+            )}
           </View>
         </Pressable>
       </Modal>
