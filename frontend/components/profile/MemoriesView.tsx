@@ -47,6 +47,7 @@ interface MemoriesViewProps {
   // stickers?: Sticker[];
   boardId: string;
   userId: string;
+  view?: string;
   color?: string;
 }
 
@@ -55,6 +56,7 @@ const MemoriesView: React.FC<MemoriesViewProps> = ({
   // stickers,
   boardId,
   userId,
+  view = "",
   color = "#FFF",
 }) => {
   const { user } = useUser();
@@ -143,6 +145,7 @@ const MemoriesView: React.FC<MemoriesViewProps> = ({
               positionY={hangout.postY}
               frame={hangout.frame}
               color={hangout.color}
+              view={view}
               userId={userId}
             />
           ))}

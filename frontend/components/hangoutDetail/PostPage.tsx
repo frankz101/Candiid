@@ -29,6 +29,8 @@ interface PostProps {
   hangoutId: string;
   memoryId: string;
   userId: string;
+  type: string;
+  setModal?: (status: boolean) => void;
 }
 
 interface Hangout {
@@ -57,7 +59,14 @@ interface Post {
 }
 
 const { width: screenWidth } = Dimensions.get("window");
-const PostPage: React.FC<PostProps> = ({ hangoutId, memoryId, userId }) => {
+const PostPage: React.FC<PostProps> = ({
+  hangoutId,
+  memoryId,
+  userId,
+  type,
+  setModal,
+}) => {
+  const { user } = useUser();
   const [post, setPost] = useState<Post>();
   const [hangout, setHangout] = useState<Hangout>();
   const [editModalVisible, setEditModalVisible] = useState(false);
@@ -148,7 +157,15 @@ const PostPage: React.FC<PostProps> = ({ hangoutId, memoryId, userId }) => {
           paddingRight: wp(2),
         }}
       >
-        <BackButton />
+        {type === "modal" ? (
+          setModal && (
+            <Pressable onPress={() => setModal(false)}>
+              <Ionicons name="close-outline" size={32} color="white"></Ionicons>
+            </Pressable>
+          )
+        ) : (
+          <BackButton />
+        )}
         <Pressable onPress={() => setShowModal(true)}>
           <Ionicons name="ellipsis-horizontal" color="white" size={32} />
         </Pressable>
@@ -156,21 +173,23 @@ const PostPage: React.FC<PostProps> = ({ hangoutId, memoryId, userId }) => {
       <Modal transparent={true} animationType="fade" visible={showModal}>
         <Pressable style={styles.overlay} onPress={() => setShowModal(false)}>
           <View style={styles.modalContainer}>
-            <Pressable
-              style={({ pressed }) => [
-                styles.modalButton,
-                pressed
-                  ? { backgroundColor: "#3a3a3d" }
-                  : { backgroundColor: "#2a2a2d" },
-              ]}
-              onPress={() => {
-                setShowModal(false);
-                deleteHangout();
-              }}
-            >
-              <Text style={styles.modalButtonText}>Delete Hangout</Text>
-              <Ionicons name="trash-outline" color="red" size={24} />
-            </Pressable>
+            {userId === user?.id && (
+              <Pressable
+                style={({ pressed }) => [
+                  styles.modalButton,
+                  pressed
+                    ? { backgroundColor: "#3a3a3d" }
+                    : { backgroundColor: "#2a2a2d" },
+                ]}
+                onPress={() => {
+                  setShowModal(false);
+                  deleteHangout();
+                }}
+              >
+                <Text style={styles.modalButtonText}>Delete Hangout</Text>
+                <Ionicons name="trash-outline" color="red" size={24} />
+              </Pressable>
+            )}
           </View>
         </Pressable>
       </Modal>
